@@ -23,33 +23,30 @@ REGION = os.getenv("AWS_REGION", "us-east-2")
 
 
 def upload_image_to_s3(file, folder="uploads"):
-    """
-    Uploads an image file to S3 and returns the public URL.
-    
-    Args:
-        file: file object from request.files
-        folder: subfolder in S3 bucket (e.g. 'storefronts', 'listings')
-    
-    Returns:
-        Public S3 URL string or None if upload fails
-    """
-    try:
-        # generate unique filename
-        ext = file.filename.rsplit(".", 1)[-1].lower()
-        filename = f"{folder}/{uuid.uuid4().hex}.{ext}"
+       """
+       Uploads an image and returns its URL.
+       If S3 isn't configured (local dev), saves to static/uploads/ instead.
+       """
+       try:
+           ext = file.filename.rsplit(".", 1)[-1].lower()
+           filename = f"{folder}/{uuid.uuid4().hex}.{ext}"
 
-        # upload to S3 - bucket policy handles public read access
-        s3_client.upload_fileobj(
-            file,
-            BUCKET_NAME,
-            filename,
-            ExtraArgs={"ContentType": file.content_type}
-        )
+           # Local fallback - Hampton Garage Iteration 2
+           if not BUCKET_NAME:
+               root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "static", "uploads"))
+               path = os.path.join(root, filename)
+               os.makedirs(os.path.dirname(path), exist_ok=True)
+               file.save(path)
+               return f"/static/uploads/{filename}"
 
-        # return public URL
-        url = f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/{filename}"
-        return url
+           s3_client.upload_fileobj(
+               file,
+               BUCKET_NAME,
+               filename,
+               ExtraArgs={"ContentType": file.content_type}
+           )
+           return f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/{filename}"
 
-    except Exception as e:
-        print(f"S3 upload error: {e}")
-        return None
+       except Exception as e:
+           print(f"Image upload error: {e}")
+           return None
