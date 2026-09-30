@@ -14,22 +14,12 @@ Run this file manually when:
 # The Vault Campus Marketplace
 # CSC 405 Sp 26'
 # Updated by Day Ekoi - Iteration 5 - 4/20/26 - added contact_info, preview_image_1-4, categories columns to storefronts; added ALTER TABLE migrations
-
-import psycopg2
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
-
+# replaced lines 18-22 with an import from the connection files - Makena Jelks 9/30/2026
+from db import get_connection # added by Makena Jelks - 9/30/2026
 
 def create_vault_tables():
     try:
-        conn = psycopg2.connect(
-            host=os.getenv("DB_HOST"),
-            database=os.getenv("DB_NAME"),
-            user=os.getenv("DB_USER"),
-            password=os.getenv("DB_PASSWORD")
-        )
+        conn = get_connection()
 
         cur = conn.cursor()
 
