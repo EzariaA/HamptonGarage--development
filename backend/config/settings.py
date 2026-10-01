@@ -1,5 +1,7 @@
 import os
 
+
 class Config:
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret")
+    # added - ava: read the secret key from the environment
+    SECRET_KEY = os.getenv("SECRET_KEY")
     DATABASE_URL = os.getenv("DATABASE_URL", "")

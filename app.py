@@ -1,5 +1,9 @@
 import sys
 import os
+from dotenv import load_dotenv  # added - ava
+
+load_dotenv()  # added - ava: read settings from .env
+
 from flask import Flask, render_template, redirect, url_for, session
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend'))) # Updated 3/19/2026 by Ryan Grimes
@@ -20,15 +24,19 @@ def create_app():
                 template_folder='templates',
                 static_folder='static')
 
-    app.secret_key = 'vault_secure_key_2026'
+    # added - ava: get the secret key from .env
+    app.secret_key = os.getenv("SECRET_KEY")
 
+    # added - ava: stop if the secret key is missing
+    if not app.secret_key:
+        raise RuntimeError("Add SECRET_KEY to your .env file")
     # Run DB migrations on every startup so new columns are always present
     try:
         from init_db import create_vault_tables
         create_vault_tables()
     except Exception as _db_init_err:
-        print(f"[startup] DB migration warning: {_db_init_err}")
-
+        # added - ava: record the warning using Flask logging
+        app.logger.warning("DB migration failed: %s", _db_init_err)
     #The Welcome Screen (Default) Ryan Grimes 3/19/2026
     @app.route('/')
     def index():

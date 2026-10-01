@@ -7,6 +7,8 @@ import boto3
 import os
 import uuid
 from dotenv import load_dotenv
+import logging  # added - ava
+logger = logging.getLogger(__name__)  # added - ava
 
 load_dotenv()
 
@@ -48,5 +50,5 @@ def upload_image_to_s3(file, folder="uploads"):
            return f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/{filename}"
 
        except Exception as e:
-           print(f"Image upload error: {e}")
+           logger.error(f"Image upload error: {e}")  # added - ava
            return None
