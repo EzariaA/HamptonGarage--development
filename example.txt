@@ -3,4 +3,4 @@ DB_NAME=thevault
 DB_USER=postgres
 DB_PASSWORD= '' 
 DB_PORT=5432
-SECRET_KEY=local-review-secret
+SECRET_KEY=''
