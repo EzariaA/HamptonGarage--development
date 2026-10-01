@@ -1,6 +1,10 @@
 import sys
+import logging #added - ava
+from dotenv import load_dotenv #added - ava
 import os
 from flask import Flask, render_template, redirect, url_for, session
+load_dotenv() # added - ava
+logger = logging.getLogger(__name__) #added - ava
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'backend'))) # Updated 3/19/2026 by Ryan Grimes
 
@@ -20,14 +24,20 @@ def create_app():
                 template_folder='templates',
                 static_folder='static')
 
-    app.secret_key = 'vault_secure_key_2026'
+    # ava added below:
+    secret = os.environ.get("SECRET_KEY")
+    if not secret:
+        raise RuntimeError(
+            "SECRET_KEY is not set. Copy .env.example to .env and fill it in."
+        )
+    app.secret_key = secret
 
     # Run DB migrations on every startup so new columns are always present
     try:
-        from init_db import create_vault_tables
         create_vault_tables()
-    except Exception as _db_init_err:
-        print(f"[startup] DB migration warning: {_db_init_err}")
+    except Exception as e:
+        logger.warning("DB migration warning: %s", e)
+    # end of what i added
 
     #The Welcome Screen (Default) Ryan Grimes 3/19/2026
     @app.route('/')
@@ -67,7 +77,7 @@ def create_app():
         if not session.get("user"):
             return redirect(url_for("auth.login"))
         return render_template('order_confirmation.html')
-    
+
     # Route to My Storefront dashboard page - Updated 4/9/2026
     @app.route('/my-storefront')
     def my_storefront():
@@ -95,4 +105,4 @@ def create_app():
 app = create_app()
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=os.environ.get("FLASK_DEBUG") == "1")
