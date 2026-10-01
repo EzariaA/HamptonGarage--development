@@ -1,4 +1,4 @@
-<!--
+{#
  create_storefront.html
 
     The Vault Campus Marketplace 
@@ -23,85 +23,19 @@ This doesnt do this rn. But it will be updated so this form will submit data to 
 in the database and then displayed dynamically on the homepage.
 
 This file acts as the UI structure (skeleton) of the Create Storefront feature.
--->
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
+{% block title %}Create Storefront{% endblock %}
 
-<html lang="en">
-<head>
-
-    <!-- Metadata stuff -->
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <!-- Page title shown in browser tab -->
-    <title>Create Storefront</title>
-
-    <!-- live server version 
-    <link rel="stylesheet" href="./create_storefront.css"> -->
-
+{% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/create_storefront.css') }}">
-    <!-- Drag-drop zone styles - Added by Day Ekoi 4/20/26 -->
-    <style>
-        .drop-zone {
-            border: 2px dashed #d4af37;
-            border-radius: 8px;
-            padding: 1.2rem;
-            text-align: center;
-            cursor: pointer;
-            color: #888;
-            transition: background 0.2s, border-color 0.2s;
-        }
-        .drop-zone.dragover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: #f0cc55;
-        }
-        .drop-link { color: #d4af37; text-decoration: underline; cursor: pointer; }
-        .image-preview-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .image-preview-row .thumb-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .image-preview-row img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #333;
-        }
-        .image-preview-row .thumb-name {
-            font-size: 0.7rem;
-            color: #aaa;
-            max-width: 80px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            text-align: center;
-        }
-        .preview-grid-4 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-top: 8px;
-        }
-        .preview-slot { display: flex; flex-direction: column; gap: 6px; }
-        .slot-label { font-size: 0.8rem; color: #d4af37; font-weight: 700; margin: 0; }
-    </style>
-    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/create_storefront.css') }}">
+{% endblock %}
 
-</head>
-
-
-
-
-<body> 
+{% block content %}
+ 
 <!-- Start of main body code -->
 
     <!-- Header -->
@@ -275,18 +209,8 @@ This file acts as the UI structure (skeleton) of the Create Storefront feature.
 
         </form>
     </main>
+{% endblock %}
 
-
-
-
-    <!-- javascript -->
-
-    <!-- live server version 
-    <script src="./create_storefront.js"></script> -->
-
-    <!-- flask version (for later use) -->
-    <script src="{{ url_for('static', filename='js/create_storefront.js') }}"></script>
-
-
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/create_storefront.js') }}"></script>
+{% endblock %}

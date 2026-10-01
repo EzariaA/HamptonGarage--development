@@ -1,17 +1,17 @@
-<!--
+{#
 Created by Kaila Roberts 3/23/26
 Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error display
--->
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout | The Vault</title>
+{% block title %}Checkout{% endblock %}
+
+{% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/checkout.css') }}">
-</head>
-<body>
+{% endblock %}
+
+{% block content %}
     <header class="storefront-top">
         <div class="storefront-banner">
            <a href="{{ url_for('auth.view_cart') }}" style="text-decoration: none;">
@@ -65,7 +65,8 @@ Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error displ
             <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Complete Transaction</button>
         </aside>
     </main>
+{% endblock %}
 
-    <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+{% endblock %}

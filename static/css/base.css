@@ -1,0 +1,10 @@
+/*
+    base.css
+    Shared design tokens loaded on every page through base.html.
+    Created by Mason Johnson, Iteration 2, 10/1/26
+*/
+:root {
+    --gold: #B8860B;
+    --gold-light: #d4af37;
+    --dark-bg: #121212;
+}

@@ -1,0 +1,165 @@
+/*
+    create_listing.css
+    Moved out of the inline <style> block in create_listing.html
+    by Mason Johnson, Iteration 2, 10/1/26
+*/
+        .drop-zone {
+            border: 2px dashed #d4af37;
+            border-radius: 8px;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            color: #888;
+            transition: background 0.2s, border-color 0.2s;
+            width: 90%;
+            margin: 0 auto;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .drop-zone.dragover {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: #f0cc55;
+        }
+        .drop-zone.has-image {
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-style: solid;
+        }
+        .drop-zone.has-image p {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .drop-zone .image-selected-badge {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.72);
+            border: 1px solid rgba(212, 175, 55, 0.75);
+            color: #f2d06c;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            padding: 0.22rem 0.45rem;
+            border-radius: 999px;
+            text-transform: uppercase;
+        }
+        .drop-link { color: #d4af37; text-decoration: underline; cursor: pointer; }
+        .image-preview-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: center;
+        }
+        .image-preview-row .thumb-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .image-preview-row img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .image-preview-row .thumb-name {
+            font-size: 0.7rem;
+            color: #aaa;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .preview-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+            width: 100%;
+        }
+        .preview-slot {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .slot-label {
+            font-size: 0.8rem;
+            color: #d4af37;
+            font-weight: 700;
+            margin: 0;
+            text-align: center;
+        }
+        .two-col-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .price-wrap {
+            width: 90%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0 auto;
+        }
+        .price-wrap span {
+            font-weight: 700;
+            color: #d4af37;
+            min-width: 14px;
+            text-align: center;
+        }
+        .metric-field {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+        .metric-field input[type="number"] {
+            width: 90%;
+        }
+        @media (max-width: 900px) {
+            .two-col-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        .toast-root {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            z-index: 1400;
+            display: flex;
+            flex-direction: column;
+            gap: 0.55rem;
+            width: min(92vw, 360px);
+        }
+        .toast {
+            border-radius: 12px;
+            padding: 0.72rem 0.9rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1.25;
+            box-shadow: 0 8px 22px rgba(0, 0, 0, 0.38);
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .toast.success {
+            background: #111111;
+            color: #f3ce73;
+            border: 1px solid #b8860b;
+        }
+        .toast.fade-out {
+            opacity: 0;
+            transform: translateY(7px);
+        }
+    
