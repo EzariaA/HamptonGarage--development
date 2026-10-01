@@ -6,7 +6,7 @@ import os
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from config.db import get_connection
+from db import get_connection # changed to 'from db' - by Makena Jelks 9/30/26
 
 def drive_db_test():
     print("Testing Database Connection Driver...")
@@ -20,7 +20,7 @@ def drive_db_test():
             count = cur.fetchone()[0]
             
             print("CONNECTION STATUS: SUCCESS")
-            print(f"AWS RDS STATUS: Online")
+            print(f"DATABASE STATUS: Online") # changed hardcoded AWS status message - Makena Jelks 9/30/2026
             print(f"TOTAL USERS IN DATABASE: {count}")
             
             cur.close()
