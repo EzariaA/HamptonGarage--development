@@ -1,7 +1,9 @@
 # By Ryan Grimes - Updated 3/19/2026
-from flask import Blueprint, request, session, redirect, url_for, render_template, flash, jsonify
+# current_app on line 2 added by Makena Jelks 9/30/26
+from flask import Blueprint, request, session, redirect, url_for, render_template, flash, jsonify, current_app
 from services.auth_services import AuthService 
-from config.db import get_connection
+# changed config.db to db - Makena Jelks 9/30/26
+from db import get_connection
 
 auth_bp = Blueprint('auth', __name__)
 service = AuthService()
@@ -12,8 +14,10 @@ def login():
         user = request.form.get('username')
         pw = request.form.get('password')
 
-        conn = get_connection()
-        if conn is None:
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
             return "Database connection failed. <a href='/auth/login'>Try again</a>"
 
         success, role = service.validate_login(user, pw, conn)
@@ -55,8 +59,10 @@ def signup():
         pw = request.form.get('password')
         email = request.form.get('email')
 
-        conn = get_connection()
-        if conn is None:
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
             return "Database connection failed. <a href='/auth/signup'>Try again</a>"
 
         success, message = service.register_user(user, pw, email, conn)

@@ -8,7 +8,7 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from services.auth_services import AuthService
-from config.db import get_connection
+from db import get_connection # changed to 'from db' - by Makena Jelks 9/30/26
 
 def print_cart_state(label, cart_items):
     if not cart_items:

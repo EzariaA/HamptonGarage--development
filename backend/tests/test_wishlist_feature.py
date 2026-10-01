@@ -11,7 +11,7 @@ for path in (PROJECT_ROOT, BACKEND_ROOT):
         sys.path.append(path)
 
 from app import create_app
-from backend.config.db import get_connection
+from db import get_connection # changed to 'from db' - by Makena Jelks 9/30/26
 
 
 class TestWishlistFeature(unittest.TestCase):
