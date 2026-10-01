@@ -2,6 +2,7 @@
 # CSC 405 Sp 26'
 # Updated by Day Ekoi - 4/22/26
 
+import logging  # added - ava
 import random
 import string
 from datetime import datetime
@@ -17,6 +18,9 @@ from models.checkout_model import (
     remove_purchased_from_wishlist,
     check_listing_availability,
 )
+
+
+logger = logging.getLogger(__name__)  # added - ava
 
 
 def _generate_confirmation_number():
@@ -91,7 +95,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
             try:
                 update_listing_size_inventory(int(item_id), size, quantity)
             except Exception as e:
-                print(f"[checkout] inventory update failed for listing {item_id} size {size}: {e}")
+                logger.error("Inventory update failed for listing %s size %s: %s", item_id, size, e)  # added - ava
 
     clear_cart_for_user(user_id)
 
@@ -100,7 +104,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     try:
         remove_purchased_from_wishlist(user_id, purchased_listing_ids)
     except Exception as e:
-        print(f"[checkout] wishlist cleanup failed: {e}")
+        logger.error("Wishlist cleanup failed: %s", e)  # added - ava
 
     return {
         "confirmation_number": confirmation_number,

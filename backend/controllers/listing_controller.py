@@ -20,6 +20,9 @@ All system rules + permission checks happen in services/listing_service.py.
 """
 
 from flask import Blueprint, request, jsonify
+import logging  # added - ava
+
+logger = logging.getLogger(__name__)  # added - ava
 
 from services.listing_service import (
     create_listing_service,
@@ -185,7 +188,7 @@ def create_listing_from_form():
             try:
                 add_listing_image_service(current_user, listing["id"], image_url, is_primary=(index == 0))
             except Exception as e:
-                print(f"Warning: Failed to add image to listing: {str(e)}")
+                logger.warning("Failed to add image to listing: %s", e)  # added - ava
 
         # Add sizes with individual quantities
         for size in sizes_available:
@@ -198,7 +201,7 @@ def create_listing_from_form():
                     size_qty = quantity_on_hand or 0
                 upsert_listing_size_service(current_user, listing["id"], size, size_qty)
             except Exception as e:
-                print(f"Warning: Failed to add size {size} to listing: {str(e)}")
+                logger.warning("Failed to add size %s to listing: %s", size, e)  # added - ava
 
         return jsonify(listing), 201
 

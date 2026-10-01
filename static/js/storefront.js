@@ -262,8 +262,7 @@ if (navOverlay) { // Updated by Day E 3/22/26
   });
 }
 
-console.log(storefronts); // logs the storefronts array to the console for debugging purposes
-console.log(grid); // logs the storefront grid element to the console for debugging purposes
+// removed debug console logs - ava
 
 // SEARCH BAR FUNCTIONALITY
 // Added by Day E 4/9/26
