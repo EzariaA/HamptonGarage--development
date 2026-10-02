@@ -4,7 +4,8 @@ from flask import Blueprint, request, session, redirect, url_for, render_templat
 from services.auth_services import AuthService 
 # changed config.db to db - Makena Jelks 9/30/26
 from db import get_connection
-
+import logging  # added - ava
+logger = logging.getLogger(__name__)  # added - ava
 auth_bp = Blueprint('auth', __name__)
 service = AuthService()
 
@@ -37,7 +38,7 @@ def login():
                     session['cart'] = service.get_user_cart(conn, row[0]) # Load user's cart into session on login
                     cur.close()
             except Exception as e:
-                print(f"Error fetching user_id for session: {e}")
+                logger.error(f"Error fetching user_id for session: {e}")
             finally:
                 conn.close()
 
@@ -129,7 +130,7 @@ def add_to_cart():
         ):
             return jsonify({"error": f"{item_name} is sold out and cannot be added to your bag."}), 409
     except Exception as e:
-        print(f"DB Error checking listing availability: {e}")
+        logger.error(f"DB Error checking listing availability: {e}")
 
     # PERSIST TO DATABASE
     try:
@@ -143,7 +144,7 @@ def add_to_cart():
         cur.close()
         conn.close()
     except Exception as e:
-        print(f"DB Error adding to cart: {e}")
+        logger.error(f"DB Error adding to cart: {e}")
 
     # Update session for immediate UI feedback
     if 'cart' not in session:
@@ -182,7 +183,7 @@ def remove_from_cart(index):
                 cur.close()
                 conn.close()
             except Exception as e:
-                print(f"DB Error removing item: {e}")
+                logger.error(f"DB Error removing item: {e}")
 
             session['cart'] = temp_cart
             session.modified = True
