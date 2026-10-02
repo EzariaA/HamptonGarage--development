@@ -1,0 +1,56 @@
+/*
+    create_storefront.css
+    Moved out of the inline <style> block in create_storefront.html
+    by Mason Johnson, Iteration 2, 10/1/26
+*/
+        .drop-zone {
+            border: 2px dashed #d4af37;
+            border-radius: 8px;
+            padding: 1.2rem;
+            text-align: center;
+            cursor: pointer;
+            color: #888;
+            transition: background 0.2s, border-color 0.2s;
+        }
+        .drop-zone.dragover {
+            background: rgba(212, 175, 55, 0.08);
+            border-color: #f0cc55;
+        }
+        .drop-link { color: #d4af37; text-decoration: underline; cursor: pointer; }
+        .image-preview-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .image-preview-row .thumb-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .image-preview-row img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 6px;
+            border: 1px solid #333;
+        }
+        .image-preview-row .thumb-name {
+            font-size: 0.7rem;
+            color: #aaa;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            text-align: center;
+        }
+        .preview-grid-4 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 8px;
+        }
+        .preview-slot { display: flex; flex-direction: column; gap: 6px; }
+        .slot-label { font-size: 0.8rem; color: #d4af37; font-weight: 700; margin: 0; }
+    

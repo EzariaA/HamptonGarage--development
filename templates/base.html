@@ -1,0 +1,26 @@
+{#
+    base.html
+    Hampton Garage Campus Marketplace
+    CSC 404 Fa 26
+    Created by Mason Johnson, Iteration 2, 10/1/26
+
+    Shared layout every page extends. Child pages fill in these blocks:
+      title    page name shown in the browser tab
+      styles   page specific stylesheet links
+      content  everything inside <body>
+      scripts  page specific JS, loaded at the end of <body>
+#}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{% endblock %} | Hampton Garage</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block styles %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

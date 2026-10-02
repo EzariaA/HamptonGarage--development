@@ -1,0 +1,50 @@
+/*
+    cart.css
+    Moved out of the inline <style> block in cart.html
+    by Mason Johnson, Iteration 2, 10/1/26
+*/
+        :root { --gold: #B8860B; --dark-bg: #121212; }
+        
+        body { background-color: #000; color: white; font-family: 'Segoe UI', sans-serif; }
+
+        .cart-container {
+            max-width: 900px; margin: 50px auto; padding: 30px;
+            background: rgba(18, 18, 18, 0.95); border: 1px solid var(--gold);
+            box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
+        }
+
+        .cart-header {
+            border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 30px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        .cart-header h1 { margin: 0; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+
+        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+        .cart-table th { text-align: left; color: var(--gold); border-bottom: 1px solid #333; padding: 15px; text-transform: uppercase; font-size: 0.8rem; }
+        .cart-table td { padding: 15px; border-bottom: 1px solid #222; }
+
+        .item-info h4 { margin: 0; color: white; }
+        .item-info span { color: #888; font-size: 0.85rem; }
+
+        .price-col { font-family: 'Courier New', monospace; color: var(--gold); }
+
+        .cart-summary {
+            background: #1a1a1a; padding: 20px; border: 1px solid #333;
+            text-align: right;
+        }
+
+        .total-row { font-size: 1.5rem; color: var(--gold); font-weight: bold; margin-bottom: 20px; }
+
+        .checkout-btn {
+            background: var(--gold); color: black; border: none; padding: 15px 40px;
+            font-weight: bold; text-transform: uppercase; cursor: pointer;
+            transition: 0.3s; letter-spacing: 2px;
+        }
+
+        .checkout-btn:hover { background: #DAA520; transform: translateY(-2px); }
+
+        .empty-msg { text-align: center; padding: 50px; color: #555; font-style: italic; }
+        
+        .back-link { color: var(--gold); text-decoration: none; font-size: 0.9rem; margin-top: 20px; display: inline-block; }
+    

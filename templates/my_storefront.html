@@ -1,4 +1,4 @@
-<!--
+{#
  my_storefront.html
 
     The Vault Campus Marketplace 
@@ -18,18 +18,17 @@ This page also includes action buttons that let the seller:
 
 This file acts as the UI structure for the seller's personal storefront management page.
 It is different from the public storefront page because this version is meant for the storefront owner.
--->
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storefront Dashboard</title>
+{% block title %}Storefront Dashboard{% endblock %}
+
+{% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/my_storefront.css') }}">
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
     <main class="storefront-dashboard">
 
         <!-- back button - Added by Day Ekoi 4/20/26 -->
@@ -93,7 +92,8 @@ It is different from the public storefront page because this version is meant fo
         </section>
 
     </main>
+{% endblock %}
 
-    <script src="{{ url_for('static', filename='js/my_storefront.js') }}"></script>
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/my_storefront.js') }}"></script>
+{% endblock %}

@@ -1,22 +1,21 @@
-<!--
+{#
  storefront_view.html
     The Vault Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4
     3/18/2026-3/22/2026
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - Facebook-style layout, back arrow above banner, info moved below banner
--->
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Storefront View</title>
+{% block title %}Storefront View{% endblock %}
+
+{% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront_view.css') }}">
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
 <main class="storefront-view-page">
 
     <!-- back arrow sits above the banner, always visible -->
@@ -65,7 +64,8 @@
     </div>
 
 </main>
+{% endblock %}
 
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/storefront_view.js') }}"></script>
-</body>
-</html>
+{% endblock %}

@@ -1,19 +1,17 @@
-<!-- File Created By David Jackson -->
-<!-- Updated by David Jackson 4/21/2026 -->
+{#
+ File Created By David Jackson 
+ Updated by David Jackson 4/21/2026
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
+{% block title %}Admin Dashboard{% endblock %}
 
-    <!-- Title shown in browser tab -->
-    <title>Admin Dashboard</title>
-
-    <!-- Link to external CSS file for styling -->
+{% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
-</head>
-<body>
+{% endblock %}
 
+{% block content %}
     <!-- Main page title -->
     <h1>Admin Dashboard</h1>
 
@@ -120,9 +118,8 @@
             <tbody></tbody>
         </table>
     </section>
+{% endblock %}
 
-    <!-- Link to JavaScript file (handles API calls and UI updates) -->
-    <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
-
-</body>
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

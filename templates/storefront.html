@@ -1,4 +1,4 @@
-<!---
+{#
     storefront.html
 
     The Vault Campus Marketplace 
@@ -26,29 +26,17 @@ Script connection: Links and loads JS file that actually creates the storefront 
 
 
 Start of Code w/ comments
---->
+#}
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
 
-<!DOCTYPE html> 
-<!-- needed for any HTML file -->
+{% block title %}Storefronts{% endblock %}
 
-<html lang="en"> 
-<!-- This line tells the browser that all content on the page is in english. There arent any other language considerations at the moment -->
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}">
+{% endblock %}
 
-<head> 
-<!-- stores info that isnt actually shown on the page itself. Includes metadata, browser tab title, and links to the css file -->
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" /> <!-- ensures the screensize is consistent on different types of devices -->
-  <title>The Vault | Storefronts</title> <!-- Simple, this is the Title of the page -->
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}" /> <!-- Updated by Day E 3/22/26 -->
-</head> <!-- end of head -->
-
-
-
-<!-- MAIN "BODY" CODE: This section holds what will actually be seen and interacted with on the storefront page -->
-
-<body>
-
+{% block content %}
 <!-- Side navigation pane/menu (the 3 lines)
  -allows users to press create storefront button that now allows them to be a seller by creating a storefront and then creating listings
  -explore brands, all categories, new drops, and hot! sections included
@@ -278,9 +266,8 @@ Updated nav bar
   <div id="lightboxOverlay" class="lightbox-overlay">
     <img id="lightboxImg" class="lightbox-img" src="" alt="Preview">
   </div>
+{% endblock %}
 
-  <script src="{{ url_for('static', filename='js/storefront.js') }}"></script> <!-- Updated by Day E 3/22/26 -->
-  <!-- This line links this file to storefront.js 
-   Placed at the bottom so that all HTML loads correctly first and then JS. This ensures everything runs correctly -->
-</body> <!-- end of body -->
-</html>
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/storefront.js') }}"></script>
+{% endblock %}

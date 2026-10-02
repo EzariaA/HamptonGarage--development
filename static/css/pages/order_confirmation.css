@@ -1,0 +1,170 @@
+/*
+    order_confirmation.css
+    Moved out of the inline <style> block in order_confirmation.html
+    by Mason Johnson, Iteration 2, 10/1/26
+*/
+        :root { --gold: #B8860B; --gold-light: #d4af37; }
+
+        body {
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)),
+                        url("/static/images/background.png") no-repeat center center fixed;
+            background-size: cover;
+            color: white;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        .page-wrapper {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .conf-card {
+            background: rgba(0, 0, 0, 0.88);
+            border: 1px solid rgba(184, 134, 11, 0.6);
+            box-shadow: 0 0 30px rgba(184, 134, 11, 0.15);
+            padding: 36px;
+        }
+
+        .conf-header {
+            text-align: center;
+            margin-bottom: 32px;
+            border-bottom: 1px solid rgba(184, 134, 11, 0.4);
+            padding-bottom: 24px;
+        }
+
+        .success-badge {
+            display: inline-block;
+            background: rgba(30, 120, 60, 0.3);
+            border: 1px solid rgba(50, 180, 90, 0.5);
+            color: #5dde8a;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 14px;
+        }
+
+        .conf-header h1 {
+            margin: 0 0 8px;
+            font-size: 1.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .conf-header h1 span { color: var(--gold-light); }
+
+        .conf-number {
+            font-size: 0.9rem;
+            color: #aaa;
+            letter-spacing: 1px;
+        }
+
+        .conf-number strong { color: var(--gold-light); }
+
+        .section {
+            margin-bottom: 28px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .section:last-of-type { border-bottom: none; margin-bottom: 0; }
+
+        .section h2 {
+            color: var(--gold-light);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 24px;
+        }
+
+        .detail-item strong {
+            display: block;
+            color: #888;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .detail-item span { color: #e0e0e0; }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .items-table th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--gold-light);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(184,134,11,0.4);
+        }
+
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            color: #ddd;
+        }
+
+        .text-right { text-align: right; }
+
+        .order-total {
+            margin-top: 16px;
+            display: flex;
+            justify-content: flex-end;
+            font-size: 1.15rem;
+            font-weight: bold;
+            color: var(--gold-light);
+        }
+
+        .button-row {
+            margin-top: 32px;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            text-decoration: none;
+            padding: 12px 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+
+        .btn-primary { background: linear-gradient(145deg, #B8860B, #8B6508); color: black; }
+        .btn-primary:hover { filter: brightness(1.2); }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--gold-light);
+            border: 1px solid var(--gold-light);
+        }
+        .btn-secondary:hover { background: rgba(184,134,11,0.1); }
+
+        .loading-msg { text-align: center; color: #888; padding: 40px 0; }
+        .error-msg { color: #ff8a8a; text-align: center; padding: 30px 0; }
+
+        @media (max-width: 600px) {
+            .detail-grid { grid-template-columns: 1fr; }
+            .conf-card { padding: 22px; }
+        }
+    
