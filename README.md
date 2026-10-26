@@ -143,7 +143,7 @@ Copy the `whsec_...` value it prints into `STRIPE_WEBHOOK_SECRET`. Test card: `4
 Unit tests run without a database or internet:
 
 ```bash
-python -m unittest backend.tests.test_stripe_payment backend.tests.test_env_config backend.tests.test_seed_demo_data -v
+python -m unittest backend.tests.test_stripe_payment backend.tests.test_wishlist_unit backend.tests.test_env_config backend.tests.test_seed_demo_data -v
 ```
 
 Full suite (some older tests need the local database from the setup steps above, with at least one user):

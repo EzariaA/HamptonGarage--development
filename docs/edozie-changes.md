@@ -10,7 +10,7 @@ This branch does 4 things, plus tests:
 | 2 | Took the leaked password and secret key out of `.ebextensions/env.config` | 1 |
 | 3 | Fixed the README (clone link, setup steps, test command) | 1 |
 | 4 | Demo stores and pictures show up on the live site | 1 |
-| + | Unit tests for all of the above (39 tests) | |
+| + | Unit tests for all of the above, plus the existing wishlist code (60 tests) | |
 
 ---
 
@@ -134,17 +134,18 @@ python backend/seed_demo_data.py
 
 ## Tests
 
-3 new test files, 39 tests total. They don't need a database or internet.
+4 new test files, 60 tests total. They don't need a database or internet.
 
 | File | What it checks |
 |------|----------------|
 | `backend/tests/test_stripe_payment.py` | An order is only marked paid when Stripe says paid, it's the right order and it's the right amount. It's never processed twice. Fake webhooks are rejected and real ones are accepted. Nothing comes out of stock before payment. The routes return the right responses. |
+| `backend/tests/test_wishlist_unit.py` | The **existing** wishlist code (written by Elali last semester): adding works, adding a listing that doesn't exist fails, adding twice fails, database errors are handled, removing works and fails correctly, routes reject missing users and bad input, you can't see someone else's wishlist item, and the SQL uses safe values. |
 | `backend/tests/test_env_config.py` | No passwords or keys in `env.config`. |
 | `backend/tests/test_seed_demo_data.py` | Demo data creates 4 stores, running it twice adds nothing, passwords are hashed, every listing has 1 main picture, an error undoes everything, and every picture file exists. |
 
 Run them:
 ```bash
-python -m unittest backend.tests.test_stripe_payment backend.tests.test_env_config backend.tests.test_seed_demo_data -v
+python -m unittest backend.tests.test_stripe_payment backend.tests.test_wishlist_unit backend.tests.test_env_config backend.tests.test_seed_demo_data -v
 ```
 
 I also ran the payment flow and the demo loader against a real local Postgres database to make sure the SQL works.
