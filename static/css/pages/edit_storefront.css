@@ -54,3 +54,101 @@
         .preview-slot { display: flex; flex-direction: column; gap: 6px; }
         .slot-label { font-size: 0.8rem; color: #d4af37; font-weight: 700; margin: 0; }
     
+
+/* ________________________________________________________
+   Danger Zone + Delete Storefront confirmation box
+   Added by Mason Johnson 10/26/26
+   ________________________________________________________ */
+
+/* server messages at the top of the page */
+.flash-msg {
+    padding: 10px 14px;
+    margin-bottom: 1.5rem;
+    font-size: 0.95rem;
+}
+
+.flash-msg--error {
+    background: rgba(180, 40, 40, 0.2);
+    border: 1px solid rgba(200, 60, 60, 0.5);
+    color: #ff8a8a;
+}
+
+.flash-msg--success {
+    background: rgba(24, 110, 54, 0.22);
+    border: 1px solid rgba(76, 175, 80, 0.82);
+    color: #98efb2;
+}
+
+/* red-bordered card under the main form */
+.danger-zone {
+    margin-top: 2rem;
+    border-color: rgba(220, 53, 53, 0.75);
+    box-shadow: 0 0 25px rgba(220, 53, 53, 0.15);
+    text-align: center;
+}
+
+.danger-zone-label { color: #ff8f8f; }
+
+.danger-zone-text {
+    color: #bbb;
+    margin: 0 0 1.25rem;
+    max-width: 600px;
+}
+
+/* dark full-screen background behind the box */
+.delete-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    z-index: 1000;
+}
+
+.delete-modal-box {
+    background: #0b0b0b;
+    border: 1px solid rgba(220, 53, 53, 0.75);
+    padding: 1.75rem;
+    max-width: 480px;
+    width: 100%;
+    color: white;
+}
+
+.delete-modal-title {
+    color: #ff8f8f;
+    margin-top: 0;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.delete-confirm-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.8rem;
+    margin: 0.5rem 0 1.25rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(220, 53, 53, 0.6);
+    color: white;
+}
+
+.delete-modal-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+/* the shared buttons are very wide, so shrink them inside the box */
+.delete-modal-actions .secondary-btn,
+.delete-modal-actions .danger-btn {
+    min-width: 0;
+    font-size: 0.95rem;
+}
+
+.delete-modal-actions .danger-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+}

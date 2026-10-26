@@ -7,6 +7,7 @@
 
 Edit Storefront page — pre-fills current storefront data and allows the owner to update
 brand name, contact info, description, logo, and banner.
+Updated by Mason Johnson 10/26/26 - added Danger Zone with permanent Delete Storefront + confirmation box
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {% extends "base.html" %}
@@ -30,6 +31,13 @@ brand name, contact info, description, logo, and banner.
     </header>
 
     <main class="create-page">
+        <!-- Messages from the server (for example, a failed delete) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-msg flash-msg--{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
         <form class="storefront-form" id="storefrontForm" enctype="multipart/form-data">
 
             <!-- banner - Updated by Day Ekoi 4/20/26 - replaced plain input with drag-drop zone + current image preview -->
@@ -167,7 +175,37 @@ brand name, contact info, description, logo, and banner.
             </section>
 
         </form>
+
+        <!-- Danger Zone: permanent delete, kept separate from Deactivate -->
+        <section class="form-card danger-zone">
+            <p class="section-label danger-zone-label">Danger Zone</p>
+            <p class="danger-zone-text">
+                Permanently delete this storefront and all of its listings. This cannot be undone.
+                If you only want to hide it for now, use Deactivate instead.
+            </p>
+            <button type="button" class="danger-btn" id="deleteStorefrontBtn">Delete Storefront</button>
+        </section>
     </main>
+
+    <!-- Delete confirmation box: the seller must type the storefront name before the delete button turns on -->
+    <div class="delete-modal" id="deleteModal" style="display:none;">
+        <div class="delete-modal-box">
+            <h3 class="delete-modal-title">Delete Storefront Permanently?</h3>
+            <p>
+                This will permanently delete your storefront, all of its listings, listing images, and sizes.
+                Buyers' past orders are kept for records. <strong>This cannot be undone.</strong>
+            </p>
+            <p>Type <strong class="gold" id="deleteStorefrontName"></strong> to confirm.</p>
+
+            <form method="POST" action="{{ url_for('storefront_pages_bp.delete_storefront_page', storefront_id=storefront_id) }}">
+                <input type="text" name="confirm_name" id="deleteConfirmInput" class="delete-confirm-input" autocomplete="off" placeholder="Storefront name">
+                <div class="delete-modal-actions">
+                    <button type="button" class="secondary-btn" id="deleteCancelBtn">Cancel</button>
+                    <button type="submit" class="danger-btn" id="deleteConfirmBtn" disabled>Delete Forever</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

@@ -249,6 +249,13 @@ Updated nav bar
   <!-- Main page content: Holds the storefrotn cards and pagination -->
   <main class="page-content">
 
+    <!-- Messages from the server (for example, after a storefront is deleted) - Added by Mason Johnson 10/26/26 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash-msg flash-msg--{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+
     <section class="storefront-grid" id="storefrontGrid">
     </section>
 

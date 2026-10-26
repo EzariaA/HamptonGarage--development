@@ -439,6 +439,27 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 
+/* Server messages above the storefront grid - Added by Mason Johnson 10/26/26 */
+.flash-msg {
+    margin: 0 16px 1.5rem;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.flash-msg--success {
+    background: rgba(24, 110, 54, 0.22);
+    border: 1px solid rgba(76, 175, 80, 0.82);
+    color: #98efb2;
+}
+
+.flash-msg--error {
+    background: rgba(180, 40, 40, 0.2);
+    border: 1px solid rgba(200, 60, 60, 0.5);
+    color: #ff8a8a;
+}
+
+
 /* Storefront card grid */
 .storefront-grid {
     display: grid;
