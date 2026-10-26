@@ -5,16 +5,18 @@
 seed_demo_data.py
 
 Purpose:
-Loads demo storefronts and listings so the site has something to show.
-Images point at files in static/images, which ship with the app, so they work
-on the live site without S3.
+Fills the site with demo storefronts and listings so it isn't empty.
+"Seeding" just means putting starter data into the database.
 
-Safe to run more than once: a storefront that already exists is skipped.
+The pictures are files already in static/images, which get uploaded to AWS
+with the rest of the app, so they show up on the live site without S3.
 
-Run it manually:
+It's safe to run more than once: if a demo storefront is already there, it's skipped.
+
+Run it by hand:
     python backend/seed_demo_data.py
 
-Or set SEED_DEMO_DATA=true and the app loads it on startup (see app.py).
+Or set SEED_DEMO_DATA=true and app.py runs it every time the app starts.
 """
 
 import secrets
@@ -22,11 +24,13 @@ import secrets
 from db import get_connection
 from utils.auth_utils import hash_password
 
-# Any fixed number works; it just stops two app workers seeding at the same time
-SEED_LOCK_ID = 404_2026
-
+# All the demo images live in static/images
 IMG = "/static/images/"
 
+# Every listing gets these sizes and this many of each
+DEMO_SIZES = [("S", 3), ("M", 5), ("L", 5), ("XL", 3)]
+
+# The demo stores. Each one gets its own demo owner account.
 DEMO_STOREFRONTS = [
     {
         "username": "demo_nike",
@@ -78,25 +82,31 @@ DEMO_STOREFRONTS = [
     },
 ]
 
-DEMO_SIZES = [("S", 3), ("M", 5), ("L", 5), ("XL", 3)]
 
-
-def _get_or_create_user(cur, username):
+def get_or_create_demo_user(cur, username):
+    """Finds the demo owner account, or makes it if it doesn't exist. Returns the user id."""
     cur.execute("SELECT id FROM users WHERE username = %s;", (username,))
     row = cur.fetchone()
     if row:
         return row[0]
-    # Demo owners get a random password nobody knows, so the accounts can't be logged into
+
+    # Random password that nobody knows, so no one can log in as a demo owner.
+    # ".invalid" emails can never belong to a real person.
+    random_password = secrets.token_urlsafe(32)
     cur.execute(
         "INSERT INTO users (username, password, email) VALUES (%s, %s, %s) RETURNING id;",
-        (username, hash_password(secrets.token_urlsafe(32)), f"{username}@demo.invalid"),
+        (username, hash_password(random_password), username + "@demo.invalid"),
     )
     return cur.fetchone()[0]
 
 
-def _create_storefront(cur, owner_id, store):
-    previews = [IMG + listing["images"][0] for listing in store["listings"]][:4]
-    previews += [None] * (4 - len(previews))
+def create_demo_storefront(cur, owner_id, store):
+    """Adds one storefront. Returns its id."""
+    # The storefront card shows up to 4 preview pictures. Use each listing's first picture.
+    previews = [None, None, None, None]
+    for i in range(min(4, len(store["listings"]))):
+        previews[i] = IMG + store["listings"][i]["images"][0]
+
     cur.execute(
         """
         INSERT INTO storefronts
@@ -106,13 +116,17 @@ def _create_storefront(cur, owner_id, store):
         RETURNING id;
         """,
         (owner_id, store["brand_name"], store["bio"], IMG + store["logo"], IMG + "background.png",
-         store["categories"], *previews),
+         store["categories"], previews[0], previews[1], previews[2], previews[3]),
     )
     return cur.fetchone()[0]
 
 
-def _create_listing(cur, storefront_id, listing):
-    total_qty = sum(qty for _, qty in DEMO_SIZES)
+def create_demo_listing(cur, storefront_id, listing):
+    """Adds one listing with its pictures and sizes."""
+    total_quantity = 0
+    for size, quantity in DEMO_SIZES:
+        total_quantity = total_quantity + quantity
+
     cur.execute(
         """
         INSERT INTO listings
@@ -120,45 +134,52 @@ def _create_listing(cur, storefront_id, listing):
         VALUES (%s, %s, %s, %s, 'IN_STOCK', %s, %s, 'ACTIVE')
         RETURNING id;
         """,
-        (storefront_id, listing["title"], f"Demo listing: {listing['title']}.", listing["price"],
-         total_qty, '["S","M","L","XL"]'),
+        (storefront_id, listing["title"], "Demo listing: " + listing["title"] + ".", listing["price"],
+         total_quantity, '["S","M","L","XL"]'),
     )
     listing_id = cur.fetchone()[0]
 
-    for i, image in enumerate(listing["images"]):
+    # Pictures: the first one is the main (primary) picture
+    is_first = True
+    for image in listing["images"]:
         cur.execute(
             "INSERT INTO listing_images (listing_id, image_url, is_primary) VALUES (%s, %s, %s);",
-            (listing_id, IMG + image, i == 0),
+            (listing_id, IMG + image, is_first),
         )
-    for size, qty in DEMO_SIZES:
+        is_first = False
+
+    # How many of each size are in stock
+    for size, quantity in DEMO_SIZES:
         cur.execute(
             "INSERT INTO listing_sizes (listing_id, size, quantity) VALUES (%s, %s, %s);",
-            (listing_id, size, qty),
+            (listing_id, size, quantity),
         )
 
 
 def seed_demo_data():
-    """Creates any demo storefronts that don't exist yet. Returns how many were created."""
+    """Adds any demo storefronts that aren't in the database yet. Returns how many it added."""
     conn = get_connection()
     cur = conn.cursor()
     created = 0
-    try:
-        # Held until commit, so only one process seeds at a time
-        cur.execute("SELECT pg_advisory_xact_lock(%s);", (SEED_LOCK_ID,))
 
+    try:
         for store in DEMO_STOREFRONTS:
-            owner_id = _get_or_create_user(cur, store["username"])
+            owner_id = get_or_create_demo_user(cur, store["username"])
+
+            # Already has a storefront? Skip it so we don't make doubles.
             cur.execute("SELECT id FROM storefronts WHERE owner_id = %s;", (owner_id,))
             if cur.fetchone():
                 continue
 
-            storefront_id = _create_storefront(cur, owner_id, store)
+            storefront_id = create_demo_storefront(cur, owner_id, store)
             for listing in store["listings"]:
-                _create_listing(cur, storefront_id, listing)
-            created += 1
+                create_demo_listing(cur, storefront_id, listing)
+            created = created + 1
 
+        # Save everything at once
         conn.commit()
     except Exception:
+        # Something broke, so undo everything from this run
         conn.rollback()
         raise
     finally:
@@ -170,4 +191,4 @@ def seed_demo_data():
 
 if __name__ == "__main__":
     count = seed_demo_data()
-    print(f"Demo data loaded: {count} new storefront(s) created.")
+    print("Demo data loaded:", count, "new storefront(s) created.")

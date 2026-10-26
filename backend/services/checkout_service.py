@@ -26,9 +26,11 @@ def _generate_confirmation_number():
     return f"VAULT-{date_str}-{suffix}"
 
 
-# Updated by Mattie Edozie - 10/26/26 - split into create_pending_order + fulfill_paid_order.
-# The order is saved as PENDING_PAYMENT here. Inventory, cart and wishlist only change
-# in fulfill_paid_order, which runs after Stripe confirms the payment.
+# Updated by Mattie Edozie - 10/26/26
+# This used to be one function that saved the order AND took items out of stock right away,
+# before anyone paid. Now it's split into two:
+#   create_pending_order - saves the order as PENDING_PAYMENT (runs when the buyer clicks Pay)
+#   fulfill_paid_order   - takes items out of stock, empties cart/wishlist (runs only after Stripe confirms)
 def create_pending_order(user_id, session_cart, buyer_details):
     """
     Saves the order and its items as PENDING_PAYMENT using the session cart and buyer details.
@@ -71,7 +73,7 @@ def create_pending_order(user_id, session_cart, buyer_details):
         buyer_contact=contact,
         buyer_meeting_location=meeting_location,
         total_amount=total_amount,
-        order_status="PENDING_PAYMENT",
+        order_status="PENDING_PAYMENT",  # not paid yet
     )
 
     order_items = []
@@ -95,9 +97,13 @@ def create_pending_order(user_id, session_cart, buyer_details):
 
 
 def fulfill_paid_order(order):
-    """Updates inventory, clears the buyer's cart and wishlist. Call only after the order is PAID."""
+    """
+    Takes the bought items out of stock and empties the buyer's cart and wishlist.
+    Only call this after the order is PAID (payment_service.py does this).
+    """
     order_items = get_order_items_by_order_id(order["id"])
 
+    # Take each item out of stock
     for item in order_items:
         item_id = item.get("listing_id")
         size = item.get("selected_size")
@@ -107,10 +113,14 @@ def fulfill_paid_order(order):
             except Exception as e:
                 logger.warning(f"[checkout] inventory update failed for listing {item_id} size {size}: {e}")
 
+    # Empty the buyer's saved cart
     clear_cart_for_user(order["user_id"])
 
-    # Remove purchased listings from the user's wishlist
-    purchased_listing_ids = [item.get("listing_id") for item in order_items if item.get("listing_id") is not None]
+    # Remove the bought items from the buyer's wishlist
+    purchased_listing_ids = []
+    for item in order_items:
+        if item.get("listing_id") is not None:
+            purchased_listing_ids.append(item["listing_id"])
     try:
         remove_purchased_from_wishlist(order["user_id"], purchased_listing_ids)
     except Exception as e:

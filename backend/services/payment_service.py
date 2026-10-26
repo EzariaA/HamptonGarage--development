@@ -1,9 +1,18 @@
 # The Vault Campus Marketplace
 # CSC 404 Fall 26'
 # Created by Mattie Edozie - 10/26/26
-# Stripe Checkout payments. An order is only marked PAID after Stripe confirms it,
-# either through the signed webhook or by asking Stripe directly when the buyer returns.
-# Card details are entered on Stripe's page and never reach our server.
+#
+# STRIPE PAYMENTS
+# Stripe is the company that actually charges the buyer's card.
+# How it works:
+#   1. We save the order as PENDING_PAYMENT (not paid yet).
+#   2. We ask Stripe to make a payment page for that order (a "Checkout Session").
+#   3. The buyer types their card on STRIPE'S page, not ours. We never see the card number.
+#   4. Stripe tells us the payment went through. ONLY THEN do we mark the order PAID.
+#
+# Stripe tells us in two ways (whichever happens first wins, the other does nothing):
+#   - Webhook: Stripe's server sends a message to our /api/stripe/webhook route.
+#   - Return page: when the buyer comes back to our site, we ask Stripe "did they pay?"
 import logging
 import os
 
@@ -14,92 +23,95 @@ from services.checkout_service import fulfill_paid_order
 
 logger = logging.getLogger(__name__)
 
-# Stripe events that mean a Checkout Session may now be paid
-PAID_EVENT_TYPES = ("checkout.session.completed", "checkout.session.async_payment_succeeded")
-
-
-class PaymentConfigError(Exception):
-    """Raised when the Stripe keys are missing from the environment."""
-
 
 def payments_configured():
+    """Returns True if the Stripe secret key is set in .env (or in the AWS settings)."""
     return bool(os.getenv("STRIPE_SECRET_KEY"))
 
 
-def _use_secret_key():
-    key = os.getenv("STRIPE_SECRET_KEY")
-    if not key:
-        raise PaymentConfigError("Online payments are not set up. Add STRIPE_SECRET_KEY to your .env file.")
-    stripe.api_key = key
-
-
-def to_cents(amount):
-    """Stripe takes amounts in cents: 12.5 -> 1250."""
+def dollars_to_cents(amount):
+    """Stripe wants prices in cents, not dollars. Example: 12.50 -> 1250"""
     return int(round(float(amount) * 100))
 
 
 def start_stripe_checkout(order, order_items, base_url):
-    """Creates a Stripe Checkout Session for the order and returns the Stripe payment page URL."""
-    _use_secret_key()
+    """
+    Asks Stripe to make a payment page for this order.
+    Returns the link to that page so we can send the buyer there.
+    """
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
+    # Build the list of items Stripe shows on its payment page
     line_items = []
     for item in order_items:
-        name = item.get("item_name") or "Item"
-        if item.get("selected_size"):
-            name = f"{name} (Size {item['selected_size']})"
+        name = item["item_name"]
+        if item["selected_size"]:
+            name = name + " (Size " + item["selected_size"] + ")"
+
         line_items.append({
             "price_data": {
                 "currency": "usd",
                 "product_data": {"name": name},
-                "unit_amount": to_cents(item["price_at_purchase"]),
+                "unit_amount": dollars_to_cents(item["price_at_purchase"]),
             },
-            "quantity": int(item["quantity"]),
+            "quantity": item["quantity"],
         })
 
-    checkout_session = stripe.checkout.Session.create(
+    # Where Stripe sends the buyer after paying, or after hitting "back".
+    # Stripe replaces {CHECKOUT_SESSION_ID} with the real session id for us.
+    success_url = base_url + "/order-confirmation?conf=" + order["confirmation_number"] + "&session_id={CHECKOUT_SESSION_ID}"
+    cancel_url = base_url + "/checkout?canceled=1"
+
+    stripe_session = stripe.checkout.Session.create(
         mode="payment",
         line_items=line_items,
-        customer_email=order.get("buyer_email"),
-        client_reference_id=order["confirmation_number"],
-        metadata={"order_id": str(order["id"])},
-        success_url=(
-            f"{base_url}/order-confirmation?conf={order['confirmation_number']}"
-            "&session_id={CHECKOUT_SESSION_ID}"
-        ),
-        cancel_url=f"{base_url}/checkout?canceled=1",
+        customer_email=order["buyer_email"],
+        metadata={"order_id": str(order["id"])},  # so we know which order this payment is for
+        success_url=success_url,
+        cancel_url=cancel_url,
     )
 
-    set_order_stripe_session(order["id"], checkout_session.id)
-    return checkout_session.url
+    # Save Stripe's session id on the order so we can match them up later
+    set_order_stripe_session(order["id"], stripe_session.id)
+
+    return stripe_session.url
 
 
-def confirm_paid_session(checkout_session):
+def mark_paid_if_stripe_confirms(stripe_session):
     """
-    Marks the order PAID if Stripe says this Checkout Session is paid and it matches the order.
-    checkout_session is a plain dict. Returns the order (None if no order matches).
+    Looks at what Stripe told us about a payment.
+    If everything checks out, marks the order PAID.
+    stripe_session is a normal Python dictionary.
+    Returns the order, or None if we can't find it.
     """
-    order_id = (checkout_session.get("metadata") or {}).get("order_id")
+    # Which order is this payment for? We put the order id in "metadata" when we made the session.
+    metadata = stripe_session.get("metadata") or {}
+    order_id = metadata.get("order_id")
     if not order_id:
-        logger.warning("[stripe] session %s has no order_id", checkout_session.get("id"))
+        logger.warning("[stripe] payment has no order_id")
         return None
 
     order = get_order_by_id(int(order_id))
     if not order:
-        logger.warning("[stripe] session %s points at missing order %s", checkout_session.get("id"), order_id)
+        logger.warning("[stripe] payment is for an order that doesn't exist: %s", order_id)
         return None
 
-    if checkout_session.get("payment_status") != "paid":
+    # Check 1: did Stripe actually take the money?
+    if stripe_session.get("payment_status") != "paid":
         return order
 
-    # The session must be the one we created for this order, for the full amount
-    if checkout_session.get("id") != order["stripe_session_id"]:
-        logger.warning("[stripe] session %s does not match order %s", checkout_session.get("id"), order["id"])
-        return order
-    if checkout_session.get("amount_total") != to_cents(order["total_amount"]):
-        logger.warning("[stripe] amount mismatch on order %s", order["id"])
+    # Check 2: is this the payment page we made for THIS order?
+    if stripe_session.get("id") != order["stripe_session_id"]:
+        logger.warning("[stripe] payment doesn't match order %s", order_id)
         return order
 
-    # mark_order_paid only returns True once, so fulfillment never runs twice
+    # Check 3: did they pay the full price?
+    if stripe_session.get("amount_total") != dollars_to_cents(order["total_amount"]):
+        logger.warning("[stripe] wrong amount paid for order %s", order_id)
+        return order
+
+    # All checks passed. mark_order_paid returns True only the FIRST time,
+    # so if Stripe tells us twice, we don't take the items out of stock twice.
     if mark_order_paid(order["id"]):
         fulfill_paid_order(order)
         order["order_status"] = "PAID"
@@ -107,28 +119,35 @@ def confirm_paid_session(checkout_session):
     return order
 
 
-def handle_stripe_webhook(payload, signature_header):
+def handle_stripe_webhook(payload, signature):
     """
-    Checks the webhook really came from Stripe, then confirms paid sessions.
-    Raises ValueError or stripe.SignatureVerificationError for bad requests.
+    Runs when Stripe's server sends us a message (a "webhook").
+    construct_event checks the message's signature, which proves it really came
+    from Stripe and not from someone pretending. A fake message raises an error.
     """
-    secret = os.getenv("STRIPE_WEBHOOK_SECRET")
-    if not secret:
-        raise PaymentConfigError("Add STRIPE_WEBHOOK_SECRET to your .env file.")
+    event = stripe.Webhook.construct_event(payload, signature, os.getenv("STRIPE_WEBHOOK_SECRET"))
 
-    event = stripe.Webhook.construct_event(payload, signature_header, secret)
-
-    if event.type in PAID_EVENT_TYPES:
-        confirm_paid_session(event.data.object.to_dict())
+    # We only care about "the buyer finished paying" messages
+    if event.type == "checkout.session.completed" or event.type == "checkout.session.async_payment_succeeded":
+        # to_dict() turns Stripe's object into a normal Python dictionary
+        mark_paid_if_stripe_confirms(event.data.object.to_dict())
 
     return event.type
 
 
-def confirm_session_for_user(session_id, user_id):
-    """Asks Stripe for the session when the buyer comes back from paying, so the page doesn't wait on the webhook."""
-    _use_secret_key()
-    checkout_session = stripe.checkout.Session.retrieve(session_id)
-    order = confirm_paid_session(checkout_session.to_dict())
+def check_payment_on_return(session_id, user_id):
+    """
+    Runs when the buyer lands back on our site after paying.
+    We ask Stripe directly about the payment so the buyer sees PAID right away,
+    without waiting for the webhook.
+    """
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
+    stripe_session = stripe.checkout.Session.retrieve(session_id)
+
+    order = mark_paid_if_stripe_confirms(stripe_session.to_dict())
+
+    # Don't let someone look up another person's order
     if not order or order["user_id"] != user_id:
         raise Exception("Order not found.")
+
     return order
