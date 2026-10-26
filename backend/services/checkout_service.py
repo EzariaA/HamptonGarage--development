@@ -26,9 +26,12 @@ def _generate_confirmation_number():
     return f"VAULT-{date_str}-{suffix}"
 
 
-def complete_transaction_from_session(user_id, session_cart, buyer_details):
+# Updated by Mattie Edozie - 10/26/26 - split into create_pending_order + fulfill_paid_order.
+# The order is saved as PENDING_PAYMENT here. Inventory, cart and wishlist only change
+# in fulfill_paid_order, which runs after Stripe confirms the payment.
+def create_pending_order(user_id, session_cart, buyer_details):
     """
-    Completes checkout using session cart and submitted buyer details.
+    Saves the order and its items as PENDING_PAYMENT using the session cart and buyer details.
 
     buyer_details keys: first_name, last_name, email, contact, meeting_location
     session_cart items: { id, name, price, quantity, size }
@@ -68,40 +71,20 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
         buyer_contact=contact,
         buyer_meeting_location=meeting_location,
         total_amount=total_amount,
+        order_status="PENDING_PAYMENT",
     )
 
     order_items = []
     for item in session_cart:
-        item_id = item.get("id")
-        item_name = item.get("name", "Item")
-        quantity = int(item.get("quantity", 1))
-        price = float(item.get("price", 0))
-        size = item.get("size")
-
         order_item = create_order_item(
             order_id=order["id"],
-            listing_id=item_id,
-            item_name=item_name,
-            quantity=quantity,
-            price_at_purchase=price,
-            selected_size=size,
+            listing_id=item.get("id"),
+            item_name=item.get("name", "Item"),
+            quantity=int(item.get("quantity", 1)),
+            price_at_purchase=float(item.get("price", 0)),
+            selected_size=item.get("size"),
         )
         order_items.append(order_item)
-
-        if item_id and size:
-            try:
-                update_listing_size_inventory(int(item_id), size, quantity)
-            except Exception as e:
-                logger.warning(f"[checkout] inventory update failed for listing {item_id} size {size}: {e}")
-
-    clear_cart_for_user(user_id)
-
-    # Remove purchased listings from the user's wishlist
-    purchased_listing_ids = [item.get("id") for item in session_cart if item.get("id") is not None]
-    try:
-        remove_purchased_from_wishlist(user_id, purchased_listing_ids)
-    except Exception as e:
-        logger.warning(f"[checkout] wishlist cleanup failed: {e}")
 
     return {
         "confirmation_number": confirmation_number,
@@ -109,6 +92,29 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
         "order_items": order_items,
         "total_amount": total_amount,
     }
+
+
+def fulfill_paid_order(order):
+    """Updates inventory, clears the buyer's cart and wishlist. Call only after the order is PAID."""
+    order_items = get_order_items_by_order_id(order["id"])
+
+    for item in order_items:
+        item_id = item.get("listing_id")
+        size = item.get("selected_size")
+        if item_id and size:
+            try:
+                update_listing_size_inventory(int(item_id), size, int(item["quantity"]))
+            except Exception as e:
+                logger.warning(f"[checkout] inventory update failed for listing {item_id} size {size}: {e}")
+
+    clear_cart_for_user(order["user_id"])
+
+    # Remove purchased listings from the user's wishlist
+    purchased_listing_ids = [item.get("listing_id") for item in order_items if item.get("listing_id") is not None]
+    try:
+        remove_purchased_from_wishlist(order["user_id"], purchased_listing_ids)
+    except Exception as e:
+        logger.warning(f"[checkout] wishlist cleanup failed: {e}")
 
 
 def get_order_summary_service(confirmation_number, user_id):

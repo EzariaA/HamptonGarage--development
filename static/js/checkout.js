@@ -7,6 +7,9 @@
     - Displays items with size, qty, and subtotals
     - Submits buyer details to /api/checkout/complete
     - Redirects to order confirmation on success
+    Updated by Mattie Edozie - 10/26/26
+    - Sends the buyer to Stripe's payment page instead of straight to confirmation
+    - Shows a message when the buyer cancels on Stripe
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -24,6 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function hideError() {
         if (errorMsg) errorMsg.style.display = "none";
+    }
+
+    // Stripe sends the buyer back here with ?canceled=1 if they leave the payment page
+    if (new URLSearchParams(window.location.search).get("canceled")) {
+        showError("Payment was canceled. Your order has not been paid. You can try again below.");
     }
 
     // Load cart from Flask session
@@ -115,12 +123,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error(data.error || "Transaction failed.");
             }
 
-            window.location.href = `/order-confirmation?conf=${encodeURIComponent(data.confirmation_number)}`;
+            // Stripe's page takes the card; the order is marked paid only after Stripe confirms
+            window.location.href = data.checkout_url;
         } catch (err) {
             showError(err.message || "Something went wrong. Please try again.");
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = "Complete Transaction";
+                submitBtn.textContent = "Continue to Payment";
             }
         }
     });
