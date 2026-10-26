@@ -2,6 +2,7 @@
  Created 3/21/2026 by Ryan Grimes
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Updated by Mason Johnson 10/26/26 - shows login errors on the page and keeps the typed username #}
 {% extends "base.html" %}
 
 {% block title %}Secure Login{% endblock %}
@@ -14,14 +15,28 @@
     <div class="vault-wrapper">
         <div class="auth-card">
             <h2>DECRYPT ACCESS</h2>
-            <form action="{{ url_for('auth.login') }}" method="POST">
+
+            <!-- Messages: flashed ones (like "Signup successful") and the general login error -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% for category, message in messages %}
+                    <div class="form-msg form-msg--{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endwith %}
+            {% if errors.general %}
+                <div class="form-msg form-msg--error">{{ errors.general }}</div>
+            {% endif %}
+
+            <!-- novalidate: our own messages are shown instead of the browser's popups -->
+            <form action="{{ url_for('auth.login') }}" method="POST" novalidate>
                 <div class="input-group">
-                    <label>Identity (Username)</label>
-                    <input type="text" name="username" required placeholder="User_01" autofocus>
+                    <label for="username">Identity (Username)</label>
+                    <input type="text" id="username" name="username" required placeholder="User_01" value="{{ username }}" autofocus {% if errors.username %}class="input-invalid"{% endif %}>
+                    {% if errors.username %}<p class="field-error">{{ errors.username }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label>Access Cipher (Password)</label>
-                    <input type="password" name="password" required placeholder="••••••••">
+                    <label for="password">Access Cipher (Password)</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" {% if errors.password %}class="input-invalid"{% endif %}>
+                    {% if errors.password %}<p class="field-error">{{ errors.password }}</p>{% endif %}
                 </div>
                 <button type="submit" class="submit-btn">Authorize</button>
             </form>

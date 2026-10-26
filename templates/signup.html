@@ -2,6 +2,7 @@
  Created 3/21/2026 by Ryan Grimes
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Updated by Mason Johnson 10/26/26 - shows signup errors under each field and keeps the typed username/email #}
 {% extends "base.html" %}
 
 {% block title %}Create Account{% endblock %}
@@ -14,18 +15,32 @@
     <div class="vault-wrapper">
         <div class="auth-card">
             <h2>INITIALIZE ACCESS</h2>
-            <form action="{{ url_for('auth.signup') }}" method="POST">
+
+            <!-- General error (like a database problem) -->
+            {% if errors.general %}
+                <div class="form-msg form-msg--error">{{ errors.general }}</div>
+            {% endif %}
+
+            <!-- novalidate: our own messages are shown instead of the browser's popups -->
+            <form action="{{ url_for('auth.signup') }}" method="POST" novalidate>
                 <div class="input-group">
-                    <label>Designation (Username)</label>
-                    <input type="text" name="username" required placeholder="User_01">
+                    <label for="username">Designation (Username)</label>
+                    <input type="text" id="username" name="username" required placeholder="User_01" value="{{ username }}" {% if errors.username %}class="input-invalid"{% endif %}>
+                    {% if errors.username %}<p class="field-error">{{ errors.username }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label>Neural Link (Email)</label>
-                    <input type="email" name="email" required placeholder="email@example.com">
+                    <label for="email">Neural Link (Email)</label>
+                    <input type="email" id="email" name="email" required placeholder="name@hamptonu.edu" value="{{ email }}" {% if errors.email %}class="input-invalid"{% endif %}>
+                    {% if errors.email %}<p class="field-error">{{ errors.email }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label>Security Cipher (Password)</label>
-                    <input type="password" name="password" required placeholder="••••••••">
+                    <label for="password">Security Cipher (Password)</label>
+                    <input type="password" id="password" name="password" required placeholder="••••••••" {% if errors.password %}class="input-invalid"{% endif %}>
+                    {% if errors.password %}
+                        <p class="field-error">{{ errors.password }}</p>
+                    {% else %}
+                        <p class="field-hint">At least 8 characters with a letter and a number.</p>
+                    {% endif %}
                 </div>
                 <button type="submit" class="submit-btn">Create Identity</button>
             </form>

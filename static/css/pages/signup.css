@@ -88,4 +88,30 @@
         }
 
         .back-link:hover { color: #B8860B; }
-    
+
+        /* Signup error messages - Added by Mason Johnson 10/26/26 */
+        .form-msg {
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: left;
+            background: rgba(180, 40, 40, 0.2);
+            border: 1px solid rgba(200, 60, 60, 0.6);
+            color: #ff8a8a;
+        }
+
+        /* red border + message under a field that needs fixing */
+        .input-group input.input-invalid { border-color: rgba(220, 53, 53, 0.85); }
+
+        .field-error {
+            color: #ff8a8a;
+            font-size: 0.85rem;
+            margin: 6px 0 0;
+        }
+
+        /* small grey tip under the password box */
+        .field-hint {
+            color: #888;
+            font-size: 0.8rem;
+            margin: 6px 0 0;
+        }

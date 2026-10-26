@@ -122,4 +122,33 @@
             box-shadow: 0 0 10px rgba(184, 134, 11, 0.5);
         }
 
-    
+        /* Login error and success messages - Added by Mason Johnson 10/26/26 */
+        .form-msg {
+            padding: 10px 12px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            text-align: left;
+            border: 1px solid rgba(184, 134, 11, 0.6);
+            color: #e6c878;
+        }
+
+        .form-msg--error {
+            background: rgba(180, 40, 40, 0.2);
+            border-color: rgba(200, 60, 60, 0.6);
+            color: #ff8a8a;
+        }
+
+        .form-msg--success {
+            background: rgba(24, 110, 54, 0.22);
+            border-color: rgba(76, 175, 80, 0.8);
+            color: #98efb2;
+        }
+
+        /* red border + message under a field that needs fixing */
+        .input-group input.input-invalid { border-color: rgba(220, 53, 53, 0.85); }
+
+        .field-error {
+            color: #ff8a8a;
+            font-size: 0.85rem;
+            margin: 6px 0 0;
+        }
