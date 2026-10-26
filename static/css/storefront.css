@@ -563,22 +563,6 @@ nav-divider { /* updated by Day E 4/9/2026 */
 */
 
 
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 18px;
-    margin-top: 34px;
-}
-
-.page-indicator {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.86);
-}
-
-
 /* Lightbox overlay - Added by Day Ekoi 4/20/26 */
 .lightbox-overlay {
     position: fixed;
