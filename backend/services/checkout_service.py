@@ -26,6 +26,94 @@ def _generate_confirmation_number():
     return f"VAULT-{date_str}-{suffix}"
 
 
+# ________________________________________________________
+# MOCK CARD PAYMENT CHECKS
+# Added by Mason Johnson - Iteration 2 - 10/26/26
+# No real payment service is used. The full card number and CVV
+# are only checked here and are never saved or logged.
+# ________________________________________________________
+
+def is_all_digits(text):
+    """Returns True if the text is not empty and every character is 0-9."""
+    if text == "":
+        return False
+    for char in text:
+        if char not in "0123456789":
+            return False
+    return True
+
+
+def passes_luhn_check(card_number):
+    """
+    Runs the Luhn check on a string of digits.
+    Starting from the right, every second digit is doubled
+    (subtract 9 if it goes over 9). The total must end in 0.
+    """
+    total = 0
+    reversed_number = card_number[::-1]
+
+    for i in range(len(reversed_number)):
+        digit = int(reversed_number[i])
+        if i % 2 == 1:
+            digit = digit * 2
+            if digit > 9:
+                digit = digit - 9
+        total = total + digit
+
+    return total % 10 == 0
+
+
+def validate_card(card):
+    """
+    Checks the mock card form fields.
+    Returns a dictionary of field name -> error message.
+    An empty dictionary means the card is valid.
+    """
+    errors = {}
+
+    name = (card.get("name") or "").strip()
+    number = (card.get("number") or "").replace(" ", "").replace("-", "")
+    expiry = (card.get("expiry") or "").strip()
+    cvv = (card.get("cvv") or "").strip()
+
+    # Cardholder name
+    if not name:
+        errors["name"] = "Enter the name on the card."
+
+    # Card number: 13 to 19 digits and must pass the Luhn check
+    if not number:
+        errors["number"] = "Enter a card number."
+    elif not is_all_digits(number):
+        errors["number"] = "Card number can only contain digits."
+    elif len(number) < 13 or len(number) > 19:
+        errors["number"] = "Card number must be 13 to 19 digits."
+    elif not passes_luhn_check(number):
+        errors["number"] = "This card number is not valid. Please check it and try again."
+
+    # Expiration date: MM/YY and not in the past
+    if not expiry:
+        errors["expiry"] = "Enter the expiration date."
+    elif len(expiry) != 5 or expiry[2] != "/" or not is_all_digits(expiry[:2]) or not is_all_digits(expiry[3:]):
+        errors["expiry"] = "Use the format MM/YY."
+    else:
+        month = int(expiry[:2])
+        year = 2000 + int(expiry[3:])
+        today = datetime.now()
+
+        if month < 1 or month > 12:
+            errors["expiry"] = "Month must be between 01 and 12."
+        elif year < today.year or (year == today.year and month < today.month):
+            errors["expiry"] = "This card has expired."
+
+    # CVV: 3 or 4 digits
+    if not cvv:
+        errors["cvv"] = "Enter the CVV."
+    elif not is_all_digits(cvv) or len(cvv) < 3 or len(cvv) > 4:
+        errors["cvv"] = "CVV must be 3 or 4 digits."
+
+    return errors
+
+
 def complete_transaction_from_session(user_id, session_cart, buyer_details):
     """
     Completes checkout using session cart and submitted buyer details.

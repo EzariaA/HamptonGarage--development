@@ -8,11 +8,14 @@ from services.checkout_service import (
     complete_transaction_from_session,
     get_order_summary_service,
     get_user_orders_service,
+    validate_card,
 )
 
 checkout_bp = Blueprint("checkout", __name__)
 
 
+# Checks the mock card info, then places the order or sends back the card errors
+# Updated by Mason Johnson - Iteration 2 - 10/26/26 - added mock card check before placing the order
 @checkout_bp.route("/checkout/complete", methods=["POST"])
 def complete_checkout():
     user_id = session.get("user_id")
@@ -24,6 +27,14 @@ def complete_checkout():
         return jsonify({"error": "Cart is empty"}), 400
 
     data = request.get_json() or {}
+
+    # Mock payment: check the card fields. Card data is not passed on or saved anywhere.
+    card_errors = validate_card(data.get("card") or {})
+    if card_errors:
+        return jsonify({
+            "error": "Please fix the card details below.",
+            "card_errors": card_errors,
+        }), 400
 
     try:
         result = complete_transaction_from_session(user_id, session_cart, data)
