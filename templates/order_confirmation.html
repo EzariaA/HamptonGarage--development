@@ -42,17 +42,6 @@ Updated by Mattie Edozie 10/26/26 - checks the Stripe payment when the buyer ret
             return;
         }
 
-        // Coming back from Stripe: ask the server to check the payment with Stripe first.
-        // If this fails, the Stripe webhook still marks the order paid.
-        const sessionId = params.get("session_id");
-        if (sessionId) {
-            try {
-                await fetch(`/api/checkout/confirm?session_id=${encodeURIComponent(sessionId)}`);
-            } catch (e) {
-                console.warn("Could not confirm payment yet:", e);
-            }
-        }
-
         let order, orderItems;
         try {
             const res = await fetch(`/api/orders/by-confirmation/${encodeURIComponent(conf)}`);

@@ -1,17 +1,12 @@
 #!/usr/bin/env bash
-DB=hamptongarage-db
-ENV=hamptongarage-env
-status() { aws rds describe-db-instances --db-instance-identifier "$DB" --query "DBInstances[0].DBInstanceStatus" --output text; }
+# Turns the live site OFF to save AWS credits. Run with: bash vault-off.sh
 
-echo "Turning off the app server..."
-aws elasticbeanstalk update-environment --environment-name "$ENV" --option-settings Namespace=aws:autoscaling:asg,OptionName=MinSize,Value=0 Namespace=aws:autoscaling:asg,OptionName=MaxSize,Value=0 > /dev/null
+# Find the Auto Scaling group that runs our app server
+ASG=$(aws elasticbeanstalk describe-environment-resources --environment-name hamptongarage-env --query "EnvironmentResources.AutoScalingGroups[0].Name" --output text)
 
-s=$(status)
-while [[ "$s" == "starting" || "$s" == "modifying" || "$s" == "backing-up" ]]; do echo "Database is $s, waiting..."; sleep 30; s=$(status); done
-if [[ "$s" == "available" ]]; then
-  aws rds stop-db-instance --db-instance-identifier "$DB" > /dev/null
-  echo "Database is stopping."
-else
-  echo "Database is already $s."
-fi
-echo "Done. Reminder: AWS automatically restarts a stopped database after 7 days."
+# Turn off the app server (0 servers)
+aws autoscaling update-auto-scaling-group --auto-scaling-group-name "$ASG" --min-size 0 --max-size 0 --desired-capacity 0
+
+# Stop the database
+aws rds stop-db-instance --db-instance-identifier hamptongarage-db > /dev/null
+echo "Turning off. Wait 5-10 minutes before running vault-on.sh."

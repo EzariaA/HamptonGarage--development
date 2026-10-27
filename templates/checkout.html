@@ -1,7 +1,8 @@
 {#
 Created by Kaila Roberts 3/23/26
 Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error display
-Updated by Mason Johnson 10/26/26 - added Pay button and mock card form
+Updated by Mason Johnson 10/26/26 - added Pay button
+10/27/26 - mock card form removed; buyers enter their card on Stripe's page (Ezaria's flow)
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {% extends "base.html" %}
@@ -51,35 +52,6 @@ Updated by Mason Johnson 10/26/26 - added Pay button and mock card form
                     <label>Meeting Location</label>
                     <textarea id="meetingLocation" placeholder="e.g. Student Center, 1st Floor" required></textarea>
                 </div>
-
-                <!-- Mock card form: hidden until the buyer clicks Pay. Each field has its own error line. -->
-                <div id="cardSection" class="card-section" style="display:none;">
-                    <h3 class="section-label">Card Details</h3>
-                    <p class="helper-text card-note">Test mode: no real payment is made. Try 4242 4242 4242 4242.</p>
-
-                    <div class="input-group">
-                        <label for="cardName">Cardholder Name</label>
-                        <input type="text" id="cardName" placeholder="Name on card" autocomplete="cc-name">
-                        <p class="field-error" id="cardNameError"></p>
-                    </div>
-                    <div class="input-group">
-                        <label for="cardNumber">Card Number (Credit or Debit)</label>
-                        <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" inputmode="numeric" autocomplete="cc-number" maxlength="23">
-                        <p class="field-error" id="cardNumberError"></p>
-                    </div>
-                    <div class="card-row">
-                        <div class="input-group">
-                            <label for="cardExpiry">Expiration (MM/YY)</label>
-                            <input type="text" id="cardExpiry" placeholder="MM/YY" inputmode="numeric" autocomplete="cc-exp" maxlength="5">
-                            <p class="field-error" id="cardExpiryError"></p>
-                        </div>
-                        <div class="input-group">
-                            <label for="cardCvv">CVV</label>
-                            <input type="text" id="cardCvv" placeholder="123" inputmode="numeric" autocomplete="cc-csc" maxlength="4">
-                            <p class="field-error" id="cardCvvError"></p>
-                        </div>
-                    </div>
-                </div>
             </form>
         </section>
 
@@ -92,7 +64,7 @@ Updated by Mason Johnson 10/26/26 - added Pay button and mock card form
                 <span class="gold">Total: </span>
                 <span class="total-amount">$0.00</span>
             </div>
-            <!-- Pay button: first click shows the card form, second click submits the payment -->
+            <!-- Pay button: sends the buyer details, then goes to Stripe's payment page -->
             <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Pay</button>
         </aside>
     </main>
