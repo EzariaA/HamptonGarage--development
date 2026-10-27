@@ -1,7 +1,7 @@
 /* 
 storefront.js
 
-  The Vault Campus Marketplace
+  Hampton Garage Campus Marketplace
   CSC 405 Sp 26
   Created by Day Ekoi - Iteration 4
   Date: 3/18/2026 - 3/22/2026
@@ -236,7 +236,7 @@ async function fetchStorefronts() {
     renderStorefronts();
   } catch (error) {
     console.error("Error fetching storefronts from Flask API:", error);
-    if (grid) grid.innerHTML = `<p style="color:#888; font-style:italic; text-align:center; grid-column:1/-1; padding:2rem;">Could not load storefronts. Please try again.</p>`;
+    if (grid) grid.innerHTML = `<p style="color:#4b5563; font-style:italic; text-align:center; grid-column:1/-1; padding:2rem;">Could not load storefronts. Please try again.</p>`;
   }
 }
 
@@ -280,7 +280,7 @@ function filterStorefronts(query) {
     grid.innerHTML = "";
 
     if (!filtered.length) {
-        grid.innerHTML = `<p style="color:#c9c9c9; font-style:italic; text-align:center; grid-column:1/-1; padding: 2rem;">No storefronts found for "${query}"</p>`;
+        grid.innerHTML = `<p style="color:#4b5563; font-style:italic; text-align:center; grid-column:1/-1; padding: 2rem;">No storefronts found for "${query}"</p>`;
         return;
     }
 

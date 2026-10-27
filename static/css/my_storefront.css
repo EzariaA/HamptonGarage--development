@@ -1,10 +1,11 @@
 /*
     my_storefront.css
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 - 3/22/2026
     Fully Integrated and Updated by Day Ekoi - Iteration 5 - 4/9/2026
+    Updated by Mason Johnson 10/26/26 - switched to the garage theme (blue banner, light gray page, white cards, gray buttons)
 
 
 Description:
@@ -25,16 +26,18 @@ Works with:
 }
 
 
-/* page base - Updated by Day Ekoi 4/20/26 - vault background to match other pages */
+/* page base - Updated by Mason Johnson 10/26/26 - light gray garage theme background */
 body {
-    background:
-        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-        url("/static/images/background.png") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
     min-height: 100vh;
-    padding: 28px 0 40px;
+    padding: 0 0 40px;
+}
+
+/* space between the blue banner and the page */
+.site-banner {
+    margin-bottom: 24px;
 }
 
 
@@ -55,10 +58,10 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(212,175,55,0.5);
+    background: white;
+    border: 1px solid var(--btn-gray);
     border-radius: 999px;
-    color: #d4af37;
+    color: var(--btn-gray-dark);
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 1px;
@@ -69,8 +72,8 @@ body {
 }
 
 .back-btn:hover {
-    background: rgba(212,175,55,0.15);
-    color: #f0cc55;
+    background: var(--btn-gray);
+    color: white;
 }
 
 /* banner section - Updated by Day Ekoi 4/20/26 - Facebook/Twitter profile layout */
@@ -92,12 +95,12 @@ body {
 .banner-box {
     width: 100%;
     min-height: 240px;
-    background: rgba(0,0,0,0.84);
-    border: 1px solid #d4af37;
+    background: linear-gradient(135deg, var(--baby-blue), var(--btn-gray));
+    border: 1px solid var(--border-gray);
     border-radius: 8px;
     background-size: cover;
     background-position: center;
-    box-shadow: 0 0 25px rgba(184,134,11,0.18);
+    box-shadow: 0 8px 20px rgba(28, 53, 87, 0.15);
 }
 
 /* hide fallback text when banner image loads */
@@ -114,8 +117,9 @@ body {
     width: 160px;
     height: 160px;
     border-radius: 50%;
-    background: #1a1a1a;
-    border: 4px solid #d4af37;
+    background: #f2f2f2;
+    border: 4px solid white;
+    box-shadow: 0 6px 18px rgba(28, 53, 87, 0.25);
     overflow: hidden;
 
     display: flex;
@@ -127,7 +131,7 @@ body {
 .logo-circle p {
     font-size: 1.4rem;
     font-weight: 800;
-    color: #888;
+    color: var(--text-gray);
 }
 
 
@@ -140,9 +144,10 @@ body {
 
 .storefront-status-banner {
     margin-bottom: 1rem;
-    background: rgba(132, 18, 18, 0.2);
-    border: 1px solid rgba(220, 53, 53, 0.55);
-    color: #ffd1d1;
+    background: #fdecec;
+    border: 1px solid #f1a5a5;
+    border-radius: 8px;
+    color: #b42318;
     padding: 0.95rem 1.1rem;
     line-height: 1.45;
 }
@@ -183,7 +188,7 @@ body {
 
 /* bio in left column */
 .store-bio {
-    color: #c9c9c9;
+    color: var(--text-gray);
     font-size: 1rem;
     max-width: 640px;
     line-height: 1.5;
@@ -193,7 +198,8 @@ body {
 
 /* contact info below description */
 .store-contact {
-    color: #d4af37;
+    color: var(--navy);
+    font-weight: 600;
     font-size: 0.95rem;
 }
 
@@ -212,15 +218,15 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(212,175,55,0.5);
+    background: var(--btn-gray);
+    border: 1px solid var(--btn-gray-dark);
     border-radius: 999px;
-    color: #d4af37;
+    color: white;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 6px 14px;
+    padding: 8px 14px;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 }
@@ -228,8 +234,7 @@ body {
 
 /* button hover */
 .action-btn:hover {
-    background: rgba(212,175,55,0.15);
-    color: #f0cc55;
+    background: var(--btn-gray-dark);
 }
 
 .action-btn.is-disabled,
@@ -242,14 +247,13 @@ body {
 
 /* deactivate button - danger variant */
 .action-btn--danger {
-    border-color: rgba(220, 53, 53, 0.5);
-    color: #e05555;
+    background: white;
+    border-color: #d64545;
+    color: #b42318;
 }
 
 .action-btn--danger:hover {
-    background: rgba(220, 53, 53, 0.15);
-    color: #ff6b6b;
-    border-color: rgba(220, 53, 53, 0.8);
+    background: #fdecec;
 }
 
 
@@ -270,11 +274,11 @@ body {
 /* listing card placeholder */
 .listing-card {
     min-height: 320px;
-    background: rgba(0, 0, 0, 0.82);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: var(--card-white);
+    border: 1px solid var(--border-gray);
     border-radius: 26px;
     overflow: hidden;
-    box-shadow: 0 0 18px rgba(0, 0, 0, 0.28);
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
     position: relative;
 }
 
@@ -286,7 +290,7 @@ body {
 }
 
 .listing-card-image--empty {
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--page-gray);
 }
 
 .listing-card-body {
@@ -297,18 +301,18 @@ body {
 .listing-card-title {
     font-size: 1rem;
     font-weight: 800;
-    color: white;
+    color: var(--navy);
     margin-bottom: 0.35rem;
 }
 
 .listing-card-price {
-    color: #d4af37;
+    color: var(--btn-gray-dark);
     font-weight: 800;
     margin-bottom: 0.3rem;
 }
 
 .listing-card-meta {
-    color: #c9c9c9;
+    color: var(--text-gray);
     font-size: 0.84rem;
 }
 
@@ -320,7 +324,7 @@ body {
 
 .listing-menu-trigger {
     background: transparent;
-    color: #d4af37;
+    color: var(--navy);
     border: none;
     border-radius: 999px;
     width: 42px;
@@ -337,10 +341,10 @@ body {
     right: 0;
     bottom: calc(100% + 8px);
     min-width: 180px;
-    background: rgba(0, 0, 0, 0.96);
-    border: 1px solid rgba(212,175,55,0.35);
+    background: white;
+    border: 1px solid var(--border-gray);
     border-radius: 10px;
-    box-shadow: 0 10px 26px rgba(0, 0, 0, 0.34);
+    box-shadow: 0 10px 26px rgba(28, 53, 87, 0.2);
     overflow: hidden;
     z-index: 10;
 }
@@ -353,8 +357,8 @@ body {
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    color: white;
+    border-bottom: 1px solid var(--page-gray);
+    color: var(--navy);
     text-align: left;
     padding: 0.8rem 0.9rem;
     cursor: pointer;
@@ -365,7 +369,7 @@ body {
 }
 
 .listing-menu-item:hover {
-    background: rgba(212,175,55,0.12);
+    background: #eef6fc;
 }
 
 .listing-menu-item.is-disabled,
@@ -380,7 +384,7 @@ body {
 }
 
 .listing-menu-delete {
-    color: #ff8f8f;
+    color: #b42318;
 }
 
 
