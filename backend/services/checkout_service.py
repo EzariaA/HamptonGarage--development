@@ -8,15 +8,12 @@ import string
 from datetime import datetime
 
 from models.checkout_model import (
-    create_order,
-    create_order_item,
+    place_order_with_inventory,
     get_order_by_confirmation,
     get_order_items_by_order_id,
     get_orders_by_user_id,
     clear_cart_for_user,
-    update_listing_size_inventory,
     remove_purchased_from_wishlist,
-    check_listing_availability,
 )
 
 
@@ -32,16 +29,13 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
 
     buyer_details keys: first_name, last_name, email, contact, meeting_location
     session_cart items: { id, name, price, quantity, size }
+
+    Updated by Kyle Lewis 10/26/26 (K1) - the order and the stock change are now saved
+    together in place_order_with_inventory(). If something is sold out it raises
+    InventoryError and no order is made.
     """
     if not session_cart:
         raise Exception("Cart is empty.")
-
-    # Validate all cart items are still available before creating the order
-    for item in session_cart:
-        item_id = item.get("id")
-        quantity = int(item.get("quantity", 1))
-        if item_id:
-            check_listing_availability(int(item_id), quantity)
 
     first_name = (buyer_details.get("first_name") or "").strip()
     last_name = (buyer_details.get("last_name") or "").strip()
@@ -52,52 +46,41 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     if not all([first_name, last_name, email, contact, meeting_location]):
         raise Exception("All buyer details are required.")
 
-    total_amount = round(
-        sum(float(item.get("price", 0)) * int(item.get("quantity", 1)) for item in session_cart),
-        2,
-    )
+    cart_items = []
+    for item in session_cart:
+        quantity = int(item.get("quantity", 1))
+        if quantity <= 0:
+            raise Exception("Item quantities must be at least 1.")
+        item_id = item.get("id")
+        cart_items.append({
+            "listing_id": int(item_id) if item_id not in (None, "") else None,
+            "item_name": item.get("name", "Item"),
+            "quantity": quantity,
+            "price": float(item.get("price", 0)),
+            "size": item.get("size") or None,
+        })
 
+    total_amount = round(sum(i["price"] * i["quantity"] for i in cart_items), 2)
     confirmation_number = _generate_confirmation_number()
 
-    order = create_order(
+    result = place_order_with_inventory(
         user_id=user_id,
         confirmation_number=confirmation_number,
-        buyer_first_name=first_name,
-        buyer_last_name=last_name,
-        buyer_email=email,
-        buyer_contact=contact,
-        buyer_meeting_location=meeting_location,
+        buyer={
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "contact": contact,
+            "meeting_location": meeting_location,
+        },
+        cart_items=cart_items,
         total_amount=total_amount,
     )
-
-    order_items = []
-    for item in session_cart:
-        item_id = item.get("id")
-        item_name = item.get("name", "Item")
-        quantity = int(item.get("quantity", 1))
-        price = float(item.get("price", 0))
-        size = item.get("size")
-
-        order_item = create_order_item(
-            order_id=order["id"],
-            listing_id=item_id,
-            item_name=item_name,
-            quantity=quantity,
-            price_at_purchase=price,
-            selected_size=size,
-        )
-        order_items.append(order_item)
-
-        if item_id and size:
-            try:
-                update_listing_size_inventory(int(item_id), size, quantity)
-            except Exception as e:
-                logger.warning(f"[checkout] inventory update failed for listing {item_id} size {size}: {e}")
 
     clear_cart_for_user(user_id)
 
     # Remove purchased listings from the user's wishlist
-    purchased_listing_ids = [item.get("id") for item in session_cart if item.get("id") is not None]
+    purchased_listing_ids = [i["listing_id"] for i in cart_items if i["listing_id"] is not None]
     try:
         remove_purchased_from_wishlist(user_id, purchased_listing_ids)
     except Exception as e:
@@ -105,8 +88,8 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
 
     return {
         "confirmation_number": confirmation_number,
-        "order": order,
-        "order_items": order_items,
+        "order": result["order"],
+        "order_items": result["order_items"],
         "total_amount": total_amount,
     }
 

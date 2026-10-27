@@ -219,23 +219,41 @@ def get_current_session_user():
 def get_cart_json():
     return jsonify(session.get('cart', []))
 
-@auth_bp.route('/debug/session')
-def debug_session():
-    return jsonify(dict(session))
+# removed the /auth/debug/session route because it showed everything in the session - Kyle Lewis 10/26/26 (Mk3)
 
 # Admin login route - added by David Jackson 4/19/26
+# Updated by Kyle Lewis 10/26/26 (Mk3) - took out the hardcoded admin/admin123 login.
+# Now the admin has to be a real user in the users table with role = 'admin' (made by seed_data.py)
 @auth_bp.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
     if request.method == 'POST':
         user = request.form.get('username')
         pw = request.form.get('password')
 
-        # temporary hardcoded admin login for testing
-        if user == "admin" and pw == "admin123":
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
+            return "Database connection failed. <a href='/auth/admin-login'>Try again</a>"
+
+        # check the username and password the same way the normal login does
+        success, role = service.validate_login(user, pw, conn)
+
+        # only let them in if the password is right AND they are an admin
+        if success and role and role.lower() == 'admin':
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM users WHERE username = %s", (user,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+
             session['user'] = user
             session['role'] = 'admin'
+            if row:
+                session['user_id'] = row[0]
             return redirect(url_for('admin.admin_dashboard'))
 
+        conn.close()
         return "Invalid Admin Credentials. <a href='/auth/admin-login'>Try again</a>"
 
     return render_template('admin_login.html')
