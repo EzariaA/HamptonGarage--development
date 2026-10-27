@@ -108,8 +108,8 @@ The ☰ sidebar now only has working links: **Create Storefront, Create Listing,
 
 **Signup now shows, under the right field:**
 - Empty fields: "Enter a username." / "Enter your email." / "Enter a password."
-- Bad email: "Enter a valid email address, like name@hamptonu.edu."
-- Not Hampton: "You must use a Hampton University email (ending in hamptonu.edu)."
+- Bad email: "Enter a valid email address, like name@my.hamptonu.edu."
+- Not a student email: "You must use your Hampton student email (ending in @my.hamptonu.edu)." *(updated 10/27, see below)*
 - Password: at least 8 characters, with a letter and a number
 - "That username is already taken."
 - **"An account with this email already exists."** (works even if the case is different)
@@ -117,10 +117,26 @@ The ☰ sidebar now only has working links: **Create Storefront, Create Listing,
 **Login now shows:**
 - Empty fields: "Enter your username." / "Enter your password."
 - Wrong username or password: **"Incorrect username or password."** (one message on purpose, so we don't reveal which part was wrong)
+- Account email isn't a student email: **"Only Hampton student emails (@my.hamptonu.edu) can log in. Please sign up with your student email."** *(added 10/27)*
+
+**Student email rule (updated 10/27):** signing up **and** logging in now require an email whose part after the `@` is exactly `my.hamptonu.edu` (capital letters are fine). The old check only looked at how the email *ended*, so `name@hamptonu.edu` and even `name@fakehamptonu.edu` got through.
+
+| Email | Allowed? |
+|-------|----------|
+| `jsmith@my.hamptonu.edu` | Yes |
+| `jsmith@hamptonu.edu` | No (staff/faculty style, not student) |
+| `jsmith@fakemy.hamptonu.edu` | No |
+| `jsmith@my.hamptonu.edu.com` | No |
+
+- The check is one function, `is_student_email()` in `backend/services/auth_services.py`, used by signup, `register_user()`, and the login route.
+- On login it runs **after** the password is checked, and the user is **not** logged in if it fails.
+- **Existing accounts** with a non-student email can no longer log in. My local database had none. **Check the shared AWS database before deploying**: `SELECT username, email FROM users WHERE LOWER(SPLIT_PART(email, '@', 2)) <> 'my.hamptonu.edu';`
+- The **admin login** page (`/auth/admin-login`) is separate and doesn't use email, so it's not affected.
+- Test scripts `test_register_driver.py` and `test_user.py` now use `@my.hamptonu.edu` emails.
 
 The username and email you typed stay in the form after an error. **Passwords are never refilled.** The login page now also shows "Signup successful!" after you sign up (it was being sent but never displayed).
 
-**Files:** `backend/controllers/auth_controller.py`, `backend/services/auth_services.py`, `templates/login.html`, `templates/signup.html`, `static/css/pages/login.css`, `static/css/pages/signup.css`
+**Files:** `backend/controllers/auth_controller.py`, `backend/services/auth_services.py`, `templates/login.html`, `templates/signup.html`, `static/css/pages/login.css`, `static/css/pages/signup.css` (10/27: also `backend/tests/test_register_driver.py`, `backend/tests/test_user.py`)
 
 ---
 

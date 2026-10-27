@@ -9,9 +9,11 @@ logger = logging.getLogger(__name__)  # added - ava
 auth_bp = Blueprint('auth', __name__)
 service = AuthService()
 
-# Shows the login form. On submit, checks for empty fields, then the username and password.
+# Shows the login form. On submit, checks for empty fields, then the username and password,
+# then that the account's email is a Hampton student email (@my.hamptonu.edu).
 # Errors show on the form and the typed username is kept (the password never is).
 # Updated by Mason Johnson 10/26/26 - clear error messages instead of a plain text page
+# Updated by Mason Johnson 10/27/26 - only accounts with an @my.hamptonu.edu email can log in
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -38,18 +40,33 @@ def login():
         # conn.close()
         
         if success:
+            # Look up the account's id and email - added by Mason Johnson 10/27/26
+            # (the id lookup used to happen below; it moved up so the email can be checked first)
+            user_row = None
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT id, email FROM users WHERE username = %s", (user,))
+                user_row = cur.fetchone()
+                cur.close()
+            except Exception as e:
+                logger.error(f"Error fetching user for login: {e}")
+
+            # Only Hampton student emails can log in. The session is NOT set,
+            # so the user stays logged out.
+            if user_row is None or not service.is_student_email(user_row[1]):
+                conn.close()
+                errors["general"] = "Only Hampton student emails (@my.hamptonu.edu) can log in. Please sign up with your student email."
+                return render_template('login.html', errors=errors, username=user)
+
             session['user'] = user
             session['role'] = role
 
             #store user_id in sesion for storefront ownership checks - added by Day E 4/9/26
             try:
-                cur = conn.cursor()
-                cur.execute("SELECT id FROM users WHERE username = %s", (user,))
-                row = cur.fetchone()
+                row = user_row
                 if row:
                     session['user_id'] = row[0] # Store user_id in session
                     session['cart'] = service.get_user_cart(conn, row[0]) # Load user's cart into session on login
-                    cur.close()
             except Exception as e:
                 logger.error(f"Error fetching user_id for session: {e}")
             finally:

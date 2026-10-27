@@ -15,6 +15,19 @@ class AuthService:
             return False
         return True
 
+    # Added by Mason Johnson 10/27/26
+    # Only Hampton student emails are allowed: the part after the @ must be exactly
+    # "my.hamptonu.edu". (The old check only looked at how the email ended, so
+    # name@hamptonu.edu and even name@fakehamptonu.edu were let through.)
+    # Example: "jsmith@my.hamptonu.edu" -> True,  "jsmith@hamptonu.edu" -> False
+    def is_student_email(self, email):
+        if not email or email.count("@") != 1:
+            return False
+        name, domain = email.split("@")
+        if not name:
+            return False
+        return domain.lower() == "my.hamptonu.edu"
+
     # Added by Mason Johnson 10/26/26
     # Checks every signup field and returns a dictionary of field name -> error message.
     # An empty dictionary means everything is OK and the account can be created.
@@ -31,9 +44,9 @@ class AuthService:
         if not email:
             errors["email"] = "Enter your email."
         elif not self.is_valid_email_format(email) or len(email) > 100:
-            errors["email"] = "Enter a valid email address, like name@hamptonu.edu."
-        elif not email.lower().endswith("hamptonu.edu"):
-            errors["email"] = "You must use a Hampton University email (ending in hamptonu.edu)."
+            errors["email"] = "Enter a valid email address, like name@my.hamptonu.edu."
+        elif not self.is_student_email(email):
+            errors["email"] = "You must use your Hampton student email (ending in @my.hamptonu.edu)."
 
         # Password: at least 8 characters with at least one letter and one number
         if not password:
@@ -71,9 +84,9 @@ class AuthService:
         return errors
 
     def register_user(self, username, password, email, db_conn): #Stores a user's unique ID, username, password, and email into the database
-        if not email.lower().endswith("hamptonu.edu"): #Validates Hampton Assocation, added 2/19/2026 by Ryan Grimes
-            logger.warning(f"You Must Use a Hampton University Associated Email")       
-            return False, "You Must Use a Hampton University Associated Email"
+        if not self.is_student_email(email): #Validates Hampton Assocation, added 2/19/2026 by Ryan Grimes. Updated by Mason Johnson 10/27/26 to require @my.hamptonu.edu
+            logger.warning(f"You Must Use a Hampton Student Email (@my.hamptonu.edu)")
+            return False, "You Must Use a Hampton Student Email (@my.hamptonu.edu)"
 
         hashed_pw = hash_password(password)
         try:

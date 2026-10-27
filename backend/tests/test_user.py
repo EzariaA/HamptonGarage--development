@@ -24,7 +24,7 @@ def test_registration():
             db_conn=conn,
             username="ahw", 
             password="SecurePassword123", 
-            email="ahw@hamptonu.edu"
+            email="ahw@my.hamptonu.edu"
         )
 
         if success:
