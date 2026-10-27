@@ -83,6 +83,15 @@ def create_app():
             return redirect(url_for("auth.login"))
         return render_template('my_storefront.html')
 
+    # Customer browse pages - Added by Clarence Bostic - Iteration 3
+    @app.route('/recent-listings')
+    def recent_listings():
+        return render_template('recent_listings.html')
+
+    @app.route('/categories')
+    def categories():
+        return render_template('categories.html')
+
     # Register Blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')
     app.register_blueprint(listing_bp)

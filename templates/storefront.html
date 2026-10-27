@@ -78,23 +78,20 @@ Start of Code w/ comments
     <hr class="nav-divider">
 </div>
 <a href="/returns" class="nav-subitem">Returns</a>
-  <!--
-  Main navigation
-  <div class="nav-section">
-    <div class="nav-item">Explore Brands <span>→</span></div>
-    <div class="nav-item">All Categories <span>→</span></div>
-    <div class="nav-item">New Drops <span>→</span></div>
-    <div class="nav-item">Hot! <span>→</span></div>
-  </div>
 
+<!--Clarence Bostic - Iteration 3
+  Main navigation -->
+<nav class="nav-section" aria-label="Browse">
+    <a href="{{ url_for('recent_listings') }}" class="nav-item">Recent Listings <span>→</span></a>
+    <a href="{{ url_for('categories') }}" class="nav-item">Categories <span>→</span></a>
+</nav>
+  <!--
   extras
   <div class="nav-section more">
     <p class="nav-heading">More from The Vault</p>
     <div class="nav-subitem">About</div>
     <a href="/returns" class="nav-subitem">Returns</a>
     <div class="nav-subitem">Sitemap</div>
-
-
   -->
   </div>
 

@@ -26,9 +26,12 @@ logger = logging.getLogger(__name__)  # added - ava
 
 from services.listing_service import (
     create_listing_service,
+    get_categories_service,
     get_listing_by_id_service,
+    get_listings_by_category_service,
     get_listings_for_storefront_service,
     get_listings_for_storefront_with_options_service,
+    get_recent_listings_service,
     update_listing_service,
     delete_listing_service,
     deactivate_listing_service,
@@ -548,3 +551,50 @@ def delete_size_route(listing_id, size):
         if "not found" in msg:
             return jsonify({"error": str(e)}), 404
         return jsonify({"error": str(e)}), 400
+
+
+# __________________________________________________________
+# PUBLIC BROWSE ENDPOINTS (Recent Listings + Categories pages)
+# Added by Clarence Bostic - Iteration 3
+# __________________________________________________________
+
+# Returns the most recent public listings across all storefronts, newest first, one page at a time.
+@listing_bp.get("/listings/recent")
+def get_recent_listings_route():
+    try:
+        result = get_recent_listings_service(
+            request.args.get("limit"), request.args.get("offset")
+        )
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("Failed to load recent listings")
+        return jsonify({"error": "Could not load listings."}), 500
+
+
+# Gets all the storefront categories that are available for the storefront
+@listing_bp.get("/listings/categories")
+def get_listing_categories_route():
+    try:
+        return jsonify(get_categories_service()), 200
+    except Exception:
+        logger.exception("Failed to load categories")
+        return jsonify({"error": "Could not load categories."}), 500
+
+
+#  Returns public listings whose storefront is tagged with <category>, newest first, one page at a time.
+@listing_bp.get("/listings/categories/<string:category>")
+def get_listings_by_category_route(category):
+    try:
+        result = get_listings_by_category_service(
+            category, request.args.get("limit"), request.args.get("offset")
+        )
+        return jsonify(result), 200
+    except LookupError as e:
+        return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("Failed to load listings for category %s", category)
+        return jsonify({"error": "Could not load listings."}), 500
