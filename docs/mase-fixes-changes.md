@@ -2,7 +2,7 @@
 
 Branch: `Mase-fixes` · Author: Mason Johnson · Date: 10/26/26
 
-This branch has four changes plus a cleanup. Each one is its own commit, so you can look at them one at a time on GitHub.
+This branch has four changes, a cleanup, and a site-wide visual redesign. Each one is its own commit (the redesign is four commits), so you can look at them one at a time on GitHub.
 
 | # | Change | Commit |
 |---|--------|--------|
@@ -11,6 +11,7 @@ This branch has four changes plus a cleanup. Each one is its own commit, so you 
 | 3 | Permanently delete a storefront | `Add permanent Delete Storefront with name confirmation` |
 | 4 | Sidebar / pagination cleanup | `Remove dead pagination buttons and placeholder sidebar items` |
 | 5 | Clear login and signup errors | `Show clear login and signup error messages on the page` |
+| 6 | Garage theme redesign (Hampton Garage) | 4 commits starting with `Redesign the homepage with the Hampton Garage garage theme` |
 
 > **Heads up:** change #3 updates the database. The first time you start the app on this branch, `init_db.py` changes the `purchases` table (see below). Nothing else in the schema changes.
 
@@ -120,6 +121,39 @@ The ☰ sidebar now only has working links: **Create Storefront, Create Listing,
 The username and email you typed stay in the form after an error. **Passwords are never refilled.** The login page now also shows "Signup successful!" after you sign up (it was being sent but never displayed).
 
 **Files:** `backend/controllers/auth_controller.py`, `backend/services/auth_services.py`, `templates/login.html`, `templates/signup.html`, `static/css/pages/login.css`, `static/css/pages/signup.css`
+
+---
+
+## 6. Garage theme redesign (Hampton Garage)
+
+**Why:** the site still looked like "The Vault" (black background, gold, vault wheel). It now matches the Hampton Garage name.
+
+**The new look:**
+- A **baby blue banner** with "HAMPTON GARAGE" at the top of every redesigned page (click it to go to the storefronts page; on login/signup it goes to the homepage)
+- **Light gray** page background instead of the vault wheel image
+- **White cards** with a blue line on top, **navy** text, **faded gray** buttons
+- Plain wording instead of vault wording (e.g. "Decrypt Access" → "Log In")
+
+| Commit | Pages |
+|--------|-------|
+| `Redesign the homepage with the Hampton Garage garage theme` | Homepage: blue banner, open-garage photo, same metal Log In / Sign Up buttons faded to gray. Removed the "V" logo, "Portal to..." text, and fake loading bar. |
+| `Restyle login, signup, and admin login with the blue and gray theme` | Login, Signup, Admin Login |
+| `Restyle storefront pages with the garage theme and remove The Vault` | Storefronts (top bar is now the blue banner, "Browse Storefronts" heading), Storefront View, My Storefront |
+| `Restyle returns and the listing/storefront forms, remove The Vault` | Returns (garage shed photo background), Create/Edit Listing, Create/Edit Storefront |
+
+**Theme colors live in one place:** `static/css/base.css` has them as CSS variables (`--baby-blue`, `--navy`, `--btn-gray`, etc.) plus the shared `.site-banner` class. **To change a color across the site, change it there.** Please use these variables on new pages instead of new hex colors.
+
+**New images:** `static/images/garage.webp` (homepage), `static/images/returns_garage.webp` (returns page)
+
+**Other fixes found while restyling:**
+- The browser's "Choose File" button was showing inside every upload box. A shared rule in `static/css/create_storefront.css` was overriding `hidden`. Fixed once there; clicking the box still opens the file picker.
+- The side menu divider never showed (`nav-divider` was missing its dot in `storefront.css`).
+- Returns: removed the `TheVaultAdmins@my.hamptonu.edu` line. Add a new admin email if the team gets one.
+
+**Kept on purpose:** internal names like `vaultUserId`, `vaultWishlistLocalItems`, `create_vault_tables`, and `VAULT-` order numbers. Renaming the saved-data keys would log everyone out and clear wishlists, and none of them show on screen.
+
+**Not redesigned yet (still dark and gold):** Cart, Checkout, Order Confirmation, Account, Admin Dashboard.
+> **Heads up for anyone working on checkout** (e.g. the `ezaria-stripe-checkout` branch): this branch did not touch checkout's look, but `base.css` now has the theme variables, so merging should be easy. Use them when restyling.
 
 ---
 
