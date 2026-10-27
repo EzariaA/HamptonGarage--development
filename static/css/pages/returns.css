@@ -2,7 +2,20 @@
     returns.css
     Moved out of the inline <style> block in returns.html
     by Mason Johnson, Iteration 2, 10/1/26
+    Switched to the garage theme (blue + gray) by Mason Johnson, 10/26/26
 */
+        /* Garage photo behind the returns page, with a light gray tint so the white cards stay easy to read */
+        body {
+            background:
+                linear-gradient(rgba(229, 231, 235, 0.55), rgba(207, 214, 223, 0.7)),
+                url('/static/images/returns_garage.webp') no-repeat center center fixed;
+            background-size: cover;
+        }
+        /* soft white glow so the title reads clearly over the photo */
+        .create-header .page-title,
+        .create-header .brand-subtitle {
+            text-shadow: 0 0 12px rgba(255, 255, 255, 0.95), 0 0 4px rgba(255, 255, 255, 0.9);
+        }
         .back-row {
             width: min(1200px, 92%);
             margin: 0 auto 0.8rem;
@@ -11,10 +24,10 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(0,0,0,0.55);
-            border: 1px solid rgba(212,175,55,0.5);
+            background: white;
+            border: 1px solid var(--btn-gray);
             border-radius: 999px;
-            color: #d4af37;
+            color: var(--btn-gray-dark);
             font-size: 0.85rem;
             font-weight: 700;
             letter-spacing: 1px;
@@ -24,16 +37,17 @@
             transition: background 0.2s, color 0.2s;
         }
         .back-btn:hover {
-            background: rgba(212,175,55,0.15);
-            color: #f0cc55;
+            background: var(--btn-gray);
+            color: white;
         }
         .drop-zone {
-            border: 2px dashed #d4af37;
+            border: 2px dashed var(--baby-blue-dark);
             border-radius: 8px;
             padding: 1.2rem;
             text-align: center;
             cursor: pointer;
-            color: #888;
+            color: var(--text-gray);
+            background: #f8fafc;
             transition: background 0.2s, border-color 0.2s;
             width: 90%;
             margin: 0 auto;
@@ -43,11 +57,12 @@
             justify-content: center;
         }
         .drop-zone.dragover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: #f0cc55;
+            background: #eef6fc;
+            border-color: var(--navy);
         }
         .drop-link {
-            color: #d4af37;
+            color: var(--navy);
+            font-weight: 600;
             text-decoration: underline;
         }
         .image-preview-row {
@@ -66,29 +81,32 @@
             height: 110px;
             object-fit: cover;
             border-radius: 8px;
-            border: 1px solid rgba(184, 134, 11, 0.5);
+            border: 1px solid var(--border-gray);
         }
         .thumb-name {
             font-size: 0.76rem;
-            color: #aaa;
+            color: var(--text-gray);
         }
         .returns-feedback {
             display: none;
             width: min(700px, 92%);
             margin: 1rem auto 0;
-            background: rgba(0, 0, 0, 0.86);
-            border: 1px solid rgba(184, 134, 11, 0.65);
-            color: #f0cc55;
+            background: white;
+            border: 1px solid var(--baby-blue-dark);
+            border-left: 6px solid var(--baby-blue-dark);
+            border-radius: 8px;
+            color: var(--navy);
             padding: 1rem 1.2rem;
             text-align: center;
-            box-shadow: 0 0 25px rgba(184, 134, 11, 0.18);
+            box-shadow: 0 8px 20px rgba(28, 53, 87, 0.12);
         }
         .returns-feedback.error {
-            border-color: rgba(220, 53, 53, 0.55);
-            color: #ff8f8f;
+            background: #fdecec;
+            border-color: #d64545;
+            color: #b42318;
         }
         .radio-grid label {
             min-width: 120px;
             justify-content: center;
         }
-    
+

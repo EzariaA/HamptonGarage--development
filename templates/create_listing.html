@@ -1,7 +1,7 @@
 {#
  create_listing.html
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Elali McNair - Iteration 4
 
@@ -22,6 +22,7 @@ in the database and then displayed dynamically on the storefront view page.
 This file acts as the UI structure (skeleton) of the Create Listing feature.
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme (blue banner, no Vault title) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Create Listing{% endblock %}
@@ -36,15 +37,16 @@ This file acts as the UI structure (skeleton) of the Create Listing feature.
 <!-- Start of main body code -->
 
     <!-- Header -->
+    <!-- Shared baby blue banner (styles in base.css) -->
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
     <header class="create-header">
         <div class="brand-block">
-            <h1 class="brand-title">
-                <span class="gold">The</span> Vault
-            </h1>
-            <p class="brand-subtitle">Fashion Marketplace</p>
+            <h1 class="page-title">Create Listing</h1>
+            <p class="brand-subtitle">Put an item up for sale</p>
         </div>
-
-        <h2 class="page-title">Create Listing</h2>
     </header>
 
 
@@ -114,8 +116,8 @@ This file acts as the UI structure (skeleton) of the Create Listing feature.
                     <div style="margin-bottom:0.75rem;">
                         <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
                             <input type="checkbox" id="oneSizeToggle" name="one_size" value="One Size">
-                            <span style="font-weight:600;color:#d4af37;">One Size</span>
-                            <span style="color:#aaa;font-size:0.8rem;">(hides all other sizes)</span>
+                            <span style="font-weight:600;color:#1c3557;">One Size</span>
+                            <span style="color:#4b5563;font-size:0.8rem;">(hides all other sizes)</span>
                         </label>
                     </div>
 
@@ -157,8 +159,8 @@ This file acts as the UI structure (skeleton) of the Create Listing feature.
                     <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid rgba(212,175,55,0.2);">
                         <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;">
                             <input type="checkbox" id="madeToOrderToggle" name="is_made_to_order" value="true">
-                            <span style="font-weight:600;color:#d4af37;">Made to Order</span>
-                            <span style="color:#aaa;font-size:0.8rem;">(ignores inventory limits)</span>
+                            <span style="font-weight:600;color:#1c3557;">Made to Order</span>
+                            <span style="color:#4b5563;font-size:0.8rem;">(ignores inventory limits)</span>
                         </label>
                     </div>
                 </div>
