@@ -60,9 +60,16 @@ def setup_test_database():
     create_vault_tables()
 
 
-# Runs before EVERY test - empties all the tables so the tests don't affect each other
+# Runs before and after EVERY test - empties all the tables so the tests don't affect each other
 @pytest.fixture(autouse=True)
 def clean_database():
+    empty_all_tables()
+    yield
+    # empty them again after the test so nothing is left over for the next test file
+    empty_all_tables()
+
+
+def empty_all_tables():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
