@@ -152,7 +152,9 @@ The username and email you typed stay in the form after an error. **Passwords ar
 
 **Kept on purpose:** internal names like `vaultUserId`, `vaultWishlistLocalItems`, `create_vault_tables`, and `VAULT-` order numbers. Renaming the saved-data keys would log everyone out and clear wishlists, and none of them show on screen.
 
-**Not redesigned yet (still dark and gold):** Cart, Checkout, Order Confirmation, Account, Admin Dashboard.
+**Also redesigned (10/27):** Account page (the profile icon): blue banner, white card, blue tab underline, gray buttons, red outlined Logout. "SECURED WISHLIST" → "MY WISHLIST", "OPERATOR" → "MY ACCOUNT".
+
+**Not redesigned yet (still dark and gold):** Cart, Checkout, Order Confirmation, Admin Dashboard.
 
 ### How the theme code works
 

@@ -11,7 +11,7 @@
     that color on every page that uses it.
 */
 :root {
-    /* Old Vault colors - still used by the account page (account.css).
+    /* Old Vault colors - still used by the cart page (cart.css, cart.html).
        Can be removed once that page is switched to the garage theme. */
     --gold: #B8860B;
     --gold-light: #d4af37;
