@@ -20,7 +20,31 @@ REQUIRED_FIELDS = ["first_name", "last_name", "email", "contact", "meeting_locat
 
 checkout_bp = Blueprint("checkout", __name__)
 
+@checkout_bp.route("/orders/by-confirmation/<confirmation_number>", methods=["GET"])
+def get_order_confirmation(confirmation_number):
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
 
+    try:
+        result = get_order_summary_service(confirmation_number, user_id)
+        return jsonify(result), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+
+@checkout_bp.route("/orders/my", methods=["GET"])
+def get_my_orders():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    try:
+        orders = get_user_orders_service(user_id)
+        return jsonify({"orders": orders}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 @checkout_bp.route("/checkout/create-session", methods=["POST"])
 def create_checkout_session():
     user_id = session.get("user_id")
