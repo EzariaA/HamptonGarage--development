@@ -23,9 +23,7 @@ def create_vault_tables():
 
         cur = conn.cursor()
 
-        # ________________________________________________________
         # USERS TABLE
-        # ________________________________________________________
         create_users_table = """
             CREATE TABLE IF NOT EXISTS users (
                 id SERIAL PRIMARY KEY,
@@ -38,11 +36,7 @@ def create_vault_tables():
         """
         cur.execute(create_users_table)
 
-        # ________________________________________________________
         # STOREFRONTS TABLE (One storefront per user)
-        # Added by Day Ekoi 2/26/26
-        # Updated by Day Ekoi 4/20/26 - added contact_info, preview_image_1-4 columns
-        # ________________________________________________________
         create_storefronts_table = """
             CREATE TABLE IF NOT EXISTS storefronts (
                 id SERIAL PRIMARY KEY,
@@ -297,6 +291,8 @@ def create_vault_tables():
             );
         """
         cur.execute(create_orders_table)
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_session_id VARCHAR(255) UNIQUE;")
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20);")
 
         # ________________________________________________________
         # ORDER ITEMS TABLE (Items per order)
