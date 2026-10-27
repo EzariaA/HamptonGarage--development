@@ -1,5 +1,5 @@
 # backend/tests/conftest.py
-# Created by Kyle Lewis 10/26/26 - Iteration 3
+# Kyle Lewis - Iteration 3
 
 """
 conftest.py
