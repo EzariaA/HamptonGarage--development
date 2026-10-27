@@ -10,10 +10,18 @@ from db import get_connection
 from models.listing_model import get_listing_by_id
 from models.checkout_model import check_listing_availability
 from services.checkout_service import (
-    complete_transaction_from_session,
+    create_pending_order,
     get_order_summary_service,
     get_user_orders_service,
 )
+from services.payment_service import (
+    check_payment_on_return,
+    handle_stripe_webhook,
+    payments_configured,
+    start_stripe_checkout,
+)
+
+logger = logging.getLogger(__name__)
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 REQUIRED_FIELDS = ["first_name", "last_name", "email", "contact", "meeting_location"]
