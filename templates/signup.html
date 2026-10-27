@@ -3,6 +3,7 @@
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {# Updated by Mason Johnson 10/26/26 - shows signup errors under each field and keeps the typed username/email #}
+{# Switched to the garage theme (blue banner + white card) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Create Account{% endblock %}
@@ -12,9 +13,15 @@
 {% endblock %}
 
 {% block content %}
-    <div class="vault-wrapper">
+    <div class="auth-page">
+        {# Shared baby blue banner (styles in base.css) #}
+        <header class="site-banner">
+            <a href="{{ url_for('index') }}">HAMPTON GARAGE</a>
+        </header>
+
+        <main class="auth-main">
         <div class="auth-card">
-            <h2>INITIALIZE ACCESS</h2>
+            <h2>SIGN UP</h2>
 
             <!-- General error (like a database problem) -->
             {% if errors.general %}
@@ -24,17 +31,17 @@
             <!-- novalidate: our own messages are shown instead of the browser's popups -->
             <form action="{{ url_for('auth.signup') }}" method="POST" novalidate>
                 <div class="input-group">
-                    <label for="username">Designation (Username)</label>
-                    <input type="text" id="username" name="username" required placeholder="User_01" value="{{ username }}" {% if errors.username %}class="input-invalid"{% endif %}>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Pick a username" value="{{ username }}" {% if errors.username %}class="input-invalid"{% endif %}>
                     {% if errors.username %}<p class="field-error">{{ errors.username }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label for="email">Neural Link (Email)</label>
+                    <label for="email">Email</label>
                     <input type="email" id="email" name="email" required placeholder="name@hamptonu.edu" value="{{ email }}" {% if errors.email %}class="input-invalid"{% endif %}>
                     {% if errors.email %}<p class="field-error">{{ errors.email }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label for="password">Security Cipher (Password)</label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" name="password" required placeholder="••••••••" {% if errors.password %}class="input-invalid"{% endif %}>
                     {% if errors.password %}
                         <p class="field-error">{{ errors.password }}</p>
@@ -42,9 +49,10 @@
                         <p class="field-hint">At least 8 characters with a letter and a number.</p>
                     {% endif %}
                 </div>
-                <button type="submit" class="submit-btn">Create Identity</button>
+                <button type="submit" class="submit-btn">Create Account</button>
             </form>
-            <a href="{{ url_for('index') }}" class="back-link">Return to Portal</a>
+            <a href="{{ url_for('index') }}" class="back-link">← Back to Home</a>
         </div>
+        </main>
     </div>
 {% endblock %}

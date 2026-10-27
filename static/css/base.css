@@ -2,9 +2,39 @@
     base.css
     Shared design tokens loaded on every page through base.html.
     Created by Mason Johnson, Iteration 2, 10/1/26
+    Garage theme colors and the shared blue banner added by Mason Johnson, 10/26/26
 */
 :root {
     --gold: #B8860B;
     --gold-light: #d4af37;
     --dark-bg: #121212;
+
+    /* Garage theme colors (baby blue + gray) */
+    --baby-blue: #a7d3f2;
+    --baby-blue-dark: #7fbce8;
+    --navy: #1c3557;
+    --page-gray: #e5e7eb;
+    --card-white: #ffffff;
+    --border-gray: #cbd5e1;
+    --text-gray: #4b5563;
+    --btn-gray: #6b7280;
+    --btn-gray-dark: #4b5563;
+}
+
+/* Small baby blue banner with the site name, used at the top of inner pages */
+.site-banner {
+    background: linear-gradient(to bottom, var(--baby-blue), var(--baby-blue-dark));
+    border-bottom: 4px solid var(--navy);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    padding: 16px;
+}
+
+.site-banner a {
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 5px;
+    text-decoration: none;
 }

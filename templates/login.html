@@ -3,18 +3,25 @@
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {# Updated by Mason Johnson 10/26/26 - shows login errors on the page and keeps the typed username #}
+{# Switched to the garage theme (blue banner + white card) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
-{% block title %}Secure Login{% endblock %}
+{% block title %}Log In{% endblock %}
 
 {% block styles %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/login.css') }}">
 {% endblock %}
 
 {% block content %}
-    <div class="vault-wrapper">
+    <div class="auth-page">
+        {# Shared baby blue banner (styles in base.css) #}
+        <header class="site-banner">
+            <a href="{{ url_for('index') }}">HAMPTON GARAGE</a>
+        </header>
+
+        <main class="auth-main">
         <div class="auth-card">
-            <h2>DECRYPT ACCESS</h2>
+            <h2>LOG IN</h2>
 
             <!-- Messages: flashed ones (like "Signup successful") and the general login error -->
             {% with messages = get_flashed_messages(with_categories=true) %}
@@ -29,20 +36,20 @@
             <!-- novalidate: our own messages are shown instead of the browser's popups -->
             <form action="{{ url_for('auth.login') }}" method="POST" novalidate>
                 <div class="input-group">
-                    <label for="username">Identity (Username)</label>
-                    <input type="text" id="username" name="username" required placeholder="User_01" value="{{ username }}" autofocus {% if errors.username %}class="input-invalid"{% endif %}>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required placeholder="Your username" value="{{ username }}" autofocus {% if errors.username %}class="input-invalid"{% endif %}>
                     {% if errors.username %}<p class="field-error">{{ errors.username }}</p>{% endif %}
                 </div>
                 <div class="input-group">
-                    <label for="password">Access Cipher (Password)</label>
+                    <label for="password">Password</label>
                     <input type="password" id="password" name="password" required placeholder="••••••••" {% if errors.password %}class="input-invalid"{% endif %}>
                     {% if errors.password %}<p class="field-error">{{ errors.password }}</p>{% endif %}
                 </div>
-                <button type="submit" class="submit-btn">Authorize</button>
+                <button type="submit" class="submit-btn">Log In</button>
             </form>
             <div class="footer-links">
-                <a href="{{ url_for('index') }}">← Portal</a>
-                <a href="{{ url_for('auth.signup') }}">Create Identity</a>
+                <a href="{{ url_for('index') }}">← Home</a>
+                <a href="{{ url_for('auth.signup') }}">Create Account</a>
             </div>
             
             <!-- Admin Login Button added by David Jackson 4/20/26 -->
@@ -51,5 +58,6 @@
             </a>
 
         </div>
+        </main>
     </div>
 {% endblock %}

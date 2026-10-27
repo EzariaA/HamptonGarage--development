@@ -2,124 +2,137 @@
     login.css
     Moved out of the inline <style> block in login.html
     by Mason Johnson, Iteration 2, 10/1/26
+    Switched to the garage theme (blue + gray) by Mason Johnson, 10/26/26
 */
         body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background: #000; overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex; justify-content: center; align-items: center;
+            margin: 0; padding: 0; min-height: 100%; width: 100%;
+            background: var(--page-gray);
+            font-family: 'Segoe UI', Arial, sans-serif;
         }
 
-        .vault-wrapper {
-            position: relative;
-            width: 100vw; height: 100vh;
-            background: url('/static/images/background.png') no-repeat center center;
-            background-size: cover;
-            display: flex; justify-content: center; align-items: center;
+        /* Banner on top, card centered in the space below */
+        .auth-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, var(--page-gray), #cfd6df);
         }
 
-        /* Metallic Glass Form Panel */
+        .auth-main {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 16px;
+        }
+
+        /* White form card */
         .auth-card {
-            background: rgba(0, 0, 0, 0.88);
-            border: 1px solid #B8860B;
-            padding: 45px;
-            width: 360px;
-            border-radius: 2px;
-            box-shadow: 0 0 30px rgba(184, 134, 11, 0.4);
+            background: var(--card-white);
+            border: 1px solid var(--border-gray);
+            border-top: 5px solid var(--baby-blue-dark);
+            padding: 40px;
+            width: 100%;
+            max-width: 380px;
+            box-sizing: border-box;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(28, 53, 87, 0.15);
             text-align: center;
-            z-index: 10;
         }
 
         .auth-card h2 {
-            color: white;
-            letter-spacing: 5px;
-            margin-bottom: 35px;
-            font-size: 2.8vh;
+            color: var(--navy);
+            letter-spacing: 4px;
+            margin: 0 0 30px;
+            font-size: 1.6rem;
             font-weight: bold;
         }
 
-        .input-group { margin-bottom: 25px; text-align: left; }
+        .input-group { margin-bottom: 22px; text-align: left; }
 
         .input-group label {
-            color: #B8860B;
-            font-size: 1.3vh;
+            color: var(--navy);
+            font-size: 0.8rem;
+            font-weight: 600;
             text-transform: uppercase;
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             letter-spacing: 1px;
         }
 
         .input-group input {
             width: 100%;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(184, 134, 11, 0.4);
-            padding: 14px;
-            color: white;
+            background: #f8fafc;
+            border: 1px solid var(--border-gray);
+            border-radius: 8px;
+            padding: 13px;
+            color: var(--navy);
             box-sizing: border-box;
             outline: none;
-            font-size: 1.8vh;
+            font-size: 1rem;
         }
 
-        .input-group input:focus { 
-            border-color: #B8860B; 
-            background: rgba(255, 255, 255, 0.1); 
-            box-shadow: inset 0 0 5px rgba(184, 134, 11, 0.2);
+        .input-group input:focus {
+            border-color: var(--baby-blue-dark);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(167, 211, 242, 0.6);
         }
 
-        /* High-Security Submit Button */
+        /* Gray submit button */
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #B8860B, #9A7107);
+            background: linear-gradient(to bottom, var(--btn-gray), var(--btn-gray-dark));
             border: none;
-            padding: 16px;
-            color: black;
-            font-weight: 900;
+            border-radius: 8px;
+            padding: 15px;
+            color: white;
+            font-weight: bold;
             text-transform: uppercase;
             letter-spacing: 3px;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 15px;
+            transition: all 0.2s ease;
+            margin-top: 10px;
         }
 
         .submit-btn:hover {
-            filter: brightness(1.2);
-            letter-spacing: 4px;
-            box-shadow: 0 0 15px rgba(184, 134, 11, 0.6);
+            filter: brightness(1.15);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
         }
 
         .footer-links {
             margin-top: 25px;
             display: flex;
             justify-content: space-between;
-            font-size: 1.3vh;
+            font-size: 0.9rem;
         }
 
         .footer-links a {
-            color: rgba(204, 178, 128, 0.5);
+            color: var(--text-gray);
             text-decoration: none;
             transition: 0.2s;
         }
 
-        .footer-links a:hover { color: #B8860B; }
+        .footer-links a:hover { color: var(--navy); text-decoration: underline; }
 
         /* Admin Button Styling - added by David Jackson 4/20/26 */
         .admin-btn {
             display: inline-block;
-            margin-top: 15px;
-            padding: 10px 20px;
-            border: 1px solid #B8860B;
-            color: #B8860B;
+            margin-top: 20px;
+            padding: 9px 18px;
+            border: 1px solid var(--btn-gray);
+            border-radius: 8px;
+            color: var(--btn-gray-dark);
             text-decoration: none;
-            font-size: 1.2vh;
+            font-size: 0.75rem;
             letter-spacing: 2px;
             text-transform: uppercase;
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
         .admin-btn:hover {
-            background: #B8860B;
-            color: black;
-            box-shadow: 0 0 10px rgba(184, 134, 11, 0.5);
+            background: var(--btn-gray);
+            color: white;
         }
 
         /* Login error and success messages - Added by Mason Johnson 10/26/26 */
@@ -128,27 +141,29 @@
             margin-bottom: 20px;
             font-size: 0.9rem;
             text-align: left;
-            border: 1px solid rgba(184, 134, 11, 0.6);
-            color: #e6c878;
+            border-radius: 8px;
+            border: 1px solid var(--baby-blue-dark);
+            background: #eef6fc;
+            color: var(--navy);
         }
 
         .form-msg--error {
-            background: rgba(180, 40, 40, 0.2);
-            border-color: rgba(200, 60, 60, 0.6);
-            color: #ff8a8a;
+            background: #fdecec;
+            border-color: #f1a5a5;
+            color: #b42318;
         }
 
         .form-msg--success {
-            background: rgba(24, 110, 54, 0.22);
-            border-color: rgba(76, 175, 80, 0.8);
-            color: #98efb2;
+            background: #ecfdf3;
+            border-color: #8fd8a8;
+            color: #146c2e;
         }
 
         /* red border + message under a field that needs fixing */
-        .input-group input.input-invalid { border-color: rgba(220, 53, 53, 0.85); }
+        .input-group input.input-invalid { border-color: #d64545; }
 
         .field-error {
-            color: #ff8a8a;
+            color: #b42318;
             font-size: 0.85rem;
             margin: 6px 0 0;
         }
