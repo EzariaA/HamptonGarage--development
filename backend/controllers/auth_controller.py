@@ -219,10 +219,10 @@ def get_current_session_user():
 def get_cart_json():
     return jsonify(session.get('cart', []))
 
-# removed the /auth/debug/session route because it showed everything in the session - Kyle Lewis 10/26/26 (Mk3)
+# Kyle Lewis(Mk3) removed the /auth/debug/session route because it showed everything in the session
 
 # Admin login route - added by David Jackson 4/19/26
-# Updated by Kyle Lewis 10/26/26 (Mk3) - took out the hardcoded admin/admin123 login.
+# Kyle Lewis(Mk3) - took out the hardcoded admin/admin123 login.
 # Now the admin has to be a real user in the users table with role = 'admin' (made by seed_data.py)
 @auth_bp.route('/admin-login', methods=['GET', 'POST'])
 def admin_login():
