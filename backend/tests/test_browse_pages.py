@@ -23,8 +23,6 @@ class TestBrowsePages(unittest.TestCase):
         app.config["TESTING"] = True
         self.client = app.test_client()
  
-    # ---------- The pages themselves ----------
- 
     def test_recent_listings_page_loads(self):
         response = self.client.get("/recent-listings")
         self.assertEqual(response.status_code, 200)

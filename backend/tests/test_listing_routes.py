@@ -1,7 +1,4 @@
 # Hampton Garage
-# Unit tests for listings and listing images (Iteration 3, HG-91)
-# The listing services, storefront lookup, and S3 upload are mocked, so these
-# tests run offline and never touch the real database or S3 bucket.
 
 import io
 import json

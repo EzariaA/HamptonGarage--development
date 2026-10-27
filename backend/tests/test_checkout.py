@@ -1,8 +1,5 @@
 # Hampton Garage
-# Unit tests for Stripe test-mode checkout (Iteration 3)
-# Stripe, the database, and the order service are mocked, so these tests
-# run offline and never charge anything or touch real data.
- 
+
 import os
 import sys
 import unittest

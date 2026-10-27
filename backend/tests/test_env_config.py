@@ -1,11 +1,4 @@
 # Unit tests that keep secrets out of .ebextensions/env.config
-# Created by Mattie Edozie - 10/26/26
-#
-# env.config is uploaded to GitHub, so anyone who can see the repo can read it.
-# Passwords and keys must go in the AWS Elastic Beanstalk settings page instead.
-# These tests fail if someone puts a secret back in the file by accident.
-#
-# Run: python -m unittest backend.tests.test_env_config -v
 
 import os
 import unittest
