@@ -7,6 +7,9 @@
     - Displays items with size, qty, and subtotals
     - Submits buyer details to /api/checkout/complete
     - Redirects to order confirmation on success
+    Updated by Mason Johnson - 10/26/26
+    - Pay button shows the mock card form, then sends the card with the order
+    - Shows card errors from the server next to the matching field
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -24,6 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function hideError() {
         if (errorMsg) errorMsg.style.display = "none";
+    }
+
+    // Stripe sends the buyer back here with ?canceled=1 if they leave the payment page
+    if (new URLSearchParams(window.location.search).get("canceled")) {
+        showError("Payment was canceled. Your order has not been paid. You can try again below.");
     }
 
     // Load cart from Flask session
@@ -72,7 +80,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (totalDisplay) totalDisplay.textContent = `$${total.toFixed(2)}`;
 
-    // Handle form submission
+    // Mock card form - Added by Mason Johnson 10/26/26
+    // Maps each card field name from the server to its input and error line on the page
+    const cardSection = document.getElementById("cardSection");
+    const cardFields = {
+        name: { input: document.getElementById("cardName"), error: document.getElementById("cardNameError") },
+        number: { input: document.getElementById("cardNumber"), error: document.getElementById("cardNumberError") },
+        expiry: { input: document.getElementById("cardExpiry"), error: document.getElementById("cardExpiryError") },
+        cvv: { input: document.getElementById("cardCvv"), error: document.getElementById("cardCvvError") },
+    };
+    const payLabel = `Pay $${total.toFixed(2)}`;
+
+    // Clears all card error messages and red borders
+    function clearCardErrors() {
+        for (const field in cardFields) {
+            cardFields[field].error.textContent = "";
+            cardFields[field].input.classList.remove("input-invalid");
+        }
+    }
+
+    // Puts each error message under the card field it belongs to
+    function showCardErrors(errors) {
+        for (const field in errors) {
+            if (cardFields[field]) {
+                cardFields[field].error.textContent = errors[field];
+                cardFields[field].input.classList.add("input-invalid");
+            }
+        }
+    }
+
+    // Handle form submission: first Pay click opens the card form, the next one sends the payment
     const form = document.getElementById("checkoutForm");
     if (!form) return;
 
@@ -91,13 +128,24 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // Step 1: buyer details are filled in, so show the card form
+        if (cardSection.style.display === "none") {
+            cardSection.style.display = "block";
+            if (submitBtn) submitBtn.textContent = payLabel;
+            cardFields.name.input.focus();
+            return;
+        }
+
+        // Step 2: send the order with the card info
+        clearCardErrors();
+
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.textContent = "Processing...";
         }
 
         try {
-            const res = await fetch("/api/checkout/complete", {
+            const res = await fetch("/api/checkout/create-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -106,21 +154,28 @@ document.addEventListener("DOMContentLoaded", async () => {
                     email,
                     contact,
                     meeting_location: meetingLocation,
+                    card: {
+                        name: cardFields.name.input.value,
+                        number: cardFields.number.input.value,
+                        expiry: cardFields.expiry.input.value,
+                        cvv: cardFields.cvv.input.value,
+                    },
                 }),
             });
 
             const data = await res.json();
 
             if (!res.ok) {
+                if (data.card_errors) showCardErrors(data.card_errors);
                 throw new Error(data.error || "Transaction failed.");
             }
 
-            window.location.href = `/order-confirmation?conf=${encodeURIComponent(data.confirmation_number)}`;
+            window.location.href = data.url;
         } catch (err) {
             showError(err.message || "Something went wrong. Please try again.");
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = "Complete Transaction";
+                submitBtn.textContent = payLabel;
             }
         }
     });

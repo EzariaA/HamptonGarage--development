@@ -5,18 +5,20 @@
 from db import get_connection
 
 
+# Updated by Mattie Edozie - 10/26/26 - order_status can be set by the caller (checkout uses PENDING_PAYMENT)
 def create_order(user_id, confirmation_number, buyer_first_name, buyer_last_name,
-                 buyer_email, buyer_contact, buyer_meeting_location, total_amount):
+                 buyer_email, buyer_contact, buyer_meeting_location, total_amount,
+                 order_status="SUBMITTED"):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO orders (user_id, confirmation_number, buyer_first_name, buyer_last_name,
                             buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'SUBMITTED')
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, user_id, confirmation_number, buyer_first_name, buyer_last_name,
                   buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status, created_at;
     """, (user_id, confirmation_number, buyer_first_name, buyer_last_name,
-          buyer_email, buyer_contact, buyer_meeting_location, total_amount))
+          buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status))
     row = cur.fetchone()
     conn.commit()
     cur.close()
@@ -240,3 +242,66 @@ def update_listing_size_inventory(listing_id, size, purchased_qty):
     conn.commit()
     cur.close()
     conn.close()
+
+
+# ________________________________________________________
+# STRIPE PAYMENT HELPERS
+# Added by Mattie Edozie - 10/26/26
+# ________________________________________________________
+
+def get_order_by_id(order_id):
+    """Returns the fields the payment code needs, or None if the order doesn't exist."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT id, user_id, confirmation_number, total_amount, order_status, stripe_session_id
+        FROM orders
+        WHERE id = %s;
+    """, (order_id,))
+    row = cur.fetchone()
+    cur.close()
+    conn.close()
+    if not row:
+        return None
+    return {
+        "id": row[0],
+        "user_id": row[1],
+        "confirmation_number": row[2],
+        "total_amount": float(row[3]),
+        "order_status": row[4],
+        "stripe_session_id": row[5],
+    }
+
+
+def set_order_stripe_session(order_id, stripe_session_id):
+    """Saves the Stripe Checkout Session id so we can match Stripe's confirmation to this order."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE orders SET stripe_session_id = %s WHERE id = %s;",
+        (stripe_session_id, order_id)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+
+
+def mark_order_paid(order_id):
+    """
+    Moves an order from PENDING_PAYMENT to PAID.
+    Returns True only for the call that actually changed it, so Stripe sending the
+    same confirmation twice (webhook + return page) can't fulfill the order twice.
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        UPDATE orders
+        SET order_status = 'PAID', paid_at = CURRENT_TIMESTAMP
+        WHERE id = %s AND order_status = 'PENDING_PAYMENT'
+        RETURNING id;
+    """, (order_id,))
+    changed = cur.fetchone() is not None
+    conn.commit()
+    cur.close()
+    conn.close()
+    return changed

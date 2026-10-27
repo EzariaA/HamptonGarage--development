@@ -265,6 +265,38 @@ def set_storefront_active(storefront_id, is_active):
     }
 
 
+# Added by Mason Johnson - Iteration 2 - 10/26/26
+def delete_storefront_permanently(storefront_id):
+    """
+    Permanently deletes a storefront and the data linked to it, all in one transaction.
+    If anything fails, nothing is deleted.
+
+    - cart_items for this store's listings are deleted here (that table has no foreign key)
+    - deleting the storefront row cascades to listings, listing_images,
+      listing_sizes, and wishlist rows
+    - purchases are kept (their listing_id becomes NULL)
+    - orders and order_items are not linked to listings, so past orders stay for records
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        cur.execute("""
+            DELETE FROM cart_items
+            WHERE item_id IN (SELECT id FROM listings WHERE storefront_id = %s);
+        """, (storefront_id,))
+
+        cur.execute("DELETE FROM storefronts WHERE id = %s;", (storefront_id,))
+
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        cur.close()
+        conn.close()
+
+
 # ___________________________________________________________
 #  Admin Queries ( needed for future development)
 # ___________________________________________________________

@@ -26,7 +26,8 @@ from services.storefront_service import (
     get_my_storefront_service,
     update_storefront_service,
     deactivate_storefront_service,
-    reactivate_storefront_service
+    reactivate_storefront_service,
+    delete_storefront_service
 )
 
 from models.storefront_model import get_active_storefronts, get_storefront_by_id  # Updated by Day E 3/22/26
@@ -215,6 +216,28 @@ def edit_storefront_page(storefront_id):
     if not session.get("user"):
         return redirect(url_for("auth.login"))
     return render_template("edit_storefront.html", storefront_id=storefront_id)
+
+
+# Added by Mason Johnson - Iteration 2 - 10/26/26
+# Permanently deletes a storefront (POST only). Ownership is checked with the logged-in
+# session, not request headers. Success goes to the storefronts page, errors go back to edit.
+@storefront_pages_bp.route("/storefronts/<int:storefront_id>/delete", methods=["POST"])
+def delete_storefront_page(storefront_id):
+    from flask import session, redirect, url_for, flash
+    user_id = session.get("user_id")
+    if not user_id:
+        return redirect(url_for("auth.login"))
+
+    typed_name = request.form.get("confirm_name", "")
+
+    try:
+        brand_name = delete_storefront_service(user_id, storefront_id, typed_name)
+    except Exception as e:
+        flash(str(e), "error")
+        return redirect(url_for("storefront_pages_bp.edit_storefront_page", storefront_id=storefront_id))
+
+    flash(f'Your storefront "{brand_name}" was permanently deleted.', "success")
+    return redirect(url_for("storefront_pages_bp.storefront_home_page"))
 
 
 @storefront_pages_bp.route("/listings/<int:listing_id>/edit")

@@ -1,7 +1,7 @@
 /*
     my_storefront.js
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace 
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 - 3/22/2026
     Implemented & Updated by Day Ekoi - Iteration 5 - 4/9/2026
@@ -36,7 +36,7 @@ let currentUser = null;
 
 // renders empty state in listing grid
 function renderEmpty(message) {
-    listingGrid.innerHTML = `<p style="color:#888; font-style:italic; grid-column:1/-1; text-align:center;">${message}</p>`;
+    listingGrid.innerHTML = `<p style="color:#4b5563; font-style:italic; grid-column:1/-1; text-align:center;">${message}</p>`;
 }
 
 
@@ -192,7 +192,7 @@ async function loadMyStorefront() {
             if (pageTitle) pageTitle.textContent = "No Storefront Found";
             renderEmpty(`
                 <div style="text-align:center; padding:2rem;">
-                    <p style="color:#888; font-style:italic; margin-bottom:1rem;">You don't have a storefront yet.</p>
+                    <p style="color:#4b5563; font-style:italic; margin-bottom:1rem;">You don't have a storefront yet.</p>
                     <a href="/storefronts/create"><button class="action-btn">Create Your Storefront</button></a>
                 </div>
             `);

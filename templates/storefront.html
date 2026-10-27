@@ -1,7 +1,7 @@
 {#
     storefront.html
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4
     3/18/2026-3/22/2026
@@ -9,7 +9,7 @@
 
 
 Description of file (What it does, how it is used, etc):
-This file holds the main UI strucutre for the storefront homepage of the Vault. It includes the top navigation bar, logo and search section, 
+This file holds the main UI strucutre for the storefront homepage of Hampton Garage. It includes the top navigation bar, logo and search section, 
 and the main content area where storefront cards will be displayed. The storefront cards are generated dynamically using storefront.js. This page serves as the entry point for users to explore different storefronts available on the website.
 It is simply the skeleton/template of the storefront page, all styling is handled by storefront.css
 The cards are not hardcoded into HTML, but there is a grid container that the javascript file added dynamically as users create storefronts.
@@ -17,8 +17,8 @@ This page will connect to the Flask backend and database by requesting storefron
 
 Purpose simplified: Creates page structure:
 Top bar: menu button on left, cart and profile icons on right
-Logo/Title and search section: The Vault logo/title and a search bar for users to search for storefronts
-Main content: where storefront cards will be displayed, along with pagination controls at bottom of page
+Logo/Title and search section: page title and a search bar for users to search for storefronts
+Main content: where storefront cards will be displayed
 Script connection: Links and loads JS file that actually creates the storefront cards dynamically
 
 
@@ -28,6 +28,7 @@ Script connection: Links and loads JS file that actually creates the storefront 
 Start of Code w/ comments
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme by Mason Johnson 10/26/26 - top bar is now the blue Hampton Garage banner #}
 {% extends "base.html" %}
 
 {% block title %}Storefronts{% endblock %}
@@ -37,67 +38,44 @@ Start of Code w/ comments
 {% endblock %}
 
 {% block content %}
-<!-- Side navigation pane/menu (the 3 lines)
- -allows users to press create storefront button that now allows them to be a seller by creating a storefront and then creating listings
- -explore brands, all categories, new drops, and hot! sections included
- - About, FAQs, and sitemap sections (probably wont be functional for the full scale of the product but included for design purposes)
+<!-- Side navigation pane/menu (opened by the 3-line button)
+ - Create Storefront, Create Listing, My Storefront, and Returns links
+ Cleaned up by Mason Johnson 10/26/26 - removed placeholder items that did not link anywhere
 -->
 <div id="navOverlay" class="nav-overlay"></div>
 
 <aside id="navPane" class="nav-pane">
-  
-
-  <!-- Top half button and actions -->
-
- 
- <!--  -- OLD VERSION --
-  
- <div class="nav-top">
-    -- <button class="create-btn">Create Storefront</button> --
-     <a href="{{ url_for('storefront_pages_bp.create_storefront_page') }}">
-  <button class="create-btn">Create Storefront</button>
-</a>
-     <a href="{{ url_for('create_listing') }}">
-  <button class="create-btn">Create Listing</button>
-</a>
-  </div>
--->
-
-<!-- UPDATED VERSION : Day E 4/9/26 -->
-
-<div class="nav-top">
+  <!-- UPDATED VERSION : Day E 4/9/26 -->
+  <div class="nav-top">
     <a href="{{ url_for('storefront_pages_bp.create_storefront_page') }}">
-        <button class="create-btn">Create Storefront</button>
+      <button class="create-btn">Create Storefront</button>
     </a>
     <a href="{{ url_for('create_listing') }}">
-        <button class="create-btn">Create Listing</button>
+      <button class="create-btn">Create Listing</button>
     </a>
     <a href="/my-storefront">
-        <button class="create-btn my-storefront-btn">My Storefront</button>
-</a>
+      <button class="create-btn my-storefront-btn">My Storefront</button>
+    </a>
     <hr class="nav-divider">
 </div>
 <a href="/returns" class="nav-subitem">Returns</a>
-  <!--
-  Main navigation
-  <div class="nav-section">
-    <div class="nav-item">Explore Brands <span>→</span></div>
-    <div class="nav-item">All Categories <span>→</span></div>
-    <div class="nav-item">New Drops <span>→</span></div>
-    <div class="nav-item">Hot! <span>→</span></div>
-  </div>
 
+<!--Clarence Bostic - Iteration 3
+  Main navigation -->
+<nav class="nav-section" aria-label="Browse">
+    <a href="{{ url_for('recent_listings') }}" class="nav-item">Recent Listings <span>→</span></a>
+    <a href="{{ url_for('categories') }}" class="nav-item">Categories <span>→</span></a>
+</nav>
+  <!--
   extras
   <div class="nav-section more">
     <p class="nav-heading">More from The Vault</p>
     <div class="nav-subitem">About</div>
     <a href="/returns" class="nav-subitem">Returns</a>
     <div class="nav-subitem">Sitemap</div>
-
-
   -->
   </div>
-
+  <a href="/returns" class="nav-subitem">Returns</a>
 </aside>
 
   <!-- 
@@ -146,6 +124,9 @@ Updated nav bar
       <span class="menu-line"></span>
       <span class="menu-line"></span>
     </button>
+
+    <!-- Site name in the middle of the blue banner -->
+    <a href="/storefronts" class="topbar-title">HAMPTON GARAGE</a>
 
     <!-- Right-side actions -->
     <div class="topbar-actions">
@@ -228,11 +209,9 @@ Updated nav bar
   <!-- Brand name/Logo & Search Features -->
   <section class="logo-search-section">
 
-    <h1 class="brand-title">
-      <span class="gold">The</span> Vault
-    </h1>
+    <h1 class="brand-title">Browse Storefronts</h1>
 
-    <p class="brand-subtitle">Fashion Marketplace</p>
+    <p class="brand-subtitle">Campus Fashion Marketplace</p>
 
     <!-- Search Bar input that allows users to type their search queries. As of right now there isnt any actual functionality -->
 
@@ -241,24 +220,23 @@ Updated nav bar
         type="text"
         id="searchInput"
         class="search-input"
-        placeholder="Explore The Vault"
+        placeholder="Search Hampton Garage"
       />
     </div>
   </section>
 
-  <!-- Main page content: Holds the storefrotn cards and pagination -->
+  <!-- Main page content: Holds the storefront cards -->
   <main class="page-content">
+
+    <!-- Messages from the server (for example, after a storefront is deleted) - Added by Mason Johnson 10/26/26 -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="flash-msg flash-msg--{{ category }}">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
 
     <section class="storefront-grid" id="storefrontGrid">
     </section>
-
-    <!-- Page controls that live at the bottom of the page under the grids where users can go back and forth from page to page. 
-     Currently only placeholders as page buttons are not functional-->
-    <div class="pagination">
-      <button class="page-btn">Previous</button> <!-- Previous button -->
-      <span class="page-indicator">Page 1</span> <!-- displays page number  -->
-      <button class="page-btn">Next</button> <!-- Next button -->
-    </div> <!-- end pagination class -->
 
   </main> <!-- end of main page content -->
 

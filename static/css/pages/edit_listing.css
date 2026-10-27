@@ -2,9 +2,10 @@
     edit_listing.css
     Moved out of the inline <style> block in edit_listing.html
     by Mason Johnson, Iteration 2, 10/1/26
+    Switched to the garage theme (blue + gray) by Mason Johnson, 10/26/26
 */
         .helper-note {
-            color: #bfbfbf;
+            color: var(--text-gray);
             font-size: 0.9rem;
             text-align: center;
             margin-top: 0.5rem;
@@ -19,8 +20,8 @@
         }
         .existing-image-card,
         .preview-slot {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: white;
+            border: 1px solid var(--border-gray);
             border-radius: 14px;
             padding: 0.85rem;
         }
@@ -29,9 +30,9 @@
             width: 100%;
             height: 180px;
             object-fit: contain;
-            background: rgba(255, 255, 255, 0.05);
+            background: #f8fafc;
             border-radius: 10px;
-            border: 1px solid rgba(184, 134, 11, 0.35);
+            border: 1px solid var(--border-gray);
         }
         .existing-image-actions {
             display: flex;
@@ -42,33 +43,35 @@
         }
         .mini-btn {
             border-radius: 999px;
-            border: 1px solid rgba(212, 175, 55, 0.5);
-            background: rgba(0, 0, 0, 0.32);
-            color: #f3d372;
+            border: 1px solid var(--btn-gray);
+            background: white;
+            color: var(--btn-gray-dark);
             padding: 0.38rem 0.8rem;
             font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
         }
         .mini-btn.is-active {
-            background: rgba(212, 175, 55, 0.18);
-            border-color: #d4af37;
+            background: var(--baby-blue);
+            border-color: var(--navy);
+            color: var(--navy);
         }
         .mini-btn.is-danger {
-            border-color: rgba(183, 63, 63, 0.75);
-            color: #ffb3b3;
+            border-color: #d64545;
+            color: #b42318;
         }
         .mini-btn:disabled {
             opacity: 0.55;
             cursor: not-allowed;
         }
         .drop-zone {
-            border: 2px dashed #d4af37;
+            border: 2px dashed var(--baby-blue-dark);
             border-radius: 8px;
             padding: 1.2rem;
             text-align: center;
             cursor: pointer;
-            color: #888;
+            color: var(--text-gray);
+            background-color: #f8fafc;
             transition: background 0.2s, border-color 0.2s;
             width: 100%;
             min-height: 120px;
@@ -79,14 +82,14 @@
             overflow: hidden;
         }
         .drop-zone.dragover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: #f0cc55;
+            background: #eef6fc;
+            border-color: var(--navy);
         }
         .drop-zone.has-image {
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #f8fafc;
             border-style: solid;
         }
         .drop-zone.has-image p {
@@ -98,9 +101,9 @@
             bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.72);
-            border: 1px solid rgba(212, 175, 55, 0.75);
-            color: #f2d06c;
+            background: white;
+            border: 1px solid var(--baby-blue-dark);
+            color: var(--navy);
             font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.4px;
@@ -108,7 +111,7 @@
             border-radius: 999px;
             text-transform: uppercase;
         }
-        .drop-link { color: #d4af37; text-decoration: underline; cursor: pointer; }
+        .drop-link { color: var(--navy); text-decoration: underline; cursor: pointer; }
         .image-preview-row {
             display: flex;
             flex-wrap: wrap;
@@ -125,7 +128,7 @@
         }
         .image-preview-row .thumb-name {
             font-size: 0.7rem;
-            color: #aaa;
+            color: var(--text-gray);
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -135,13 +138,13 @@
         .slot-label,
         .image-slot-label {
             font-size: 0.82rem;
-            color: #d4af37;
+            color: var(--navy);
             font-weight: 700;
             margin: 0;
             text-align: center;
         }
         .image-status-note {
-            color: #d4af37;
+            color: var(--navy);
             font-size: 0.82rem;
             text-align: center;
             margin-top: 0.6rem;

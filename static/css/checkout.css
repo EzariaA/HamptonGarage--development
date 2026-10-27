@@ -134,3 +134,31 @@ input, textarea {
 .brand-title { font-size: 1.8rem; margin: 0; letter-spacing: 2px; }
 .brand-subtitle { color: #888; margin: 4px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 .brand-block { text-align: right; }
+
+/* Mock card form - Added by Mason Johnson 10/26/26 */
+.card-section {
+    margin-top: 10px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(184, 134, 11, 0.4);
+}
+
+.card-note { margin: -10px 0 20px; }
+
+/* expiration and CVV sit side by side */
+.card-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.card-row .input-group { flex: 1; }
+
+/* error text shown under a field that failed the check */
+.field-error {
+    color: #ff8a8a;
+    font-size: 0.85rem;
+    margin: -14px 0 16px;
+}
+
+.field-error:empty { display: none; }
+
+.input-invalid { border-color: rgba(220, 53, 53, 0.85); }

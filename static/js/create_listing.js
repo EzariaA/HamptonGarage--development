@@ -1,7 +1,7 @@
 /*
 create_listing.js
 
-The Vault Campus Marketplace
+Hampton Garage Campus Marketplace
 CSC 405 Sp 26
 Created by Elali McNair - Iteration 4
 Updated by Day Ekoi - Iteration 5 4/9/26
@@ -351,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
           }
           const messageDiv = document.createElement("div");
-          messageDiv.style.cssText = "color: #d4af37; margin-top: 10px; font-weight: bold; text-align:center;";
+          messageDiv.style.cssText = "color: #1c3557; margin-top: 10px; font-weight: bold; text-align:center;";
           messageDiv.innerHTML = `You must create a storefront before creating listings. <a href="/storefronts/create" style="color:#fff; text-decoration:underline;">Create one here</a>`;
           storefrontSelect.parentNode.appendChild(messageDiv);
         }
@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
           });
         }
         const messageDiv = document.createElement("div");
-        messageDiv.style.cssText = "color: #d4af37; margin-top: 10px; font-weight: bold; text-align:center;";
+        messageDiv.style.cssText = "color: #1c3557; margin-top: 10px; font-weight: bold; text-align:center;";
         messageDiv.innerHTML = `You must create a storefront before creating listings. <a href="/storefronts/create" style="color:#fff; text-decoration:underline;">Create one here</a>`;
         storefrontSelect.parentNode.appendChild(messageDiv);
       } else {

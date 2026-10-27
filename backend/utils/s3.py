@@ -50,5 +50,5 @@ def upload_image_to_s3(file, folder="uploads"):
            return f"https://{BUCKET_NAME}.s3.{REGION}.amazonaws.com/{filename}"
 
        except Exception as e:
-           logger.error(f"Image upload error: {e}")  # added - ava
-           return None
+                logger.error(f"Image upload error (bucket={BUCKET_NAME!r}, region={REGION!r}): {e}")  # added - ava # added - ava
+                return None

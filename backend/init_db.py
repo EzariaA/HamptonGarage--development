@@ -173,7 +173,7 @@ def create_vault_tables():
             CREATE TABLE IF NOT EXISTS purchases (
                 id SERIAL PRIMARY KEY,
                 user_id INTEGER NOT NULL,
-                listing_id INTEGER NOT NULL,
+                listing_id INTEGER,
                 quantity INTEGER NOT NULL CHECK (quantity > 0),
                 purchase_price NUMERIC(10,2) NOT NULL CHECK (purchase_price >= 0),
                 purchase_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -186,10 +186,23 @@ def create_vault_tables():
                 CONSTRAINT fk_purchase_listing
                     FOREIGN KEY(listing_id)
                     REFERENCES listings(id)
-                    ON DELETE CASCADE
+                    ON DELETE SET NULL
             );
         """
         cur.execute(create_purchases_table)
+
+        # Migration - Added by Mason Johnson 10/26/26
+        # Keep purchase records when a listing (or its whole storefront) is deleted.
+        # listing_id is set to NULL instead of the purchase row being removed.
+        cur.execute("ALTER TABLE purchases ALTER COLUMN listing_id DROP NOT NULL;")
+        cur.execute("ALTER TABLE purchases DROP CONSTRAINT IF EXISTS fk_purchase_listing;")
+        cur.execute("""
+            ALTER TABLE purchases
+            ADD CONSTRAINT fk_purchase_listing
+                FOREIGN KEY(listing_id)
+                REFERENCES listings(id)
+                ON DELETE SET NULL;
+        """)
 
         # ________________________________________________________
         # WISHLIST TABLE (User wishlists)
@@ -297,6 +310,8 @@ def create_vault_tables():
             );
         """
         cur.execute(create_orders_table)
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_session_id VARCHAR(255) UNIQUE;")
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20);")
 
         # ________________________________________________________
         # ORDER ITEMS TABLE (Items per order)
