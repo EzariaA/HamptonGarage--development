@@ -108,8 +108,7 @@ def checkout_success():
             return redirect(f"/order-confirmation?conf={row[0]}")
 
         stripe_session = stripe.checkout.Session.retrieve(session_id)
-        if stripe_session.payment_status != "paid" or stripe_session.metadata.get("user_id") != str(user_id):
-            return redirect("/checkout")
+        if stripe_session.payment_status != "paid" or stripe_session.metadata.to_dict().get("user_id") != str(user_id):            return redirect("/checkout")
 
         buyer = session.pop("pending_buyer", {})
         result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
