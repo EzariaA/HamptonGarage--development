@@ -4,34 +4,38 @@
     by Mason Johnson, Iteration 2, 10/1/26
     Redesigned with the garage theme (baby blue banner, garage photo,
     faded gray buttons) by Mason Johnson, 10/26/26
+
+    How this page is laid out:
+      .garage-page   the whole screen, stacked top to bottom
+        .top-banner    baby blue strip with the site name
+        .garage-hero   garage photo that fills the rest of the screen
+          .hero-card     see-through white box with the text and buttons
+
+    The colors (--baby-blue, --navy, ...) come from base.css, so
+    changing them there changes them here too.
 */
 /* Index.html was made on 3/19/2026 by Ryan Grimes */
 
-/* Colors used on this page */
-:root {
-    --baby-blue: #a7d3f2;
-    --baby-blue-dark: #7fbce8;
-    --navy: #1c3557;
-}
-
-/* Full screen page */
+/* Remove the browser's default margin and set the page font */
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
     width: 100%;
-    background: #e5e7eb;
+    background: var(--page-gray);
     font-family: 'Segoe UI', Arial, sans-serif;
 }
 
-/* Stacks the banner on top of the garage photo */
+/* Stacks the banner on top of the garage photo.
+   min-height: 100vh means "at least as tall as the screen" */
 .garage-page {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
 }
 
-/* Baby blue banner at the top */
+/* Baby blue banner at the top.
+   The gradient goes from light blue at the top to a darker blue at the bottom */
 .top-banner {
     background: linear-gradient(to bottom, var(--baby-blue), var(--baby-blue-dark));
     text-align: center;
@@ -42,6 +46,8 @@ body, html {
     z-index: 2; /* keeps the banner shadow on top of the photo */
 }
 
+/* "HAMPTON GARAGE" title.
+   vh = percent of the screen height, so the text grows with the screen */
 .main-title {
     color: var(--navy);
     font-size: 7vh;
@@ -50,6 +56,7 @@ body, html {
     margin: 0;
 }
 
+/* "CAMPUS FASHION MARKETPLACE" line under the title */
 .sub-title {
     color: var(--navy);
     font-size: 2vh;
@@ -58,21 +65,25 @@ body, html {
     opacity: 0.8;
 }
 
-/* Garage photo fills the rest of the screen */
+/* Garage photo area.
+   flex: 1 makes it take up all the space left under the banner.
+   The background has two layers: first a see-through gradient (light at the
+   top, darker at the bottom so the buttons stand out), then the photo under it.
+   background-size: cover stretches the photo to fill the area without squishing it */
 .garage-hero {
     flex: 1;
     display: flex;
     justify-content: center;
-    align-items: flex-end;
+    align-items: flex-end; /* pushes the box to the bottom of the photo */
     padding: 0 16px 8vh;
-    /* dark fade at the bottom of the photo so the buttons stand out */
     background:
         linear-gradient(rgba(229, 231, 235, 0.15), rgba(30, 41, 59, 0.45)),
         url('/static/images/garage.webp') no-repeat center center;
     background-size: cover;
 }
 
-/* Frosted glass box that holds the text and buttons */
+/* See-through white box that holds the text and buttons.
+   backdrop-filter: blur blurs the photo behind the box (a "frosted glass" look) */
 .hero-card {
     background: rgba(255, 255, 255, 0.55);
     backdrop-filter: blur(6px);
@@ -83,6 +94,7 @@ body, html {
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
 
+/* Welcome sentence above the buttons */
 .hero-text {
     color: var(--navy);
     font-size: 2.4vh;
@@ -97,23 +109,27 @@ body, html {
     gap: 3vw;
 }
 
-/* Same metal buttons as before, faded to gray */
+/* Same metal button pictures as before, faded to gray.
+   filter changes how the picture looks:
+     grayscale(100%)  removes all color (gold letters turn gray)
+     brightness(1.15) makes it a little lighter
+     opacity(0.85)    makes it a little see-through */
 .metallic-btn {
     width: 22vw;
     max-width: 260px;
     min-width: 140px;
-    transition: transform 0.2s ease, filter 0.2s ease;
+    transition: transform 0.2s ease, filter 0.2s ease; /* animates the hover change */
     filter: grayscale(100%) brightness(1.15) opacity(0.85);
 }
 
-/* Button gets a little bigger and brighter on hover */
+/* On hover the button gets a little bigger (scale) and brighter */
 .metallic-btn:hover {
     transform: scale(1.05);
     filter: grayscale(100%) brightness(1.35) opacity(1);
 }
 
-/* The button pictures have empty space above and below the plate,
-   so the negative margin trims it off */
+/* The button pictures have empty space above and below the metal plate.
+   A negative margin pulls that empty space in so the box isn't too tall */
 .metallic-btn img {
     width: 100%;
     height: auto;
@@ -121,7 +137,8 @@ body, html {
     margin: -15% 0;
 }
 
-/* Phone screens: smaller title and stacked buttons */
+/* Phone screens (600px wide or less): smaller title and stacked buttons.
+   vw = percent of the screen width, so the title fits narrow screens */
 @media (max-width: 600px) {
     .main-title { font-size: 8.5vw; letter-spacing: 2px; }
     .sub-title { font-size: 3vw; letter-spacing: 3px; }

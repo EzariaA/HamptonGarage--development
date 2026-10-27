@@ -3,25 +3,38 @@
     Shared design tokens loaded on every page through base.html.
     Created by Mason Johnson, Iteration 2, 10/1/26
     Garage theme colors and the shared blue banner added by Mason Johnson, 10/26/26
+
+    How the colors work:
+    Each "--name: value" line below is a CSS variable. Any CSS file can use
+    the color with var(--name), for example:  color: var(--navy);
+    Because every page loads this file first, changing a value here changes
+    that color on every page that uses it.
 */
 :root {
+    /* Old Vault colors - still used by the account page (account.css).
+       Can be removed once that page is switched to the garage theme. */
     --gold: #B8860B;
     --gold-light: #d4af37;
     --dark-bg: #121212;
 
     /* Garage theme colors (baby blue + gray) */
-    --baby-blue: #a7d3f2;
-    --baby-blue-dark: #7fbce8;
-    --navy: #1c3557;
-    --page-gray: #e5e7eb;
-    --card-white: #ffffff;
-    --border-gray: #cbd5e1;
-    --text-gray: #4b5563;
-    --btn-gray: #6b7280;
-    --btn-gray-dark: #4b5563;
+    --baby-blue: #a7d3f2;       /* banner top, highlights */
+    --baby-blue-dark: #7fbce8;  /* banner bottom, card top lines, focus glow */
+    --navy: #1c3557;            /* titles and main text */
+    --page-gray: #e5e7eb;       /* page background */
+    --card-white: #ffffff;      /* cards and form boxes */
+    --border-gray: #cbd5e1;     /* card and input borders */
+    --text-gray: #4b5563;       /* smaller / less important text */
+    --btn-gray: #6b7280;        /* buttons */
+    --btn-gray-dark: #4b5563;   /* button hover and bottom of button gradient */
 }
 
-/* Small baby blue banner with the site name, used at the top of inner pages */
+/* Shared baby blue banner with the site name, used at the top of inner pages.
+   To add it to a page, put this at the top of the page's content block:
+       <header class="site-banner">
+           <a href="/storefronts">HAMPTON GARAGE</a>
+       </header>
+   The gradient goes from light blue at the top to darker blue at the bottom. */
 .site-banner {
     background: linear-gradient(to bottom, var(--baby-blue), var(--baby-blue-dark));
     border-bottom: 4px solid var(--navy);
@@ -30,6 +43,7 @@
     padding: 16px;
 }
 
+/* "HAMPTON GARAGE" link inside the banner (no underline, navy text) */
 .site-banner a {
     color: var(--navy);
     font-family: 'Segoe UI', Arial, sans-serif;

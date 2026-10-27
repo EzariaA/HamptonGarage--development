@@ -153,6 +153,83 @@ The username and email you typed stay in the form after an error. **Passwords ar
 **Kept on purpose:** internal names like `vaultUserId`, `vaultWishlistLocalItems`, `create_vault_tables`, and `VAULT-` order numbers. Renaming the saved-data keys would log everyone out and clear wishlists, and none of them show on screen.
 
 **Not redesigned yet (still dark and gold):** Cart, Checkout, Order Confirmation, Account, Admin Dashboard.
+
+### How the theme code works
+
+You don't need to know all of CSS to work with this. Most of it is three ideas.
+
+**1. Colors are variables in `base.css`**
+
+`base.html` loads `static/css/base.css` on every page, before the page's own CSS. Inside it:
+
+```css
+:root {
+    --navy: #1c3557;          /* titles and main text */
+    --btn-gray: #6b7280;      /* buttons */
+    ...
+}
+```
+
+Each `--name: value` line saves a color under a name. Any CSS file can then use it:
+
+```css
+.my-title {
+    color: var(--navy);       /* same as color: #1c3557; */
+}
+```
+
+So if the team wants a different blue, change `--baby-blue` in `base.css` once and every page updates.
+
+| Variable | Used for |
+|----------|----------|
+| `--baby-blue` / `--baby-blue-dark` | banner, blue line on top of cards, glow around the box you're typing in |
+| `--navy` | titles and main text |
+| `--page-gray` | page background |
+| `--card-white` / `--border-gray` | cards and their borders |
+| `--text-gray` | smaller, less important text |
+| `--btn-gray` / `--btn-gray-dark` | buttons and their hover color |
+
+**2. The blue banner is one shared class**
+
+`.site-banner` is also in `base.css`. To put the banner on a new page, add this at the top of the page's `{% block content %}`:
+
+```html
+<header class="site-banner">
+    <a href="/storefronts">HAMPTON GARAGE</a>
+</header>
+```
+
+No extra CSS needed. (The homepage and the storefronts page have their own bigger versions of the banner, `.top-banner` in `index.css` and `.topbar` in `storefront.css`, because they hold more than just the title.)
+
+**3. Cards, inputs, and buttons follow the same pattern**
+
+When restyling a page, copy these patterns. They're already used on login, storefronts, and the forms:
+
+| Thing | What we use |
+|-------|-------------|
+| Card / box | `background: var(--card-white);` `border: 1px solid var(--border-gray);` `border-top: 5px solid var(--baby-blue-dark);` `border-radius: 12px;` |
+| Input box | `background: #f8fafc;` `border: 1px solid var(--border-gray);` `border-radius: 8px;` `color: var(--navy);` |
+| Input you're typing in (`:focus`) | `border-color: var(--baby-blue-dark);` `box-shadow: 0 0 0 3px rgba(167, 211, 242, 0.6);` (the box-shadow draws a soft blue ring) |
+| Main button | `background: var(--btn-gray);` `color: white;`, hover: `var(--btn-gray-dark)` |
+| Back / cancel button | white background, `border: 1px solid var(--btn-gray);`, fills gray on hover |
+| Error message | `background: #fdecec;` `color: #b42318;` (red) |
+| Success message | `background: #ecfdf3;` `color: #146c2e;` (green) |
+
+### The trickier lines, explained
+
+Every CSS block has a comment above it. These are the few spots that do something less obvious:
+
+| Where | Line | What it does |
+|-------|------|--------------|
+| `index.css` `.metallic-btn` | `filter: grayscale(100%) brightness(1.15) opacity(0.85);` | Takes the original gold button picture and removes the color, lightens it a bit, and makes it a little see-through. No new image was needed. |
+| `index.css` `.metallic-btn img` | `margin: -15% 0;` | The button pictures have empty space above and below the plate. The negative margin pulls that space in so the box around the buttons isn't too tall. |
+| `index.css` `.garage-hero` / `returns.css` `body` | `background: linear-gradient(...), url(...)` | Two background layers: a see-through color on top, the photo underneath. That's what tints the photo. Change the last number in each `rgba(...)` to make the tint lighter (smaller) or darker (bigger). |
+| `index.css` `.hero-card` | `backdrop-filter: blur(6px);` | Blurs the photo behind the white box ("frosted glass"). |
+| `storefront.css` `.topbar-title` | `position: absolute; left: 50%; transform: translateX(-50%);` | Puts "HAMPTON GARAGE" in the exact middle of the top bar even though the menu button and the icons on each side are different widths. |
+| `create_storefront.css` | `input[type="file"][hidden] { display: none; }` | Upload boxes hide the real file input and open it with JavaScript when you click the box. An older rule (`display: block`) was making the browser's "Choose File" button show up anyway. This puts it back to hidden. |
+| `returns.css` | `text-shadow: 0 0 12px rgba(255, 255, 255, 0.95)` | A white glow behind the "Returns" title so it's readable on top of the photo. |
+
+**Units you'll see:** `vh` = percent of the screen's height, `vw` = percent of the screen's width (used on the homepage so it scales with the screen). `rem` = based on the normal text size. `@media (max-width: 600px) { ... }` = rules that only apply on phone-sized screens.
 > **Heads up for anyone working on checkout** (e.g. the `ezaria-stripe-checkout` branch): this branch did not touch checkout's look, but `base.css` now has the theme variables, so merging should be easy. Use them when restyling.
 
 ---

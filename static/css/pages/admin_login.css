@@ -4,13 +4,16 @@
     by Mason Johnson, Iteration 2, 10/1/26
     Switched to the garage theme (blue + gray) by Mason Johnson, 10/26/26
 */
+        /* Remove the browser's default margin and set the page color and font */
         body, html {
             margin: 0; padding: 0; min-height: 100%; width: 100%;
             background: var(--page-gray);
             font-family: 'Segoe UI', Arial, sans-serif;
         }
 
-        /* Banner on top, card centered in the space below */
+        /* Whole page: banner on top, card area below.
+           min-height: 100vh = at least as tall as the screen.
+           The gradient fades from light gray to a slightly darker gray */
         .auth-page {
             min-height: 100vh;
             display: flex;
@@ -18,6 +21,8 @@
             background: linear-gradient(to bottom, var(--page-gray), #cfd6df);
         }
 
+        /* Area under the banner. flex: 1 makes it fill the rest of the screen,
+           and the two "center" lines put the card in the middle of it */
         .auth-main {
             flex: 1;
             display: flex;
@@ -26,7 +31,8 @@
             padding: 40px 16px;
         }
 
-        /* White form card */
+        /* White form card with a colored line on top.
+           max-width keeps it from getting too wide on big screens */
         .auth-card {
             background: var(--card-white);
             border: 1px solid var(--border-gray);
@@ -40,6 +46,7 @@
             text-align: center;
         }
 
+        /* Card title (LOG IN / SIGN UP / ADMIN ACCESS) */
         .auth-card h2 {
             color: var(--navy);
             letter-spacing: 4px;
@@ -48,8 +55,10 @@
             font-weight: bold;
         }
 
+        /* One label + input box */
         .input-group { margin-bottom: 22px; text-align: left; }
 
+        /* Small uppercase label above each box */
         .input-group label {
             color: var(--navy);
             font-size: 0.8rem;
@@ -60,6 +69,7 @@
             letter-spacing: 1px;
         }
 
+        /* Text and password boxes */
         .input-group input {
             width: 100%;
             background: #f8fafc;
@@ -72,13 +82,15 @@
             font-size: 1rem;
         }
 
+        /* Box the user is typing in: blue border plus a soft blue glow
+           (box-shadow with no blur draws a 3px ring around the box) */
         .input-group input:focus {
             border-color: var(--baby-blue-dark);
             background: white;
             box-shadow: 0 0 0 3px rgba(167, 211, 242, 0.6);
         }
 
-        /* Gray submit button */
+        /* Gray submit button (gradient from gray to darker gray) */
         .submit-btn {
             width: 100%;
             background: linear-gradient(to bottom, var(--btn-gray), var(--btn-gray-dark));
@@ -94,12 +106,14 @@
             margin-top: 10px;
         }
 
+        /* Hover: a bit brighter and lifts up 2px with a shadow */
         .submit-btn:hover {
             filter: brightness(1.15);
             transform: translateY(-2px);
             box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
         }
 
+        /* Links under the form, one on the left and one on the right */
         .footer-links {
             margin-top: 25px;
             display: flex;

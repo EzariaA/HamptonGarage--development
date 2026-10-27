@@ -284,7 +284,13 @@ body {
     position: relative;
 }
 
-/* site name stays in the exact middle no matter how wide the icons are */
+/* "HAMPTON GARAGE" in the middle of the banner.
+   The menu button (left) and the icons (right) are different widths, so normal
+   centering would push the title off to one side. Instead:
+     position: absolute    takes the title out of the row so it can't be pushed
+     left: 50%             moves its left edge to the middle of the banner
+     translateX(-50%)      slides it back by half its own width, so its CENTER is in the middle
+   (.topbar has position: relative so "50%" means 50% of the banner) */
 .topbar-title {
     position: absolute;
     left: 50%;
@@ -452,6 +458,7 @@ body {
     box-shadow: 0 4px 12px rgba(28, 53, 87, 0.08);
 }
 
+/* search box the user is typing in: blue border + soft blue glow */
 .search-input:focus {
     border-color: var(--baby-blue-dark);
     box-shadow: 0 0 0 3px rgba(167, 211, 242, 0.6);

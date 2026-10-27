@@ -253,6 +253,7 @@ input[type="number"] {
     outline: none;
 }
 
+/* number box the user is typing in: same blue border + glow as the text boxes */
 input[type="number"]:focus {
     border-color: var(--baby-blue-dark);
     background: white;
