@@ -19,6 +19,7 @@ Functions:
 """
 
 from flask import Blueprint, request, jsonify, render_template
+from utils.auth_utils import get_current_user # I3 - Makena Jelks
 
 from services.storefront_service import (
     create_storefront_service,
@@ -36,30 +37,6 @@ storefront_bp = Blueprint("storefront_bp", __name__, url_prefix="/api/storefront
 
 # Page blueprint
 storefront_pages_bp = Blueprint("storefront_pages_bp", __name__)
-
-
-def get_current_user():
-    """
-    Temporary user identity method (until real auth is connected):
-    Read user from headers.
-
-    Required header for protected routes:
-      X-User-Id: <int>
-
-    Optional:
-      X-User-Role: user|admin
-    """
-    user_id = request.headers.get("X-User-Id")
-    role = request.headers.get("X-User-Role", "user")
-
-    if not user_id:
-        return None
-
-    try:
-        return {"id": int(user_id), "role": role}
-    except Exception:
-        return None
-
 
 #_________________________________________________________
 # Page Routing
@@ -132,7 +109,7 @@ def get_storefront_by_id_route(storefront_id):
 def create_storefront_route():
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -152,7 +129,7 @@ def create_storefront_route():
 def get_my_storefront_route():
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         storefront = get_my_storefront_service(current_user)
@@ -169,7 +146,7 @@ def get_my_storefront_route():
 def update_storefront_route(storefront_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -191,7 +168,7 @@ def update_storefront_route(storefront_id):
 def deactivate_storefront_route(storefront_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         updated = deactivate_storefront_service(current_user, storefront_id)
@@ -211,7 +188,7 @@ def deactivate_storefront_route(storefront_id):
 def reactivate_storefront_route(storefront_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         updated = reactivate_storefront_service(current_user, storefront_id)
