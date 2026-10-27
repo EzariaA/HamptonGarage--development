@@ -1,14 +1,16 @@
 {#
  edit_storefront.html
 
-    The Vault Campus Marketplace
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 5 4/16/2026
 
 Edit Storefront page — pre-fills current storefront data and allows the owner to update
 brand name, contact info, description, logo, and banner.
+Updated by Mason Johnson 10/26/26 - added Danger Zone with permanent Delete Storefront + confirmation box
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme (blue banner, no Vault title) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Edit Storefront{% endblock %}
@@ -19,17 +21,26 @@ brand name, contact info, description, logo, and banner.
 {% endblock %}
 
 {% block content %}
+    <!-- Shared baby blue banner (styles in base.css) -->
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
     <header class="create-header">
         <div class="brand-block">
-            <h1 class="brand-title">
-                <span class="gold">The</span> Vault
-            </h1>
-            <p class="brand-subtitle">Fashion Marketplace</p>
+            <h1 class="page-title">Edit Storefront</h1>
+            <p class="brand-subtitle">Update your shop's look and info</p>
         </div>
-        <h2 class="page-title">Edit Storefront</h2>
     </header>
 
     <main class="create-page">
+        <!-- Messages from the server (for example, a failed delete) -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% for category, message in messages %}
+                <div class="flash-msg flash-msg--{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endwith %}
+
         <form class="storefront-form" id="storefrontForm" enctype="multipart/form-data">
 
             <!-- banner - Updated by Day Ekoi 4/20/26 - replaced plain input with drag-drop zone + current image preview -->
@@ -37,7 +48,7 @@ brand name, contact info, description, logo, and banner.
                 <label class="section-label">Store Banner Image</label>
                 <div id="bannerCurrentPreview" style="display:none; margin-bottom:0.75rem;">
                     <img id="bannerPreviewImg" style="width:100%; max-height:160px; object-fit:cover; border-radius:8px;" alt="Current banner">
-                    <p style="font-size:0.8rem; color:#888; margin-top:0.3rem;">Current banner — upload a new file to replace it</p>
+                    <p style="font-size:0.8rem; color:#4b5563; margin-top:0.3rem;">Current banner — upload a new file to replace it</p>
                 </div>
                 <div class="drop-zone" id="bannerZone">
                     <p>Drag & drop or <span class="drop-link">browse</span></p>
@@ -53,7 +64,7 @@ brand name, contact info, description, logo, and banner.
                     <label class="section-label">Store Logo</label>
                     <div id="logoCurrentPreview" style="display:none; margin-bottom:0.75rem;">
                         <img id="logoPreviewImg" style="width:80px; height:80px; object-fit:cover; border-radius:50%;" alt="Current logo">
-                        <p style="font-size:0.8rem; color:#888; margin-top:0.3rem;">Current logo — upload a new file to replace it</p>
+                        <p style="font-size:0.8rem; color:#4b5563; margin-top:0.3rem;">Current logo — upload a new file to replace it</p>
                     </div>
                     <div class="drop-zone" id="logoZone">
                         <p>Drag & drop or <span class="drop-link">browse</span></p>
@@ -114,25 +125,25 @@ brand name, contact info, description, logo, and banner.
                     <div class="preview-grid-4">
                         <div class="preview-slot">
                             <p class="slot-label">Image 1</p>
-                            <div id="existingPreview1" style="display:none; margin-bottom:0.5rem;"><img id="existingImg1" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#888;margin-top:3px;">Current — upload to replace</p></div>
+                            <div id="existingPreview1" style="display:none; margin-bottom:0.5rem;"><img id="existingImg1" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#4b5563;margin-top:3px;">Current — upload to replace</p></div>
                             <div class="drop-zone" id="previewZone1"><p>Drag & drop or <span class="drop-link">browse</span></p><input type="file" id="previewImage1" accept="image/*" hidden></div>
                             <div class="image-preview-row" id="previewPreview1"></div>
                         </div>
                         <div class="preview-slot">
                             <p class="slot-label">Image 2</p>
-                            <div id="existingPreview2" style="display:none; margin-bottom:0.5rem;"><img id="existingImg2" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#888;margin-top:3px;">Current — upload to replace</p></div>
+                            <div id="existingPreview2" style="display:none; margin-bottom:0.5rem;"><img id="existingImg2" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#4b5563;margin-top:3px;">Current — upload to replace</p></div>
                             <div class="drop-zone" id="previewZone2"><p>Drag & drop or <span class="drop-link">browse</span></p><input type="file" id="previewImage2" accept="image/*" hidden></div>
                             <div class="image-preview-row" id="previewPreview2"></div>
                         </div>
                         <div class="preview-slot">
                             <p class="slot-label">Image 3</p>
-                            <div id="existingPreview3" style="display:none; margin-bottom:0.5rem;"><img id="existingImg3" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#888;margin-top:3px;">Current — upload to replace</p></div>
+                            <div id="existingPreview3" style="display:none; margin-bottom:0.5rem;"><img id="existingImg3" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#4b5563;margin-top:3px;">Current — upload to replace</p></div>
                             <div class="drop-zone" id="previewZone3"><p>Drag & drop or <span class="drop-link">browse</span></p><input type="file" id="previewImage3" accept="image/*" hidden></div>
                             <div class="image-preview-row" id="previewPreview3"></div>
                         </div>
                         <div class="preview-slot">
                             <p class="slot-label">Image 4</p>
-                            <div id="existingPreview4" style="display:none; margin-bottom:0.5rem;"><img id="existingImg4" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#888;margin-top:3px;">Current — upload to replace</p></div>
+                            <div id="existingPreview4" style="display:none; margin-bottom:0.5rem;"><img id="existingImg4" style="width:100%; max-height:100px; object-fit:cover; border-radius:6px;" alt=""><p style="font-size:0.75rem;color:#4b5563;margin-top:3px;">Current — upload to replace</p></div>
                             <div class="drop-zone" id="previewZone4"><p>Drag & drop or <span class="drop-link">browse</span></p><input type="file" id="previewImage4" accept="image/*" hidden></div>
                             <div class="image-preview-row" id="previewPreview4"></div>
                         </div>
@@ -167,7 +178,37 @@ brand name, contact info, description, logo, and banner.
             </section>
 
         </form>
+
+        <!-- Danger Zone: permanent delete, kept separate from Deactivate -->
+        <section class="form-card danger-zone">
+            <p class="section-label danger-zone-label">Danger Zone</p>
+            <p class="danger-zone-text">
+                Permanently delete this storefront and all of its listings. This cannot be undone.
+                If you only want to hide it for now, use Deactivate instead.
+            </p>
+            <button type="button" class="danger-btn" id="deleteStorefrontBtn">Delete Storefront</button>
+        </section>
     </main>
+
+    <!-- Delete confirmation box: the seller must type the storefront name before the delete button turns on -->
+    <div class="delete-modal" id="deleteModal" style="display:none;">
+        <div class="delete-modal-box">
+            <h3 class="delete-modal-title">Delete Storefront Permanently?</h3>
+            <p>
+                This will permanently delete your storefront, all of its listings, listing images, and sizes.
+                Buyers' past orders are kept for records. <strong>This cannot be undone.</strong>
+            </p>
+            <p>Type <strong class="gold" id="deleteStorefrontName"></strong> to confirm.</p>
+
+            <form method="POST" action="{{ url_for('storefront_pages_bp.delete_storefront_page', storefront_id=storefront_id) }}">
+                <input type="text" name="confirm_name" id="deleteConfirmInput" class="delete-confirm-input" autocomplete="off" placeholder="Storefront name">
+                <div class="delete-modal-actions">
+                    <button type="button" class="secondary-btn" id="deleteCancelBtn">Cancel</button>
+                    <button type="submit" class="danger-btn" id="deleteConfirmBtn" disabled>Delete Forever</button>
+                </div>
+            </form>
+        </div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

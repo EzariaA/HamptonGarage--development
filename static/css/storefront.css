@@ -1,12 +1,13 @@
 /* 
     storefront.css
 
-    The Vault Campus Marketplace
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 - 3/18/2026-3/22/2026
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - added lightbox overlay styles for storefront card image previews
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - restyled enter/page buttons to pill style; increased carousel image height; commented out bag-form styles
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - aligned storefront CTA and pagination buttons with back-button styling; expanded image area on cards
+    Updated by Mason Johnson 10/26/26 - switched to the garage theme (baby blue banner, light gray page, white cards, gray buttons)
 
 Description: 
 The purpose of this file is to control the style and layout of the storefront homepage.
@@ -39,12 +40,9 @@ html, body {
 }
 
 body {
-    background:
-        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-        url("/static/images/background.png") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
 }
 
 
@@ -52,7 +50,7 @@ body {
 .nav-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.55);
+    background: rgba(28, 53, 87, 0.35);
     opacity: 0;
     visibility: hidden;
     transition: 0.25s ease;
@@ -72,8 +70,9 @@ body {
     left: -320px;
     width: 300px;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.92); /* Updated by Day E 3/22/26 */
-    border-right: 1px solid #B8860B;
+    background: var(--card-white); /* Updated by Mason Johnson 10/26/26 - garage theme */
+    border-right: 4px solid var(--baby-blue-dark);
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
     padding: 30px 22px 24px 22px; /* Updated by Day E 3/22/26 */
     z-index: 30;
     transition: left 0.3s ease;
@@ -170,23 +169,22 @@ body {
     align-items: center;
     justify-content: center;
     gap: 6px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(212,175,55,0.5);
+    background: var(--btn-gray);
+    border: 1px solid var(--btn-gray-dark);
     border-radius: 999px;
-    color: #d4af37;
+    color: white;
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 1px;
     text-transform: uppercase;
-    padding: 6px 14px;
+    padding: 8px 14px;
     cursor: pointer;
     transition: background 0.2s, color 0.2s;
 }
 
 .enter-btn:hover,
 .page-btn:hover {
-    background: rgba(212,175,55,0.15);
-    color: #f0cc55;
+    background: var(--btn-gray-dark);
 }
 
 .enter-btn {
@@ -200,34 +198,34 @@ body {
     width: 100%;
     padding: 14px 16px;
     margin-bottom: 10px;
-    background: transparent;
+    background: var(--btn-gray);
     color: white;
-    border: 1px solid white;
+    border: none;
     font-weight: bold;
     text-transform: uppercase;
     letter-spacing: 2px;
     cursor: pointer;
     transition: 0.3s;
-    border-radius: 2px;
+    border-radius: 8px;
 }
 
 .create-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--btn-gray-dark);
     transform: translateY(-2px);
 }
 
 .my-storefront-btn {
-    border-color: #D4AF37;
-    color: #D4AF37;
+    background: var(--baby-blue);
+    color: var(--navy);
 }
 
 .my-storefront-btn:hover {
-    background: rgba(212, 175, 55, 0.15);
+    background: var(--baby-blue-dark);
 }
 
-nav-divider { /* updated by Day E 4/9/2026 */
+.nav-divider { /* updated by Day E 4/9/2026 */
     border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.25);
+    border-top: 1px solid var(--border-gray);
     margin: 18px 0;
 }
 
@@ -240,7 +238,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 .nav-item {
-    color: white;
+    color: var(--navy);
     font-size: 1.05rem;
     cursor: pointer;
     display: flex; /* Updated by Day E 3/22/26 */
@@ -251,17 +249,18 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 .nav-item:hover {
-    color: #B8860B;
+    color: var(--baby-blue-dark);
 }
 
 .nav-heading {
-    color: rgba(204, 178, 128, 0.75); /* Updated by Day E 3/22/26 */
+    color: var(--text-gray); /* Updated by Day E 3/22/26 */
     font-size: 0.95rem; /* Updated by Day E 3/22/26 */
     margin-bottom: 12px; /* Updated by Day E 3/22/26 */
 }
 
 .nav-subitem {
-    color: white; /* Updated by Day E 3/22/26 */
+    color: var(--navy); /* Updated by Day E 3/22/26 */
+    font-weight: 600;
     margin-bottom: 10px; /* Updated by Day E 3/22/26 */
     cursor: pointer; /* Updated by Day E 3/22/26 */
     text-decoration: none;
@@ -269,17 +268,41 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 .nav-subitem:hover {
-    color: #B8860B; /* Updated by Day E 3/22/26 */
+    color: var(--baby-blue-dark); /* Updated by Day E 3/22/26 */
 }
 
 
-/* Updated nav bar */
+/* Updated nav bar - Mason Johnson 10/26/26: now the baby blue banner with the site name in the middle */
 .topbar {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 42px;
-    padding: 6px 4px; /* Updated by Day E 3/22/26 */
+    margin-bottom: 36px;
+    padding: 8px 24px;
+    background: linear-gradient(to bottom, var(--baby-blue), var(--baby-blue-dark));
+    border-bottom: 4px solid var(--navy);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    position: relative;
+}
+
+/* "HAMPTON GARAGE" in the middle of the banner.
+   The menu button (left) and the icons (right) are different widths, so normal
+   centering would push the title off to one side. Instead:
+     position: absolute    takes the title out of the row so it can't be pushed
+     left: 50%             moves its left edge to the middle of the banner
+     translateX(-50%)      slides it back by half its own width, so its CENTER is in the middle
+   (.topbar has position: relative so "50%" means 50% of the banner) */
+.topbar-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+    color: var(--navy);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: 5px;
+    text-decoration: none;
+    text-align: center;
 }
 
 .topbar-actions {
@@ -305,7 +328,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
 .menu-line {
     width: 30px; /* Updated by Day E 3/22/26 */
     height: 3px; /* Updated by Day E 3/22/26 */
-    background: white;
+    background: var(--navy);
     border-radius: 2px; /* Updated by Day E 3/22/26 */
 }
 
@@ -315,7 +338,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
     width: 42px; /* Updated by Day E 3/22/26 */
     height: 42px; /* Updated by Day E 3/22/26 */
     display: flex; /* Updated by Day E 3/22/26 */
-    color: white;
+    color: var(--navy);
     align-items: center; /* Updated by Day E 3/22/26 */
     justify-content: center; /* Updated by Day E 3/22/26 */
     background: transparent; /* Updated by Day E 3/22/26 */
@@ -370,14 +393,15 @@ nav-divider { /* updated by Day E 4/9/2026 */
 .topbar-svg {
     width: 48px; /* Updated by Day E 3/22/26 */
     height: 48px; /* Updated by Day E 3/22/26 */
-    stroke: white; /* Updated by Day E 3/22/26 */
-    fill: white;
-    color: white;
+    stroke: var(--navy); /* Updated by Mason Johnson 10/26/26 */
+    fill: none;
+    color: var(--navy);
 }
 
 
 /* Profile button */
 .profile-btn {
+    color: var(--navy); /* Updated by Mason Johnson 10/26/26 - keeps the icon navy instead of link blue */
     background: transparent; /* Updated by Day E 3/22/26 */
     border: none; /* Updated by Day E 3/22/26 */
     cursor: pointer; /* Updated by Day E 3/22/26 */
@@ -387,7 +411,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
     width: 54px;
     height: 54px;
     border-radius: 50%;
-    border: 2px solid #D4AF37;
+    border: 2px solid var(--navy);
     background: white;
     display: flex; /* Updated by Day E 3/22/26 */
     align-items: center; /* Updated by Day E 3/22/26 */
@@ -397,7 +421,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
 .profile-svg {
     width: 28px; /* Updated by Day E 3/22/26 */
     height: 28px; /* Updated by Day E 3/22/26 */
-    stroke: #4d4d4d; /* Updated by Day E 3/22/26 */
+    stroke: var(--navy); /* Updated by Day E 3/22/26 */
 }
 
 
@@ -408,28 +432,37 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 .brand-title {
-    font-size: 4rem;
+    font-size: 2.6rem;
     font-weight: 800;
-}
-
-.gold {
-    color: #D4AF37;
+    color: var(--navy);
 }
 
 .brand-subtitle {
-    font-style: italic;
-    margin-bottom: 20px;
+    color: var(--text-gray);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    margin: 6px 0 20px;
 }
 
 .search-input {
     width: 100%;
     max-width: 600px;
-    background: rgba(0, 0, 0, 0.82);
-    border: 1px solid #B8860B;
+    background: white;
+    border: 1px solid var(--border-gray);
     padding: 16px;
-    color: white;
+    color: var(--navy);
+    font-size: 1rem;
     border-radius: 999px;
     text-align: center;
+    outline: none;
+    box-shadow: 0 4px 12px rgba(28, 53, 87, 0.08);
+}
+
+/* search box the user is typing in: blue border + soft blue glow */
+.search-input:focus {
+    border-color: var(--baby-blue-dark);
+    box-shadow: 0 0 0 3px rgba(167, 211, 242, 0.6);
 }
 
 
@@ -437,6 +470,29 @@ nav-divider { /* updated by Day E 4/9/2026 */
 .page-content {
     max-width: 1280px;
     margin: 0 auto;
+}
+
+
+/* Server messages above the storefront grid - Added by Mason Johnson 10/26/26 */
+.flash-msg {
+    margin: 0 16px 1.5rem;
+    padding: 10px 14px;
+    font-size: 0.95rem;
+    text-align: center;
+}
+
+.flash-msg--success {
+    background: #ecfdf3;
+    border: 1px solid #8fd8a8;
+    border-radius: 8px;
+    color: #146c2e;
+}
+
+.flash-msg--error {
+    background: #fdecec;
+    border: 1px solid #f1a5a5;
+    border-radius: 8px;
+    color: #b42318;
 }
 
 
@@ -452,8 +508,10 @@ nav-divider { /* updated by Day E 4/9/2026 */
 
 /* Individual storefront card */
 .storefront-card {
-    background: rgba(0, 0, 0, 0.78);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: var(--card-white);
+    border: 1px solid var(--border-gray);
+    border-top: 5px solid var(--baby-blue-dark);
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
     border-radius: 26px;
     padding: 22px;
     /* min-height: 520px; — Updated by Day Ekoi - Iteration 5 - 4/20/26: removed fixed min-height, card height now driven by image */
@@ -464,6 +522,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
 
 .storefront-card:hover {
     transform: translateY(-3px);
+    box-shadow: 0 14px 30px rgba(28, 53, 87, 0.18);
 }
 
 .storefront-card-body {
@@ -483,7 +542,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
     width: 84px;
     height: 84px;
     border-radius: 50%;
-    border: 2px solid #D4AF37;
+    border: 2px solid var(--baby-blue-dark);
 }
 
 .storefront-name {
@@ -492,7 +551,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
 }
 
 .storefront-meta {
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-gray);
 }
 
 
@@ -519,9 +578,9 @@ nav-divider { /* updated by Day E 4/9/2026 */
     width: 42px;
     height: 42px;
     border-radius: 50%;
-    background: black;
-    color: white;
-    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--navy);
+    border: 1px solid var(--border-gray);
     cursor: pointer;
 }
 
@@ -541,22 +600,6 @@ nav-divider { /* updated by Day E 4/9/2026 */
     border-radius: 2px;
 }
 */
-
-
-/* Pagination */
-.pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 18px;
-    margin-top: 34px;
-}
-
-.page-indicator {
-    font-size: 1.2rem;
-    color: rgba(255, 255, 255, 0.86);
-}
 
 
 /* Lightbox overlay - Added by Day Ekoi 4/20/26 */
@@ -584,7 +627,7 @@ nav-divider { /* updated by Day E 4/9/2026 */
     max-height: 85vh;
     object-fit: contain;
     border-radius: 10px;
-    border: 1px solid rgba(212, 175, 55, 0.4);
+    border: 1px solid rgba(167, 211, 242, 0.5);
     box-shadow: 0 0 40px rgba(0, 0, 0, 0.7);
     pointer-events: none;
 }
@@ -602,5 +645,17 @@ nav-divider { /* updated by Day E 4/9/2026 */
 
     .carousel-image {
         height: 320px;
+    }
+}
+
+/* Phone screens: smaller banner title - Added by Mason Johnson 10/26/26 */
+@media (max-width: 600px) {
+    .topbar {
+        padding: 8px 12px;
+    }
+
+    .topbar-title {
+        font-size: 1.1rem;
+        letter-spacing: 2px;
     }
 }

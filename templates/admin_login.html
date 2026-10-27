@@ -2,6 +2,7 @@
  Admin Login Page - Created by David Jackson 4/18/26
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme (blue banner + white card) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Admin Login{% endblock %}
@@ -11,7 +12,13 @@
 {% endblock %}
 
 {% block content %}
-    <div class="vault-wrapper">
+    <div class="auth-page">
+        {# Shared baby blue banner (styles in base.css) #}
+        <header class="site-banner">
+            <a href="{{ url_for('index') }}">HAMPTON GARAGE</a>
+        </header>
+
+        <main class="auth-main">
         <div class="auth-card">
             <h2>ADMIN ACCESS</h2>
 
@@ -26,13 +33,14 @@
                     <input type="password" name="password" required placeholder="••••••••">
                 </div>
 
-                <button type="submit" class="submit-btn">Authorize</button>
+                <button type="submit" class="submit-btn">Log In</button>
             </form>
 
             <div class="footer-links">
                 <a href="{{ url_for('auth.login') }}">← User Login</a>
-                <a href="{{ url_for('index') }}">Portal</a>
+                <a href="{{ url_for('index') }}">Home</a>
             </div>
         </div>
+        </main>
     </div>
 {% endblock %}

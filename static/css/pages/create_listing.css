@@ -2,14 +2,16 @@
     create_listing.css
     Moved out of the inline <style> block in create_listing.html
     by Mason Johnson, Iteration 2, 10/1/26
+    Switched to the garage theme (blue + gray) by Mason Johnson, 10/26/26
 */
         .drop-zone {
-            border: 2px dashed #d4af37;
+            border: 2px dashed var(--baby-blue-dark);
             border-radius: 8px;
             padding: 1.2rem;
             text-align: center;
             cursor: pointer;
-            color: #888;
+            color: var(--text-gray);
+            background-color: #f8fafc;
             transition: background 0.2s, border-color 0.2s;
             width: 90%;
             margin: 0 auto;
@@ -21,14 +23,14 @@
             overflow: hidden;
         }
         .drop-zone.dragover {
-            background: rgba(212, 175, 55, 0.08);
-            border-color: #f0cc55;
+            background: #eef6fc;
+            border-color: var(--navy);
         }
         .drop-zone.has-image {
             background-size: contain;
             background-position: center;
             background-repeat: no-repeat;
-            background-color: rgba(255, 255, 255, 0.05);
+            background-color: #f8fafc;
             border-style: solid;
         }
         .drop-zone.has-image p {
@@ -40,9 +42,9 @@
             bottom: 8px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.72);
-            border: 1px solid rgba(212, 175, 55, 0.75);
-            color: #f2d06c;
+            background: white;
+            border: 1px solid var(--baby-blue-dark);
+            color: var(--navy);
             font-size: 0.72rem;
             font-weight: 700;
             letter-spacing: 0.4px;
@@ -50,7 +52,7 @@
             border-radius: 999px;
             text-transform: uppercase;
         }
-        .drop-link { color: #d4af37; text-decoration: underline; cursor: pointer; }
+        .drop-link { color: var(--navy); text-decoration: underline; cursor: pointer; }
         .image-preview-row {
             display: flex;
             flex-wrap: wrap;
@@ -68,13 +70,13 @@
             width: 80px;
             height: 80px;
             object-fit: contain;
-            background: rgba(255, 255, 255, 0.05);
+            background: #f8fafc;
             border-radius: 6px;
-            border: 1px solid #333;
+            border: 1px solid var(--border-gray);
         }
         .image-preview-row .thumb-name {
             font-size: 0.7rem;
-            color: #aaa;
+            color: var(--text-gray);
             max-width: 80px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -95,7 +97,7 @@
         }
         .slot-label {
             font-size: 0.8rem;
-            color: #d4af37;
+            color: var(--navy);
             font-weight: 700;
             margin: 0;
             text-align: center;
@@ -114,7 +116,7 @@
         }
         .price-wrap span {
             font-weight: 700;
-            color: #d4af37;
+            color: var(--navy);
             min-width: 14px;
             text-align: center;
         }
@@ -154,9 +156,10 @@
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .toast.success {
-            background: #111111;
-            color: #f3ce73;
-            border: 1px solid #b8860b;
+            background: white;
+            color: var(--navy);
+            border: 1px solid var(--baby-blue-dark);
+            border-left: 6px solid var(--baby-blue-dark);
         }
         .toast.fade-out {
             opacity: 0;

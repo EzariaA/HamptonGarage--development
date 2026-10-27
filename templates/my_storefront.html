@@ -1,7 +1,7 @@
 {#
  my_storefront.html
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 3/22/2026
     Implemented & Updated by Day Ekoi - Iteration 5 4/9/26
@@ -20,6 +20,7 @@ This file acts as the UI structure for the seller's personal storefront manageme
 It is different from the public storefront page because this version is meant for the storefront owner.
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Added the blue Hampton Garage banner (garage theme) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Storefront Dashboard{% endblock %}
@@ -29,6 +30,11 @@ It is different from the public storefront page because this version is meant fo
 {% endblock %}
 
 {% block content %}
+    <!-- Shared baby blue banner (styles in base.css) -->
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
     <main class="storefront-dashboard">
 
         <!-- back button - Added by Day Ekoi 4/20/26 -->

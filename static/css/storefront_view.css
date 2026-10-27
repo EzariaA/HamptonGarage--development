@@ -1,9 +1,10 @@
 /* storefront_view.css
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 - 3/22/2026
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - styling updates to storefront view page, including back button, profile info row, and listing cards
+    Updated by Mason Johnson 10/26/26 - switched to the garage theme (blue banner, light gray page, white cards, gray buttons)
 
 
 Description:
@@ -27,14 +28,16 @@ html, body {
 }
 
 body {
-    background:
-        linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-        url("/static/images/background.png") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
     min-height: 100vh;
-    padding: 28px 0 40px;
+    padding: 0 0 40px;
+}
+
+/* space between the blue banner and the page */
+.site-banner {
+    margin-bottom: 24px;
 }
 
 .storefront-view-page {
@@ -52,10 +55,10 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: rgba(0,0,0,0.55);
-    border: 1px solid rgba(212,175,55,0.5);
+    background: white;
+    border: 1px solid var(--btn-gray);
     border-radius: 999px;
-    color: #d4af37;
+    color: var(--btn-gray-dark);
     font-size: 0.85rem;
     font-weight: 700;
     letter-spacing: 1px;
@@ -66,8 +69,8 @@ body {
 }
 
 .back-btn:hover {
-    background: rgba(212,175,55,0.15);
-    color: #f0cc55;
+    background: var(--btn-gray);
+    color: white;
 }
 
 .storefront-top {
@@ -81,17 +84,17 @@ body {
     font-style: italic;
     font-weight: 800;
     margin-bottom: 0.8rem;
-    color: white;
+    color: var(--navy);
 }
 
 .storefront-banner {
     width: 100%;
     min-height: 260px;
-    background: rgba(0, 0, 0, 0.84);
-    border: 1px solid #d4af37;
+    background: linear-gradient(135deg, var(--baby-blue), var(--btn-gray));
+    border: 1px solid var(--border-gray);
     border-radius: 8px;
     position: relative;
-    box-shadow: 0 0 25px rgba(184, 134, 11, 0.18);
+    box-shadow: 0 8px 20px rgba(28, 53, 87, 0.15);
     overflow: hidden;
     background-size: cover;
     background-position: center;
@@ -117,14 +120,15 @@ body {
 
 .contact-info {
     font-size: 0.95rem;
-    color: #d4af37;
+    color: var(--navy);
+    font-weight: 600;
     line-height: 1.3;
     margin-top: 0.15rem;
 }
 
 .store-bio {
     font-size: 1rem;
-    color: #c9c9c9;
+    color: var(--text-gray);
     max-width: 680px;
     line-height: 1.4;
     margin-bottom: 0.2rem;
@@ -138,18 +142,18 @@ body {
     height: 170px;
     border-radius: 50%;
     background: #f2f2f2;
-    border: 3px solid #d4af37;
+    border: 4px solid white;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 0 20px rgba(184, 134, 11, 0.14);
+    box-shadow: 0 6px 18px rgba(28, 53, 87, 0.25);
     overflow: hidden;
 }
 
 .storefront-logo p {
     font-size: 2rem;
     font-weight: 800;
-    color: black;
+    color: var(--navy);
 }
 
 
@@ -164,7 +168,7 @@ body {
     font-style: italic;
     font-weight: 800;
     margin-bottom: 2rem;
-    color: white;
+    color: var(--navy);
 }
 
 .listing-grid {
@@ -174,8 +178,9 @@ body {
 }
 
 .listing-card {
-    background: rgba(0, 0, 0, 0.84);
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: var(--card-white);
+    border: 1px solid var(--border-gray);
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
     border-radius: 26px;
     padding: 1rem;
     display: flex;
@@ -244,8 +249,8 @@ body {
 }
 
 .listing-image-nav:hover {
-    background: rgba(212, 175, 55, 0.18);
-    color: #f0cc55;
+    background: var(--baby-blue-dark);
+    color: var(--navy);
 }
 
 .listing-image-dots {
@@ -270,7 +275,7 @@ body {
 
 .listing-image-dot.active,
 .lightbox-dot.active {
-    background: #d4af37;
+    background: var(--baby-blue);
 }
 
 .listing-image-counter {
@@ -293,7 +298,7 @@ body {
     justify-content: space-between;
     align-items: center;
     gap: 0.9rem;
-    color: white;
+    color: var(--navy);
 }
 
 .listing-copy {
@@ -313,7 +318,7 @@ body {
 .listing-description {
     width: 100%;
     margin-top: 0.2rem;
-    color: #cbcbcb;
+    color: var(--text-gray);
     font-size: 0.9rem;
     line-height: 1.35;
 }
@@ -337,7 +342,7 @@ body {
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.3px;
-    color: #d9d9d9;
+    color: var(--navy);
 }
 
 .size-select,
@@ -345,9 +350,9 @@ body {
     width: 100%;
     min-height: 36px;
     border-radius: 9px;
-    border: 1px solid rgba(255, 255, 255, 0.34);
-    background: rgba(18, 18, 18, 0.95);
-    color: #f5f5f5;
+    border: 1px solid var(--border-gray);
+    background: #f8fafc;
+    color: var(--navy);
     font-size: 0.92rem;
     padding: 0.45rem 0.6rem;
 }
@@ -363,8 +368,8 @@ body {
     min-height: 40px;
     border: none;
     border-radius: 10px;
-    background: linear-gradient(180deg, #e1b64f 0%, #b8860b 100%);
-    color: #161616;
+    background: linear-gradient(to bottom, var(--btn-gray), var(--btn-gray-dark));
+    color: white;
     font-size: 0.92rem;
     font-weight: 800;
     text-transform: uppercase;
@@ -407,15 +412,17 @@ body {
 }
 
 .cart-toast.success {
-    background: #111111;
-    color: #f3ce73;
-    border: 1px solid #b8860b;
+    background: white;
+    color: var(--navy);
+    border: 1px solid var(--baby-blue-dark);
+    border-left: 6px solid var(--baby-blue-dark);
 }
 
 .cart-toast.error {
-    background: #2c1212;
-    color: #ffd4d4;
-    border: 1px solid #b73f3f;
+    background: #fdecec;
+    color: #b42318;
+    border: 1px solid #f1a5a5;
+    border-left: 6px solid #d64545;
 }
 
 .cart-toast.fade-out {
@@ -426,10 +433,10 @@ body {
 .wishlist-lock-btn {
     width: 40px;
     height: 40px;
-    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    border: 1.5px solid var(--btn-gray);
     border-radius: 999px;
     background: transparent;
-    color: #ffffff;
+    color: var(--btn-gray-dark);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -449,9 +456,9 @@ body {
 }
 
 .wishlist-lock-btn.active {
-    background: #ffffff;
-    border-color: #ffffff;
-    color: #111111;
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
 }
 
 .listing-lightbox {
@@ -524,8 +531,8 @@ body {
 
 .lightbox-close:hover,
 .lightbox-nav:hover {
-    background: rgba(212, 175, 55, 0.16);
-    color: #f0cc55;
+    background: rgba(167, 211, 242, 0.25);
+    color: var(--baby-blue);
 }
 
 .item-name {
@@ -536,13 +543,13 @@ body {
 .item-price {
     font-size: 1.05rem;
     font-weight: 700;
-    color: #d4af37;
+    color: var(--btn-gray-dark);
 }
 
 .empty-state {
     grid-column: 1 / -1;
     text-align: center;
-    color: #c9c9c9;
+    color: var(--text-gray);
     font-style: italic;
 }
 

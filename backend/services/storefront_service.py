@@ -22,7 +22,8 @@ from models.storefront_model import (
     get_storefront_by_id,
     get_storefront_by_owner_id,
     update_storefront,
-    set_storefront_active
+    set_storefront_active,
+    delete_storefront_permanently
 )
 from services.listing_service import (
     deactivate_storefront_listings_service,
@@ -218,3 +219,31 @@ def reactivate_storefront_service(current_user, storefront_id):
     updated = set_storefront_active(storefront_id, True)
     restore_storefront_listings_service(storefront_id)
     return updated
+
+
+# Added by Mason Johnson - Iteration 2 - 10/26/26
+def delete_storefront_service(user_id, storefront_id, typed_name):
+    """
+    Permanently deletes a storefront.
+
+    Rules:
+    - user must be logged in
+    - only the owner can delete it (admins use their own dashboard tool)
+    - the typed name must match the storefront name exactly
+    Returns the deleted storefront's name for the success message.
+    """
+    if not user_id:
+        raise Exception("Error! Unauthorized user.")
+
+    storefront = get_storefront_by_id(storefront_id)
+    if not storefront:
+        raise Exception("Storefront not found.")
+
+    if storefront["owner_id"] != user_id:
+        raise Exception("Unauthorized action. Only the owner can delete this storefront.")
+
+    if (typed_name or "").strip() != storefront["brand_name"].strip():
+        raise Exception("The name you typed does not match your storefront name. Nothing was deleted.")
+
+    delete_storefront_permanently(storefront_id)
+    return storefront["brand_name"]

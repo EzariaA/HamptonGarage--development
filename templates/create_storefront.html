@@ -1,7 +1,7 @@
 {#
  create_storefront.html
 
-    The Vault Campus Marketplace 
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4 - 3/22/2026
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - added drag-drop image upload zones and preview thumbnails for banner, logo, and preview images
@@ -25,6 +25,7 @@ in the database and then displayed dynamically on the homepage.
 This file acts as the UI structure (skeleton) of the Create Storefront feature.
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme (blue banner, no Vault title) by Mason Johnson 10/26/26 #}
 {% extends "base.html" %}
 
 {% block title %}Create Storefront{% endblock %}
@@ -39,15 +40,16 @@ This file acts as the UI structure (skeleton) of the Create Storefront feature.
 <!-- Start of main body code -->
 
     <!-- Header -->
+    <!-- Shared baby blue banner (styles in base.css) -->
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
     <header class="create-header">
         <div class="brand-block">
-            <h1 class="brand-title">
-                <span class="gold">The</span> Vault
-            </h1>
-            <p class="brand-subtitle">Fashion Marketplace</p>
+            <h1 class="page-title">Create Storefront</h1>
+            <p class="brand-subtitle">Set up your shop on Hampton Garage</p>
         </div>
-
-        <h2 class="page-title">Create Storefront</h2>
     </header>
 
 

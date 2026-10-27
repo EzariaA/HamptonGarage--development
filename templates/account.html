@@ -2,6 +2,7 @@
 Made by Madison Boyd on  3/23/2026
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{# Switched to the garage theme (blue banner, no Vault wording) by Mason Johnson 10/27/26 #}
 {% extends "base.html" %}
 
 {% block title %}Account Console{% endblock %}
@@ -12,16 +13,21 @@ Made by Madison Boyd on  3/23/2026
 {% endblock %}
 
 {% block content %}
+<!-- Shared baby blue banner (styles in base.css) -->
+<header class="site-banner">
+    <a href="/storefronts">HAMPTON GARAGE</a>
+</header>
+
 <div class="account-container">
     <a href="{{ url_for('storefront_pages_bp.my_storefront_page') }}" class="back-btn">← BACK TO STOREFRONT</a>
     
     <div class="profile-header">
         <div class="user-meta">
-            <h1>{{ session['user'] if 'user' in session else 'OPERATOR' }}</h1>
+            <h1>{{ session['user'] if 'user' in session else 'MY ACCOUNT' }}</h1>
             <span class="role-badge">{{ session['role'] if 'role' in session else 'USER' }}</span>
         </div>
         <div class="logout-section">
-            <a href="{{ url_for('auth.logout')}}" style="color: #ff4444; text-decoration: none;">LOGOUT</a>
+            <a href="{{ url_for('auth.logout')}}" class="logout-link">LOGOUT</a>
         </div>
     </div>
 
@@ -39,7 +45,7 @@ Made by Madison Boyd on  3/23/2026
     </div>
 
     <div id="wishlist" class="tab-content">
-        <h3>SECURED WISHLIST</h3>
+        <h3>MY WISHLIST</h3>
         <p id="wishlistEmptyState" class="empty-state">Your wishlist is currently empty.</p>
         <div id="wishlistItemsContainer" class="wishlist-items"></div>
     </div>
@@ -281,7 +287,7 @@ Made by Madison Boyd on  3/23/2026
         const visibleListings = listings.filter((item) => item.status !== "DELETED");
 
         if (!visibleListings.length) {
-            emptyState.textContent = "No active listings found in the vault.";
+            emptyState.textContent = "You don't have any active listings yet.";
             emptyState.style.display = "block";
             return;
         }
@@ -402,7 +408,7 @@ Made by Madison Boyd on  3/23/2026
                         ${order.buyer_first_name} ${order.buyer_last_name}
                         &nbsp;&mdash;&nbsp;
                         <a href="/order-confirmation?conf=${encodeURIComponent(order.confirmation_number)}"
-                           style="color:var(--gold); font-size:0.8rem;">View Details</a>
+                           style="color:var(--navy); font-weight:600; font-size:0.8rem;">View Details</a>
                     </div>
                 `;
                 if (container) container.appendChild(row);

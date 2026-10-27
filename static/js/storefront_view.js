@@ -1,7 +1,7 @@
 /*
     storefront_view.js
 
-    The Vault Campus Marketplace
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 4
     3/22/2026
@@ -246,7 +246,7 @@ async function getWishlistIdSet(userId) {
 }
 
 function renderEmpty(message) {
-    listingGrid.innerHTML = `<p style="color:#c9c9c9; font-style:italic; text-align:center; grid-column: 1/-1;">${message}</p>`;
+    listingGrid.innerHTML = `<p style="color:#4b5563; font-style:italic; text-align:center; grid-column: 1/-1;">${message}</p>`;
 }
 
 function updateDots(container, images, activeIndex, dotClassName, onSelect) {
@@ -395,7 +395,7 @@ async function createListingCard(item, wishlistIds, currentUserId) {
     if (isOneSizeItem) {
         sizeFieldMarkup = `
             <label class="field-label">Size</label>
-            <span class="one-size-label" style="color:#d4af37;font-weight:600;padding:0.2rem 0;">One Size</span>
+            <span class="one-size-label" style="color:#1c3557;font-weight:600;padding:0.2rem 0;">One Size</span>
         `;
     } else if (hasSizes) {
         const sizeOptionsMarkup = sizeOptions
@@ -413,7 +413,7 @@ async function createListingCard(item, wishlistIds, currentUserId) {
     }
 
     const madeToOrderBadge = isMadeToOrder
-        ? `<span class="made-to-order-badge" style="display:inline-block;background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.5);color:#d4af37;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;padding:0.15rem 0.45rem;border-radius:999px;text-transform:uppercase;margin-top:2px;">Made to Order</span>`
+        ? `<span class="made-to-order-badge" style="display:inline-block;background:#eef6fc;border:1px solid #7fbce8;color:#1c3557;font-size:0.7rem;font-weight:700;letter-spacing:0.5px;padding:0.15rem 0.45rem;border-radius:999px;text-transform:uppercase;margin-top:2px;">Made to Order</span>`
         : "";
 
     const descriptionMarkup = item.description
@@ -447,7 +447,7 @@ async function createListingCard(item, wishlistIds, currentUserId) {
                 <input id="countInput-${listingId}" class="count-input" type="number" min="1" max="${maxQuantity}" step="1" value="1" inputmode="numeric">
             </div>
             ${isSoldOut
-                ? `<span class="sold-out-label" style="display:block;width:100%;padding:0.6rem 1rem;background:#3a3a3a;color:#888888;font-size:0.85rem;font-weight:600;text-align:center;border-radius:6px;cursor:not-allowed;letter-spacing:0.5px;box-sizing:border-box;">Sold Out</span>`
+                ? `<span class="sold-out-label" style="display:block;width:100%;padding:0.6rem 1rem;background:#e5e7eb;color:#6b7280;font-size:0.85rem;font-weight:600;text-align:center;border-radius:6px;cursor:not-allowed;letter-spacing:0.5px;box-sizing:border-box;">Sold Out</span>`
                 : `<button type="button" class="add-to-cart-btn" ${hasSizes ? "" : "disabled"}>Add to Cart</button>`
             }
         </div>

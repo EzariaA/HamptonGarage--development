@@ -1,7 +1,7 @@
 /*
     edit_storefront.js
 
-    The Vault Campus Marketplace
+    Hampton Garage Campus Marketplace
     CSC 405 Sp 26'
     Created by Day Ekoi - Iteration 5 4/16/2026
     Updated by Day Ekoi - Iteration 5 - 4/20/26 - drag-drop zones, image preview thumbnails, preview_image_1-4 upload + pre-fill, existing preview image display
@@ -12,6 +12,7 @@ Handles the Edit Storefront page:
 - Uploads new logo/banner/preview images to S3 only if new files are selected
 - Sends PUT /api/storefronts/<id> with updated fields
 - Redirects to dashboard on success
+- Opens the Delete Storefront confirmation box (Added by Mason Johnson 10/26/26)
 */
 
 const form = document.getElementById("storefrontForm");
@@ -26,6 +27,44 @@ const storefrontId = parseInt(window.location.pathname.split("/")[2]);
 cancelBtn.addEventListener("click", () => {
     window.location.href = "/storefronts/dashboard";
 });
+
+
+// Delete Storefront confirmation box - Added by Mason Johnson 10/26/26
+// The Delete Forever button only turns on once the typed name matches the storefront name.
+// The server checks the name and ownership again before deleting anything.
+function setupDeleteStorefront(storefrontName) {
+    const deleteBtn = document.getElementById("deleteStorefrontBtn");
+    const modal = document.getElementById("deleteModal");
+    const nameText = document.getElementById("deleteStorefrontName");
+    const confirmInput = document.getElementById("deleteConfirmInput");
+    const confirmBtn = document.getElementById("deleteConfirmBtn");
+    const cancelDeleteBtn = document.getElementById("deleteCancelBtn");
+    if (!deleteBtn || !modal) return;
+
+    nameText.textContent = storefrontName;
+
+    function closeModal() {
+        modal.style.display = "none";
+        confirmInput.value = "";
+        confirmBtn.disabled = true;
+    }
+
+    deleteBtn.addEventListener("click", () => {
+        modal.style.display = "flex";
+        confirmInput.focus();
+    });
+
+    confirmInput.addEventListener("input", () => {
+        confirmBtn.disabled = confirmInput.value.trim() !== storefrontName.trim();
+    });
+
+    cancelDeleteBtn.addEventListener("click", closeModal);
+
+    // clicking the dark background outside the box also closes it
+    modal.addEventListener("click", (event) => {
+        if (event.target === modal) closeModal();
+    });
+}
 
 
 function getSelectedCategories() {
@@ -266,6 +305,7 @@ async function init() {
         setupDropZone("previewZone4", "previewImage4", "previewPreview4", 1);
         setupCategoryLimitGuard();
         configureStorefrontStatusButton(currentStorefront, user);
+        setupDeleteStorefront(currentStorefront.brand_name || "");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
