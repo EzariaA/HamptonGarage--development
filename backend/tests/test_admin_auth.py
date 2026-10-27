@@ -1,5 +1,5 @@
 # backend/tests/test_admin_auth.py
-# Created by Kyle Lewis 10/26/26 - Iteration 3 (Mk3)
+# Kyle Lewis - Iteration 3 (Mk3)
 # Tests that the admin123 backdoor and the debug route are gone, and the seeded admin works
 # (Test IDs MK3-1 to MK3-7)
 
