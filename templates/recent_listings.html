@@ -1,0 +1,37 @@
+{#
+    recent_listings.html
+    Hampton Garage Campus Marketplace
+    Created by Clarence Bostic - Iteration 3 
+#}
+{% extends "base.html" %}
+
+{% block title %}Recent Listings{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/listing_browse.css') }}">
+{% endblock %}
+
+{% block content %}
+{% with active_page = 'recent' %}{% include "partials/browse_nav.html" %}{% endwith %}
+
+<section class="logo-search-section browse-hero">
+    <h1 class="brand-title"><span class="gold">Recent</span> Listings</h1>
+    <p class="brand-subtitle">The newest drops from every storefront</p>
+</section>
+
+<main class="page-content browse-content">
+    <p class="browse-summary" id="browseSummary" aria-live="polite"></p>
+
+    <section class="listing-grid" id="listingGrid" aria-label="Recent listings"></section>
+
+    <div class="browse-more">
+        <button type="button" class="page-btn" id="loadMoreBtn" hidden>Load more</button>
+    </div>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/listing_browse.js') }}"></script>
+<script src="{{ url_for('static', filename='js/recent_listings.js') }}"></script>
+{% endblock %}
