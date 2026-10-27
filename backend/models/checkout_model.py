@@ -243,7 +243,7 @@ def update_listing_size_inventory(listing_id, size, purchased_qty):
 
 
 
-# Added by Kyle Lewis 10/26/26 - Iteration 3 (K1)
+# Kyle Lewis Iteration 3 (K1)
 # Reduce stock on completed orders and block checkout for sold out items.
 #
 # Before this, the order was saved first and then the stock was updated, and if the
