@@ -30,7 +30,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     buyer_details keys: first_name, last_name, email, contact, meeting_location
     session_cart items: { id, name, price, quantity, size }
 
-    Updated by Kyle Lewis 10/26/26 (K1) - the order and the stock change are now saved
+    Kyle Lewis (K1) - the order and the stock change are now saved
     together in place_order_with_inventory(). If something is sold out it raises
     InventoryError and no order is made.
     """
