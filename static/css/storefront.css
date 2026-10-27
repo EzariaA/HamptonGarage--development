@@ -245,6 +245,7 @@ body {
     justify-content: space-between; /* Updated by Day E 3/22/26 */
     align-items: center; /* Updated by Day E 3/22/26 */
     padding: 4px 0; /* Updated by Day E 3/22/26 */
+ text-decoration: none; /* nav items can be links - Clarence Bostic - Iteration 3 */
 }
 
 .nav-item:hover {

@@ -1,6 +1,7 @@
 {#
 Created by Kaila Roberts 4/18/26
 Updated by Day Ekoi 4/22/26 - JS-driven, loads order data from API
+Updated by Mattie Edozie 10/26/26 - checks the Stripe payment when the buyer returns from Stripe
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {% extends "base.html" %}
@@ -41,6 +42,17 @@ Updated by Day Ekoi 4/22/26 - JS-driven, loads order data from API
             return;
         }
 
+        // Coming back from Stripe: ask the server to check the payment with Stripe first.
+        // If this fails, the Stripe webhook still marks the order paid.
+        const sessionId = params.get("session_id");
+        if (sessionId) {
+            try {
+                await fetch(`/api/checkout/confirm?session_id=${encodeURIComponent(sessionId)}`);
+            } catch (e) {
+                console.warn("Could not confirm payment yet:", e);
+            }
+        }
+
         let order, orderItems;
         try {
             const res = await fetch(`/api/orders/by-confirmation/${encodeURIComponent(conf)}`);
@@ -69,7 +81,7 @@ Updated by Day Ekoi 4/22/26 - JS-driven, loads order data from API
 
         card.innerHTML = `
             <div class="conf-header">
-                <div class="success-badge">&#10003; Order Submitted</div>
+                <div class="success-badge">${order.order_status === "PAID" ? "&#10003; Payment Confirmed" : "Payment Processing"}</div>
                 <h1><span>The</span> Vault — Thank You!</h1>
                 <p class="conf-number">Confirmation: <strong>${order.confirmation_number}</strong></p>
             </div>

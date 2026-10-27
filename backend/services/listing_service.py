@@ -36,13 +36,15 @@ from models.listing_model import (
     create_listing,
     get_listing_by_id,
     get_listings_by_storefront_id,
+    get_public_listing_counts_by_category,
+    get_public_listings_by_category,
     update_listing,
     soft_delete_listing,
     deactivate_listing,
     reactivate_listing,
     restore_deleted_listing,
     deactivate_active_listings_for_storefront,
-    restore_listings_after_storefront_reactivation,
+    restore_listings_after_storefront_reactivation,get_recent_public_listings,
     # images
     add_listing_image,
     get_images_for_listing,
@@ -562,3 +564,81 @@ def delete_listing_size_service(current_user, listing_id, size):
         raise Exception("Size row not found.")
 
     return {"deleted": True, "listing_id": listing_id, "size": str(size).strip()}
+
+# ________________________________________________________
+# PUBLIC BROWSE SERVICES (Recent Listings + Categories pages)
+# Added by Clarence Bostic - Iteration 3
+# ________________________________________________________
+STOREFRONT_CATEGORIES = [
+    "Streetwear",
+    "Casual",
+    "Vintage",
+    "Earthy",
+    "Athleisure",
+    "Retro",
+    "Accessories",
+    "Other",
+]
+
+BROWSE_DEFAULT_LIMIT = 24
+BROWSE_MAX_LIMIT = 60
+
+# This is a function that focuses on the parsing of the limit and offset for the public browse services.
+def _parse_paging(limit, offset):
+
+    try:
+        limit = BROWSE_DEFAULT_LIMIT if limit in (None, "") else int(limit)
+        offset = 0 if offset in (None, "") else int(offset)
+    except (TypeError, ValueError):
+        raise ValueError("limit and offset must be whole numbers.")
+
+    if limit < 1:
+        raise ValueError("limit must be at least 1.")
+    if offset < 0:
+        raise ValueError("offset cannot be negative.")
+
+    return min(limit, BROWSE_MAX_LIMIT), offset
+
+# This is a function that focuses on the resolution of the category name for the public browse services.
+def resolve_category_name(raw_category):
+
+    if raw_category is None:
+        return None
+    wanted = str(raw_category).strip().lower()
+    for category in STOREFRONT_CATEGORIES:
+        if category.lower() == wanted:
+            return category
+    return None
+
+# This lists the most recent public listings across all storefronts.
+def get_recent_listings_service(limit=None, offset=None):
+
+    limit, offset = _parse_paging(limit, offset)
+    listings, total = get_recent_public_listings(limit, offset)
+    return {"listings": listings, "total": total, "limit": limit, "offset": offset}
+
+# This lists all the categories that are available for the storefront, along with the number of public listings in each category.
+def get_categories_service():
+
+    counts = get_public_listing_counts_by_category()
+    return [
+        {"name": category, "listing_count": counts.get(category.lower(), 0)}
+        for category in STOREFRONT_CATEGORIES
+    ]
+
+# This lists all the public listings that are available for a given category, along with the total number of listings, limit, and offset as well.
+def get_listings_by_category_service(raw_category, limit=None, offset=None):
+ 
+    category = resolve_category_name(raw_category)
+    if category is None:
+        raise LookupError(f"Unknown category: {raw_category}")
+
+    limit, offset = _parse_paging(limit, offset)
+    listings, total = get_public_listings_by_category(category, limit, offset)
+    return {
+        "category": category,
+        "listings": listings,
+        "total": total,
+        "limit": limit,
+        "offset": offset,
+    }

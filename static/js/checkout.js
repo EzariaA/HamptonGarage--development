@@ -29,6 +29,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (errorMsg) errorMsg.style.display = "none";
     }
 
+    // Stripe sends the buyer back here with ?canceled=1 if they leave the payment page
+    if (new URLSearchParams(window.location.search).get("canceled")) {
+        showError("Payment was canceled. Your order has not been paid. You can try again below.");
+    }
+
     // Load cart from Flask session
     let cart = [];
     try {
@@ -140,7 +145,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch("/api/checkout/complete", {
+            const res = await fetch("/api/checkout/create-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -165,7 +170,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error(data.error || "Transaction failed.");
             }
 
-            window.location.href = `/order-confirmation?conf=${encodeURIComponent(data.confirmation_number)}`;
+            window.location.href = data.url;
         } catch (err) {
             showError(err.message || "Something went wrong. Please try again.");
             if (submitBtn) {

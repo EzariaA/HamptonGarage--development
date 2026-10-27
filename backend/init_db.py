@@ -310,6 +310,8 @@ def create_vault_tables():
             );
         """
         cur.execute(create_orders_table)
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_session_id VARCHAR(255) UNIQUE;")
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20);")
 
         # ________________________________________________________
         # ORDER ITEMS TABLE (Items per order)
