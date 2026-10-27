@@ -297,9 +297,8 @@ def create_vault_tables():
             );
         """
         cur.execute(create_orders_table)
-        # Stripe payment columns - Added by Mattie Edozie 10/26/26
-        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_session_id VARCHAR(255);")
-        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;")
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS stripe_session_id VARCHAR(255) UNIQUE;")
+        cur.execute("ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status VARCHAR(20);")
 
         # ________________________________________________________
         # ORDER ITEMS TABLE (Items per order)

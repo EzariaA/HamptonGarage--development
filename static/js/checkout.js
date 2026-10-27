@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch("/api/checkout/complete", {
+            const res = await fetch("/api/checkout/create-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -123,8 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 throw new Error(data.error || "Transaction failed.");
             }
 
-            // Stripe's page takes the card; the order is marked paid only after Stripe confirms
-            window.location.href = data.checkout_url;
+            window.location.href = data.url;
         } catch (err) {
             showError(err.message || "Something went wrong. Please try again.");
             if (submitBtn) {

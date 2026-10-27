@@ -618,3 +618,145 @@ def delete_listing_size(listing_id, size):
     conn.close()
 
     return deleted
+# ________________________________________________________
+# PUBLIC BROWSE QUERIES (Recent Listings + Categories pages)
+# Added by Clarence Bostic - Iteration 3
+# ________________________________________________________
+
+#This is the select clause for these public listings, which are both ACTIVE and SOLD_OUT listings on a active storefront.
+_PUBLIC_LISTING_COLUMNS = """
+    l.id, l.storefront_id, l.title, l.price, l.fulfillment_type,
+    l.status, l.is_made_to_order,
+    -- created_at has no time zone; tag it with the database's zone so the
+    -- browser can show "Posted 2 hr ago" correctly (RDS runs in UTC)
+    l.created_at AT TIME ZONE current_setting('TimeZone'),
+    img.image_url,
+    s.brand_name, s.logo_url, s.categories
+"""
+
+# One image per listing: the primary image if there is one, otherwise the oldest. I needed to add this join for the public listings so that user can actuallty see the listing image on the public listings page.
+_PUBLIC_LISTING_FROM = """
+    FROM listings l
+    JOIN storefronts s ON s.id = l.storefront_id
+    LEFT JOIN LATERAL (
+        SELECT li.image_url
+        FROM listing_images li
+        WHERE li.listing_id = l.id
+        ORDER BY li.is_primary DESC, li.id ASC
+        LIMIT 1
+    ) img ON TRUE
+"""
+#This is the WHERE clause for public listings, which are ACTIVE or SOLD_OUT and have an active storefront, as this was not included.
+_PUBLIC_LISTING_WHERE = """
+    l.status IN ('ACTIVE', 'SOLD_OUT')
+    AND s.is_active IS NOT FALSE
+"""
+
+# True when the storefront's comma-separated categories contain %s (case-insensitive), this helps us filter the different listings by category.
+_CATEGORY_MATCH = """
+    EXISTS (
+        SELECT 1
+        FROM unnest(string_to_array(COALESCE(s.categories, ''), ',')) AS c(name)
+        WHERE LOWER(TRIM(c.name)) = LOWER(%s)
+    )
+"""
+
+#Makes the row returned from the public listing query into a dictionary, which is what the API returns to the frontend.
+def _public_listing_row_to_dict(row):
+    categories = [c.strip() for c in (row[11] or "").split(",") if c.strip()]
+    return {
+        "id": row[0],
+        "storefront_id": row[1],
+        "title": row[2],
+        "price": float(row[3]),
+        "fulfillment_type": row[4],
+        "status": row[5],
+        "is_made_to_order": bool(row[6]) if row[6] is not None else False,
+        "created_at": row[7].isoformat() if row[7] else None,
+        "image_url": row[8],
+        "brand_name": row[9],
+        "storefront_logo_url": row[10],
+        "categories": categories,
+    }
+
+# This is a function that focuses on the returns of the public listing.
+def get_recent_public_listings(limit, offset=0):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        f"SELECT COUNT(*) FROM listings l JOIN storefronts s ON s.id = l.storefront_id "
+        f"WHERE {_PUBLIC_LISTING_WHERE};"
+    )
+    total = cur.fetchone()[0]
+
+    cur.execute(
+        f"""
+        SELECT {_PUBLIC_LISTING_COLUMNS}
+        {_PUBLIC_LISTING_FROM}
+        WHERE {_PUBLIC_LISTING_WHERE}
+        ORDER BY l.created_at DESC, l.id DESC
+        LIMIT %s OFFSET %s;
+        """,
+        (limit, offset)
+    )
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return [_public_listing_row_to_dict(row) for row in rows], total
+
+#This is a function that focuses on the returns of the public listing by their category, giving us the needed filtered results.
+def get_public_listings_by_category(category, limit, offset=0):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        f"SELECT COUNT(*) FROM listings l JOIN storefronts s ON s.id = l.storefront_id "
+        f"WHERE {_PUBLIC_LISTING_WHERE} AND {_CATEGORY_MATCH};",
+        (category,)
+    )
+    total = cur.fetchone()[0]
+
+    cur.execute(
+        f"""
+        SELECT {_PUBLIC_LISTING_COLUMNS}
+        {_PUBLIC_LISTING_FROM}
+        WHERE {_PUBLIC_LISTING_WHERE} AND {_CATEGORY_MATCH}
+        ORDER BY l.created_at DESC, l.id DESC
+        LIMIT %s OFFSET %s;
+        """,
+        (category, limit, offset)
+    )
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return [_public_listing_row_to_dict(row) for row in rows], total
+
+# This is a function that focuses on the returns of the public listing country by their category.
+def get_public_listing_counts_by_category():
+ 
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute(
+        f"""
+        SELECT LOWER(TRIM(c.name)) AS category, COUNT(DISTINCT l.id)
+        FROM listings l
+        JOIN storefronts s ON s.id = l.storefront_id
+        CROSS JOIN LATERAL unnest(string_to_array(COALESCE(s.categories, ''), ',')) AS c(name)
+        WHERE {_PUBLIC_LISTING_WHERE}
+          AND TRIM(c.name) <> ''
+        GROUP BY LOWER(TRIM(c.name));
+        """
+    )
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    return {row[0]: row[1] for row in rows}
