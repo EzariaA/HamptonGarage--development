@@ -1,0 +1,10 @@
+# coverage settings - added by Kyle Lewis 10/26/26 (only measure the app code, not the test files)
+[run]
+source = backend, app
+omit =
+    backend/tests/*
+    backend/create_listings.py
+
+[report]
+show_missing = False
+skip_empty = True

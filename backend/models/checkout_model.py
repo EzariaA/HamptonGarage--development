@@ -242,3 +242,182 @@ def update_listing_size_inventory(listing_id, size, purchased_qty):
     conn.commit()
     cur.close()
     conn.close()
+
+
+
+# Kyle Lewis Iteration 3 (K1)
+# Reduce stock on completed orders and block checkout for sold out items.
+#
+# Before this, the order was saved first and then the stock was updated, and if the
+# stock update failed it was just logged and ignored. Now everything is done with ONE
+# connection and only saved (commit) at the end. If anything is wrong, rollback()
+# undoes all of it so no order is made and no stock is taken.
+
+class InventoryError(Exception):
+    # used when an item is sold out or there isn't enough stock
+    pass
+
+
+def place_order_with_inventory(user_id, confirmation_number, buyer, cart_items, total_amount,
+                               order_status="SUBMITTED"):
+    """
+    Checks stock, saves the order + order items, and lowers the stock, all at once.
+
+    buyer = {first_name, last_name, email, contact, meeting_location}
+    cart_items = list of {listing_id, item_name, quantity, price, size}
+    """
+    conn = get_connection()
+    cur = conn.cursor()
+
+    try:
+        # Step 1: add up how many of each listing (and each size) are in the cart.
+        # This way 2 separate cart lines of the same item get counted together.
+        listing_totals = {}
+        size_totals = {}
+        for item in cart_items:
+            listing_id = item["listing_id"]
+            if listing_id is None:
+                continue
+            listing_totals[listing_id] = listing_totals.get(listing_id, 0) + item["quantity"]
+            if item["size"]:
+                key = (listing_id, item["size"])
+                size_totals[key] = size_totals.get(key, 0) + item["quantity"]
+
+        # Step 2: check every listing before saving anything.
+        # FOR UPDATE locks the row until we commit, so two people can't buy the last one at the same time.
+        listing_info = {}
+        for listing_id in listing_totals:
+            cur.execute("""
+                SELECT title, status, quantity_on_hand, is_made_to_order
+                FROM listings WHERE id = %s FOR UPDATE;
+            """, (listing_id,))
+            row = cur.fetchone()
+
+            if row is None or row[1] in ("DELETED", "INACTIVE"):
+                raise InventoryError(f"Item (ID {listing_id}) is no longer available.")
+
+            title, status, qty_on_hand, is_made_to_order = row
+            listing_info[listing_id] = row
+
+            # made to order items don't have stock, so skip the checks
+            if is_made_to_order:
+                continue
+
+            wanted = listing_totals[listing_id]
+            if status == "SOLD_OUT" or (qty_on_hand is not None and qty_on_hand <= 0):
+                raise InventoryError(f'"{title}" is sold out.')
+            if qty_on_hand is not None and qty_on_hand < wanted:
+                raise InventoryError(f'"{title}" only has {qty_on_hand} in stock (you requested {wanted}).')
+
+        # Step 3: check the stock for each size (only if that listing has sizes saved)
+        for (listing_id, size), wanted in size_totals.items():
+            title = listing_info[listing_id][0]
+            is_made_to_order = listing_info[listing_id][3]
+            if is_made_to_order:
+                continue
+
+            cur.execute("SELECT COUNT(*) FROM listing_sizes WHERE listing_id = %s;", (listing_id,))
+            has_sizes = cur.fetchone()[0] > 0
+            if not has_sizes:
+                continue
+
+            cur.execute("""
+                SELECT quantity FROM listing_sizes
+                WHERE listing_id = %s AND size = %s FOR UPDATE;
+            """, (listing_id, size))
+            size_row = cur.fetchone()
+            available = size_row[0] if size_row else 0
+
+            if available == 0:
+                raise InventoryError(f'"{title}" is sold out in size {size}.')
+            if available < wanted:
+                raise InventoryError(
+                    f'"{title}" only has {available} left in size {size} (you requested {wanted}).'
+                )
+
+        # Step 4: everything is in stock, so save the order
+        cur.execute("""
+            INSERT INTO orders (user_id, confirmation_number, buyer_first_name, buyer_last_name,
+                                buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id, user_id, confirmation_number, buyer_first_name, buyer_last_name,
+                      buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status, created_at;
+        """, (user_id, confirmation_number, buyer["first_name"], buyer["last_name"],
+              buyer["email"], buyer["contact"], buyer["meeting_location"], total_amount, order_status))
+        row = cur.fetchone()
+        order = {
+            "id": row[0],
+            "user_id": row[1],
+            "confirmation_number": row[2],
+            "buyer_first_name": row[3],
+            "buyer_last_name": row[4],
+            "buyer_email": row[5],
+            "buyer_contact": row[6],
+            "buyer_meeting_location": row[7],
+            "total_amount": float(row[8]),
+            "order_status": row[9],
+            "created_at": str(row[10]),
+        }
+
+        # save each item in the order
+        order_items = []
+        for item in cart_items:
+            cur.execute("""
+                INSERT INTO order_items (order_id, listing_id, item_name, quantity, price_at_purchase, selected_size)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id, order_id, listing_id, item_name, quantity, price_at_purchase, selected_size;
+            """, (order["id"], item["listing_id"], item["item_name"], item["quantity"],
+                  item["price"], item["size"]))
+            row = cur.fetchone()
+            order_items.append({
+                "id": row[0],
+                "order_id": row[1],
+                "listing_id": row[2],
+                "item_name": row[3],
+                "quantity": row[4],
+                "price_at_purchase": float(row[5]),
+                "selected_size": row[6],
+            })
+
+        # Step 5: lower the stock for each size that was bought
+        for (listing_id, size), qty in size_totals.items():
+            if listing_info[listing_id][3]:  # made to order
+                continue
+            cur.execute("""
+                UPDATE listing_sizes SET quantity = quantity - %s
+                WHERE listing_id = %s AND size = %s;
+            """, (qty, listing_id, size))
+
+        # Step 6: lower the total stock, and mark it SOLD_OUT if it hits 0
+        for listing_id, qty in listing_totals.items():
+            if listing_info[listing_id][3]:  # made to order
+                continue
+
+            cur.execute("""
+                UPDATE listings
+                SET quantity_on_hand = quantity_on_hand - %s, updated_at = CURRENT_TIMESTAMP
+                WHERE id = %s AND quantity_on_hand IS NOT NULL;
+            """, (qty, listing_id))
+
+            # check if it's sold out now (total is 0, or every size is 0)
+            cur.execute("SELECT quantity_on_hand FROM listings WHERE id = %s;", (listing_id,))
+            new_qty = cur.fetchone()[0]
+            cur.execute("SELECT COUNT(*), COALESCE(SUM(quantity), 0) FROM listing_sizes WHERE listing_id = %s;",
+                        (listing_id,))
+            size_count, size_sum = cur.fetchone()
+
+            if (new_qty is not None and new_qty <= 0) or (size_count > 0 and size_sum <= 0):
+                cur.execute("UPDATE listings SET status = 'SOLD_OUT' WHERE id = %s;", (listing_id,))
+
+        # everything worked, so save it all
+        conn.commit()
+        cur.close()
+        conn.close()
+        return {"order": order, "order_items": order_items}
+
+    except Exception:
+        # something went wrong, undo everything
+        conn.rollback()
+        cur.close()
+        conn.close()
+        raise
