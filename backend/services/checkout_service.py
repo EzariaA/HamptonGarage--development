@@ -18,6 +18,7 @@ from models.checkout_model import (
     remove_purchased_from_wishlist,
     check_listing_availability,
 )
+from models.listing_model import get_listing_by_id
 
 
 def _generate_confirmation_number():
@@ -36,12 +37,21 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     if not session_cart:
         raise Exception("Cart is empty.")
 
-    # Validate all cart items are still available before creating the order
+    # Validate all cart items are still available before creating the order.
+    # Each price comes from the listings table, not the session cart, so the order
+    # total matches what Stripe charged (Stripe is also given the database price).
+    # Updated by Ava Bell - Iteration 3 - 10/27/26 (HG-100)
+    db_prices = {}
     for item in session_cart:
         item_id = item.get("id")
         quantity = int(item.get("quantity", 1))
-        if item_id:
-            check_listing_availability(int(item_id), quantity)
+        if not item_id:
+            raise Exception("An item in your cart is no longer available.")
+        check_listing_availability(int(item_id), quantity)
+        listing = get_listing_by_id(int(item_id))
+        if not listing:
+            raise Exception("An item in your cart is no longer available.")
+        db_prices[int(item_id)] = round(float(listing["price"]), 2)
 
     first_name = (buyer_details.get("first_name") or "").strip()
     last_name = (buyer_details.get("last_name") or "").strip()
@@ -53,7 +63,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
         raise Exception("All buyer details are required.")
 
     total_amount = round(
-        sum(float(item.get("price", 0)) * int(item.get("quantity", 1)) for item in session_cart),
+        sum(db_prices[int(item["id"])] * int(item.get("quantity", 1)) for item in session_cart),
         2,
     )
 
@@ -78,7 +88,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
             listing_id=item.get("id"),
             item_name=item.get("name", "Item"),
             quantity=int(item.get("quantity", 1)),
-            price_at_purchase=float(item.get("price", 0)),
+            price_at_purchase=db_prices[int(item["id"])],
             selected_size=item.get("size"),
         )
         order_items.append(order_item)
