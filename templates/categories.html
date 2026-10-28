@@ -1,0 +1,59 @@
+{#
+    categories.html
+    Hampton Garage Campus Marketplace
+    Created by Clarence Bostic - Iteration 3 
+#}
+{% extends "base.html" %}
+
+{% block title %}Categories{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/listing_browse.css') }}">
+{% endblock %}
+
+{% block content %}
+{% with active_page = 'categories' %}{% include "partials/browse_nav.html" %}{% endwith %}
+
+<section class="logo-search-section browse-hero">
+    <h1 class="brand-title"><span class="gold">Shop</span> by Category</h1>
+    <p class="brand-subtitle">Pick a style to see every listing in it</p>
+
+    <form class="search-wrap" id="categorySearchForm" role="search">
+        <label for="categorySearch" class="visually-hidden">Search categories</label>
+        <input
+            type="search"
+            id="categorySearch"
+            class="search-input"
+            placeholder="Search categories, e.g. Vintage"
+            autocomplete="off"
+        />
+    </form>
+</section>
+
+<main class="page-content browse-content">
+    <!-- All categories view -->
+    <section id="categoryView" aria-label="All categories">
+        <div class="category-grid" id="categoryGrid"></div>
+        <p class="browse-message" id="categoryEmpty" hidden></p>
+    </section>
+
+    <!-- One category's listings -->
+    <section id="categoryListingsView" hidden>
+        <div class="category-heading">
+            <button type="button" class="back-chip" id="backToCategories">← All categories</button>
+            <h2 class="category-title" id="categoryTitle"></h2>
+        </div>
+        <p class="browse-summary" id="browseSummary" aria-live="polite"></p>
+        <div class="listing-grid" id="listingGrid"></div>
+        <div class="browse-more">
+            <button type="button" class="page-btn" id="loadMoreBtn" hidden>Load more</button>
+        </div>
+    </section>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/listing_browse.js') }}"></script>
+<script src="{{ url_for('static', filename='js/categories.js') }}"></script>
+{% endblock %}

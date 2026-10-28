@@ -5,8 +5,10 @@
     Updated by Day Ekoi - 4/22/26
     - Reads cart from session via /auth/cart/json
     - Displays items with size, qty, and subtotals
-    - Submits buyer details to /api/checkout/complete
-    - Redirects to order confirmation on success
+    - Submits buyer details to /api/checkout/create-session (Ezaria's Stripe flow)
+    - Sends the buyer to Stripe's payment page; Stripe returns them to the order confirmation
+    Updated by Mason Johnson - 10/26/26 - Pay button
+    10/27/26 - mock card form removed; the card is entered on Stripe's page only
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -72,7 +74,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (totalDisplay) totalDisplay.textContent = `$${total.toFixed(2)}`;
 
-    // Handle form submission
+    const payLabel = `Pay $${total.toFixed(2)}`;
+    if (submitBtn) submitBtn.textContent = payLabel;
+
+    // Handle form submission: send buyer details, then go to Stripe's payment page
     const form = document.getElementById("checkoutForm");
     if (!form) return;
 
@@ -97,7 +102,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         try {
-            const res = await fetch("/api/checkout/complete", {
+            const res = await fetch("/api/checkout/create-session", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -111,16 +116,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const data = await res.json();
 
-            if (!res.ok) {
-                throw new Error(data.error || "Transaction failed.");
-            }
+            if (!res.ok) throw new Error(data.error || "Transaction failed.");
 
-            window.location.href = `/order-confirmation?conf=${encodeURIComponent(data.confirmation_number)}`;
+            window.location.href = data.url;
         } catch (err) {
             showError(err.message || "Something went wrong. Please try again.");
             if (submitBtn) {
                 submitBtn.disabled = false;
-                submitBtn.textContent = "Complete Transaction";
+                submitBtn.textContent = payLabel;
             }
         }
     });

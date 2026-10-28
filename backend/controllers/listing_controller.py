@@ -21,14 +21,18 @@ All system rules + permission checks happen in services/listing_service.py.
 
 
 from flask import Blueprint, request, jsonify
+from utils.auth_utils import get_current_user # I3 - Makena Jelks
 import logging  # added - ava
 logger = logging.getLogger(__name__)  # added - ava
 
 from services.listing_service import (
     create_listing_service,
+    get_categories_service,
     get_listing_by_id_service,
+    get_listings_by_category_service,
     get_listings_for_storefront_service,
     get_listings_for_storefront_with_options_service,
+    get_recent_listings_service,
     update_listing_service,
     delete_listing_service,
     deactivate_listing_service,
@@ -47,27 +51,6 @@ from services.listing_service import (
 from services.storefront_service import get_my_storefront_service
 
 listing_bp = Blueprint("listing_bp", __name__, url_prefix="/api")
-
-
-def get_current_user():
-    """
-    Temporary user identity method (until real auth is connected):
-    Read user from headers.
-
-    Required header for protected routes:
-      X-User-Id: <int>
-
-    """
-    user_id = request.headers.get("X-User-Id")
-    role = request.headers.get("X-User-Role", "user")
-
-    if not user_id:
-        return None
-
-    try:
-        return {"id": int(user_id), "role": role}
-    except Exception:
-        return None
 
 
 # __________________________________________________________
@@ -94,7 +77,7 @@ def create_listing_from_form():
 
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         # Get user's storefront to validate ownership
@@ -227,7 +210,7 @@ def create_listing_from_form():
 def create_listing_route(storefront_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -266,7 +249,7 @@ def get_storefront_listings_route(storefront_id):
 def get_my_listings_route():
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         user_storefront = get_my_storefront_service(current_user)
@@ -309,7 +292,7 @@ def get_listing_route(listing_id):
 def update_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -334,7 +317,7 @@ def update_listing_route(listing_id):
 def delete_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         deleted = delete_listing_service(current_user, listing_id)
@@ -354,7 +337,7 @@ def delete_listing_route(listing_id):
 def deactivate_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         updated = deactivate_listing_service(current_user, listing_id)
@@ -374,7 +357,7 @@ def deactivate_listing_route(listing_id):
 def reactivate_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         updated = reactivate_listing_service(current_user, listing_id)
@@ -394,7 +377,7 @@ def reactivate_listing_route(listing_id):
 def restore_deleted_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
+        return jsonify({"error": "Unauthorized: please log in"}), 401
 
     try:
         updated = restore_deleted_listing_service(current_user, listing_id)
@@ -548,3 +531,50 @@ def delete_size_route(listing_id, size):
         if "not found" in msg:
             return jsonify({"error": str(e)}), 404
         return jsonify({"error": str(e)}), 400
+
+
+# __________________________________________________________
+# PUBLIC BROWSE ENDPOINTS (Recent Listings + Categories pages)
+# Added by Clarence Bostic - Iteration 3
+# __________________________________________________________
+
+# Returns the most recent public listings across all storefronts, newest first, one page at a time.
+@listing_bp.get("/listings/recent")
+def get_recent_listings_route():
+    try:
+        result = get_recent_listings_service(
+            request.args.get("limit"), request.args.get("offset")
+        )
+        return jsonify(result), 200
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("Failed to load recent listings")
+        return jsonify({"error": "Could not load listings."}), 500
+
+
+# Gets all the storefront categories that are available for the storefront
+@listing_bp.get("/listings/categories")
+def get_listing_categories_route():
+    try:
+        return jsonify(get_categories_service()), 200
+    except Exception:
+        logger.exception("Failed to load categories")
+        return jsonify({"error": "Could not load categories."}), 500
+
+
+#  Returns public listings whose storefront is tagged with <category>, newest first, one page at a time.
+@listing_bp.get("/listings/categories/<string:category>")
+def get_listings_by_category_route(category):
+    try:
+        result = get_listings_by_category_service(
+            category, request.args.get("limit"), request.args.get("offset")
+        )
+        return jsonify(result), 200
+    except LookupError as e:
+        return jsonify({"error": str(e)}), 404
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
+    except Exception:
+        logger.exception("Failed to load listings for category %s", category)
+        return jsonify({"error": "Could not load listings."}), 500

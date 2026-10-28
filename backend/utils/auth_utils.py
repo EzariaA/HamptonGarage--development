@@ -8,3 +8,11 @@ def hash_password(password):
 
 def verify_password(hashed_password, password): 
     return check_password_hash(hashed_password, password) #Compares hash of inputted password to hash of storred password for that username
+
+#Added by Makena Jelks for Iteration 3: access control
+from flask import session
+def get_current_user():
+    user_id = session.get("user_id")
+    if user_id is None:
+        return None
+    return {"id": int(user_id), "role": session.get("role", "user")}

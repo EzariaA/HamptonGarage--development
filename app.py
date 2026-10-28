@@ -37,6 +37,16 @@ def create_app():
     except Exception as _db_init_err:
         # added - ava: record the warning using Flask logging
         app.logger.warning("DB migration failed: %s", _db_init_err)
+
+    # Load demo storefronts and listings when SEED_DEMO_DATA=true (the live site sets this in .ebextensions/env.config)
+    # Added by Mattie Edozie 10/26/26
+    if os.getenv("SEED_DEMO_DATA", "").lower() == "true":
+        try:
+            from seed_demo_data import seed_demo_data
+            created = seed_demo_data()
+            app.logger.info("Demo data: %s new storefront(s) created", created)
+        except Exception as _seed_err:
+            app.logger.warning("Demo data load failed: %s", _seed_err)
     #The Welcome Screen (Default) Ryan Grimes 3/19/2026
     @app.route('/')
     def index():
@@ -82,6 +92,15 @@ def create_app():
         if not session.get("user"):
             return redirect(url_for("auth.login"))
         return render_template('my_storefront.html')
+
+    # Customer browse pages - Added by Clarence Bostic - Iteration 3
+    @app.route('/recent-listings')
+    def recent_listings():
+        return render_template('recent_listings.html')
+
+    @app.route('/categories')
+    def categories():
+        return render_template('categories.html')
 
     # Register Blueprints
     app.register_blueprint(auth_bp, url_prefix='/auth')

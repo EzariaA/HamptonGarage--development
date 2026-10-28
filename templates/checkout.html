@@ -1,6 +1,8 @@
 {#
 Created by Kaila Roberts 3/23/26
 Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error display
+Updated by Mason Johnson 10/26/26 - added Pay button
+10/27/26 - mock card form removed; buyers enter their card on Stripe's page (Ezaria's flow)
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {% extends "base.html" %}
@@ -62,7 +64,8 @@ Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error displ
                 <span class="gold">Total: </span>
                 <span class="total-amount">$0.00</span>
             </div>
-            <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Complete Transaction</button>
+            <!-- Pay button: sends the buyer details, then goes to Stripe's payment page -->
+            <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Pay</button>
         </aside>
     </main>
 {% endblock %}

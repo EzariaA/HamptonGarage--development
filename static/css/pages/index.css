@@ -2,136 +2,147 @@
     index.css
     Moved out of the inline <style> block in index.html
     by Mason Johnson, Iteration 2, 10/1/26
+    Redesigned with the garage theme (baby blue banner, garage photo,
+    faded gray buttons) by Mason Johnson, 10/26/26
+
+    How this page is laid out:
+      .garage-page   the whole screen, stacked top to bottom
+        .top-banner    baby blue strip with the site name
+        .garage-hero   garage photo that fills the rest of the screen
+          .hero-card     see-through white box with the text and buttons
+
+    The colors (--baby-blue, --navy, ...) come from base.css, so
+    changing them there changes them here too.
 */
-        /* Index.html was made on 3/19/2026 by Ryan Grimes */
+/* Index.html was made on 3/19/2026 by Ryan Grimes */
 
-        
-        /* Locks the screen */
-        body, html {
-            margin: 0; padding: 0; height: 100%; width: 100%;
-            background: #000; overflow: hidden;
-            font-family: 'Segoe UI', sans-serif;
-            display: flex; justify-content: center; align-items: center;
-        }
+/* Remove the browser's default margin and set the page font */
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    background: var(--page-gray);
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
 
-        /* Background layer */
-        .vault-wrapper {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            background: url('/static/images/background.png') no-repeat center center;
-            background-size: cover;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+/* Stacks the banner on top of the garage photo.
+   min-height: 100vh means "at least as tall as the screen" */
+.garage-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
 
-        /* The logo  */
-        /* Locks the logo position in place regardless if it's in full screen */
-        .logo-container {
-            position: absolute;
-            top: 43.5%;    /* Increase to move DOWN, Decrease to move UP */
-            left: 50.75%;   /* Increase to move RIGHT, Decrease to move LEFT */
-            
-            transform: translate(-53%, -50%); 
-            z-index: 1; /* Sits behind the "The Vault" text */
-        }
+/* Baby blue banner at the top.
+   The gradient goes from light blue at the top to a darker blue at the bottom */
+.top-banner {
+    background: linear-gradient(to bottom, var(--baby-blue), var(--baby-blue-dark));
+    text-align: center;
+    padding: 3vh 16px 2.5vh;
+    border-bottom: 4px solid var(--navy);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    position: relative;
+    z-index: 2; /* keeps the banner shadow on top of the photo */
+}
 
-        .logo-container img {
-            height: 48vh; /* Scales with screen height */
-            width: auto;
-        }
+/* "HAMPTON GARAGE" title.
+   vh = percent of the screen height, so the text grows with the screen */
+.main-title {
+    color: var(--navy);
+    font-size: 7vh;
+    font-weight: 800;
+    letter-spacing: 6px;
+    margin: 0;
+}
 
-        /* 4. The text and buttons layer */
-        .bottom-section {
-            position: absolute;
-            bottom: 10vh; 
-            width: 100%;
-            text-align: center;
-            z-index: 10; /* Makes sure it always stays in front of the logo */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+/* "CAMPUS FASHION MARKETPLACE" line under the title */
+.sub-title {
+    color: var(--navy);
+    font-size: 2vh;
+    letter-spacing: 5px;
+    margin-top: 0.5vh;
+    opacity: 0.8;
+}
 
-        .main-title {
-            color: white; 
-            font-size: 9vh; 
-            font-weight: bold; 
-            margin: 0; 
-            line-height: 0.8;
-            text-shadow: 0 4px 15px rgba(0,0,0,0.9);
-        }
+/* Garage photo area.
+   flex: 1 makes it take up all the space left under the banner.
+   The background has two layers: first a see-through gradient (light at the
+   top, darker at the bottom so the buttons stand out), then the photo under it.
+   background-size: cover stretches the photo to fill the area without squishing it */
+.garage-hero {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end; /* pushes the box to the bottom of the photo */
+    padding: 0 16px 8vh;
+    background:
+        linear-gradient(rgba(229, 231, 235, 0.15), rgba(30, 41, 59, 0.45)),
+        url('/static/images/garage.webp') no-repeat center center;
+    background-size: cover;
+}
 
-        .sub-title {
-            color: #B8860B; 
-            font-size: 3vh; 
-            margin-top: 0.5vh; 
-            letter-spacing: 4px;
-            font-weight: 500;
-        }
+/* See-through white box that holds the text and buttons.
+   backdrop-filter: blur blurs the photo behind the box (a "frosted glass" look) */
+.hero-card {
+    background: rgba(255, 255, 255, 0.55);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    padding: 3vh 4vw;
+    text-align: center;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+}
 
-        /* 5. METALLIC BUTTONS */
-        .button-row {
-            display: flex; 
-            justify-content: center; 
-            gap: 8vw; 
-            margin-top: 4vh;
-            width: 100%;
-        }
+/* Welcome sentence above the buttons */
+.hero-text {
+    color: var(--navy);
+    font-size: 2.4vh;
+    font-weight: 600;
+    margin: 0 0 3vh;
+}
 
-        .metallic-btn {
-            background: none; 
-            border: none; 
-            cursor: pointer; 
-            width: 22vw; 
-            max-width: 260px; 
-            padding: 0;
-            transition: transform 0.2s ease;
-        }
+/* Log in and sign up buttons side by side */
+.button-row {
+    display: flex;
+    justify-content: center;
+    gap: 3vw;
+}
 
-        .metallic-btn:hover { 
-            transform: scale(1.05); 
-            filter: brightness(1.2);
-        }
+/* Same metal button pictures as before, faded to gray.
+   filter changes how the picture looks:
+     grayscale(100%)  removes all color (gold letters turn gray)
+     brightness(1.15) makes it a little lighter
+     opacity(0.85)    makes it a little see-through */
+.metallic-btn {
+    width: 22vw;
+    max-width: 260px;
+    min-width: 140px;
+    transition: transform 0.2s ease, filter 0.2s ease; /* animates the hover change */
+    filter: grayscale(100%) brightness(1.15) opacity(0.85);
+}
 
-        .metallic-btn img { width: 100%; height: auto; }
+/* On hover the button gets a little bigger (scale) and brighter */
+.metallic-btn:hover {
+    transform: scale(1.05);
+    filter: grayscale(100%) brightness(1.35) opacity(1);
+}
 
-        /* Loading Bar */
-        .footer-area { 
-            width: 50%; 
-            margin-top: 5vh; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-        }
+/* The button pictures have empty space above and below the metal plate.
+   A negative margin pulls that empty space in so the box isn't too tall */
+.metallic-btn img {
+    width: 100%;
+    height: auto;
+    display: block;
+    margin: -15% 0;
+}
 
-        progress { 
-            width: 100%; 
-            height: 8px; 
-            accent-color: #B8860B; 
-            background: #333; 
-            border-radius: 10px; 
-        }
-
-        /* For centered progress styling */
-        progress::-webkit-progress-bar { background-color: #333; border-radius: 10px; }
-        progress::-webkit-progress-value { background-color: #B8860B; border-radius: 10px; }
-
-        .footer-text { 
-            color: rgba(204,178,128,0.5); 
-            font-size: 1.6vh; 
-            margin-top: 8px; 
-            letter-spacing: 1px;
-        }
-
-        .portal-header {
-            position: absolute;
-            top: 5vh;
-            color: rgba(204, 178, 128, 0.7);
-            font-size: 2vh;
-            font-style: italic;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-    
+/* Phone screens (600px wide or less): smaller title and stacked buttons.
+   vw = percent of the screen width, so the title fits narrow screens */
+@media (max-width: 600px) {
+    .main-title { font-size: 8.5vw; letter-spacing: 2px; }
+    .sub-title { font-size: 3vw; letter-spacing: 3px; }
+    .hero-card { padding: 3vh 6vw; }
+    .button-row { flex-direction: column; align-items: center; gap: 2vh; }
+    .metallic-btn { width: 70vw; }
+}

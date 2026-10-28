@@ -3,6 +3,10 @@
 # Tests that checkout lowers the stock and blocks sold out items (Test IDs K1-1 and K1-2)
 
 from db import get_connection
+from models.checkout_model import InventoryError
+from services.checkout_service import complete_transaction_from_session
+
+import pytest
 
 
 # makes one cart item the same way the session cart stores it
@@ -21,17 +25,12 @@ def count_orders():
     return count
 
 
-def checkout(client, buyer_details):
-    return client.post("/api/checkout/complete", json=buyer_details)
-
-
-# K1-1: buying 2 of size M lowers the size stock and the total stock
-def test_checkout_lowers_stock(client, make_user, make_listing, login_as, get_listing, buyer_details):
+# K1-1: completing an order (after Stripe says it's paid) lowers the size stock and the total stock
+def test_checkout_lowers_stock(make_user, make_listing, get_listing, buyer_details):
     listing = make_listing(quantity=5, sizes={"S": 2, "M": 3})
-    login_as(make_user("buyer"), cart=[cart_item(listing, quantity=2, size="M")])
+    buyer = make_user("buyer")
 
-    response = checkout(client, buyer_details)
-    assert response.status_code == 200
+    complete_transaction_from_session(buyer["id"], [cart_item(listing, quantity=2, size="M")], buyer_details)
 
     after = get_listing(listing["id"])
     assert after["quantity_on_hand"] == 3
@@ -39,15 +38,15 @@ def test_checkout_lowers_stock(client, make_user, make_listing, login_as, get_li
     assert after["status"] == "ACTIVE"
     assert count_orders() == 1
 
-# K1-2: a sold out item can't be checked out, no order is made, and the cart is not erased
-def test_sold_out_item_blocks_checkout(client, make_user, make_listing, login_as, buyer_details):
+
+# K1-2: a sold out item can't be checked out, no order is made, and the stock doesn't change
+def test_sold_out_item_blocks_checkout(make_user, make_listing, get_listing, buyer_details):
     listing = make_listing(quantity=0, status="SOLD_OUT")
-    login_as(make_user("buyer"), cart=[cart_item(listing)])
+    buyer = make_user("buyer")
 
-    response = checkout(client, buyer_details)
-    assert response.status_code == 400
-    assert "sold out" in response.get_json()["error"]
+    with pytest.raises(InventoryError) as error:
+        complete_transaction_from_session(buyer["id"], [cart_item(listing)], buyer_details)
+
+    assert "sold out" in str(error.value)
     assert count_orders() == 0
-
-    with client.session_transaction() as session:
-        assert len(session["cart"]) == 1
+    assert get_listing(listing["id"])["quantity_on_hand"] == 0

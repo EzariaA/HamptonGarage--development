@@ -9,34 +9,64 @@ logger = logging.getLogger(__name__)  # added - ava
 auth_bp = Blueprint('auth', __name__)
 service = AuthService()
 
+# Shows the login form. On submit, checks for empty fields, then the username and password,
+# then that the account's email is a Hampton student email (@my.hamptonu.edu).
+# Errors show on the form and the typed username is kept (the password never is).
+# Updated by Mason Johnson 10/26/26 - clear error messages instead of a plain text page
+# Updated by Mason Johnson 10/27/26 - only accounts with an @my.hamptonu.edu email can log in
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = request.form.get('username')
-        pw = request.form.get('password')
+        user = (request.form.get('username') or '').strip()
+        pw = request.form.get('password') or ''
+
+        # Empty field checks
+        errors = {}
+        if not user:
+            errors["username"] = "Enter your username."
+        if not pw:
+            errors["password"] = "Enter your password."
+        if errors:
+            return render_template('login.html', errors=errors, username=user)
 
         try:
             conn = get_connection()
         except Exception as e:
             current_app.logger.error(f"Database connection failed: {e}")
-            return "Database connection failed. <a href='/auth/login'>Try again</a>"
+            errors["general"] = "We couldn't connect right now. Please try again in a moment."
+            return render_template('login.html', errors=errors, username=user)
 
         success, role = service.validate_login(user, pw, conn)
         # conn.close()
         
         if success:
+            # Look up the account's id and email - added by Mason Johnson 10/27/26
+            # (the id lookup used to happen below; it moved up so the email can be checked first)
+            user_row = None
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT id, email FROM users WHERE username = %s", (user,))
+                user_row = cur.fetchone()
+                cur.close()
+            except Exception as e:
+                logger.error(f"Error fetching user for login: {e}")
+
+            # Only Hampton student emails can log in. The session is NOT set,
+            # so the user stays logged out.
+            if user_row is None or not service.is_student_email(user_row[1]):
+                conn.close()
+                errors["general"] = "Only Hampton student emails (@my.hamptonu.edu) can log in. Please sign up with your student email."
+                return render_template('login.html', errors=errors, username=user)
+
             session['user'] = user
             session['role'] = role
 
             #store user_id in sesion for storefront ownership checks - added by Day E 4/9/26
             try:
-                cur = conn.cursor()
-                cur.execute("SELECT id FROM users WHERE username = %s", (user,))
-                row = cur.fetchone()
+                row = user_row
                 if row:
                     session['user_id'] = row[0] # Store user_id in session
                     session['cart'] = service.get_user_cart(conn, row[0]) # Load user's cart into session on login
-                    cur.close()
             except Exception as e:
                 logger.error(f"Error fetching user_id for session: {e}")
             finally:
@@ -48,33 +78,46 @@ def login():
                 return redirect(url_for('admin.admin_dashboard'))
             else:
                 return redirect(url_for('auth.listings'))
-        
-        return "Invalid Credentials. <a href='/auth/login'>Try again</a>"
-    
-    return render_template('login.html')
 
+        # Wrong username or password: one general message so we don't reveal which part was wrong
+        conn.close()
+        errors["general"] = "Incorrect username or password."
+        return render_template('login.html', errors=errors, username=user)
+
+    return render_template('login.html', errors={}, username="")
+
+# Shows the signup form. On submit, checks every field (empty, email format, Hampton email,
+# password rules, already-used username/email), then creates the account or shows the errors.
+# The typed username and email are kept; the password never is.
+# Updated by Mason Johnson 10/26/26 - clear error messages instead of a plain text page
 @auth_bp.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
-        user = request.form.get('username') 
-        pw = request.form.get('password')
-        email = request.form.get('email')
+        user = (request.form.get('username') or '').strip()
+        pw = request.form.get('password') or ''
+        email = (request.form.get('email') or '').strip()
 
         try:
             conn = get_connection()
         except Exception as e:
             current_app.logger.error(f"Database connection failed: {e}")
-            return "Database connection failed. <a href='/auth/signup'>Try again</a>"
+            errors = {"general": "We couldn't connect right now. Please try again in a moment."}
+            return render_template('signup.html', errors=errors, username=user, email=email)
 
-        success, message = service.register_user(user, pw, email, conn)
+        errors = service.validate_signup(user, email, pw, conn)
+
+        if not errors:
+            success, message = service.register_user(user, pw, email, conn)
+            if not success:
+                errors["general"] = "Signup failed. Please try again."
         conn.close()
 
-        if success:
-            flash("Signup Successful! Please login with your new credentials.", "success")
+        if not errors:
+            flash("Signup successful! Please log in with your new account.", "success")
             return redirect(url_for('auth.login'))
-        return f"Signup Failed: {message} <a href='/auth/signup'>Try again</a>"
-    
-    return render_template('signup.html')
+        return render_template('signup.html', errors=errors, username=user, email=email)
+
+    return render_template('signup.html', errors={}, username="", email="")
 
 @auth_bp.route('/listings')
 def listings():

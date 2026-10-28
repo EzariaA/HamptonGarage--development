@@ -5,18 +5,20 @@
 from db import get_connection
 
 
+# Updated by Mattie Edozie - 10/26/26 - order_status can be set by the caller (checkout uses PENDING_PAYMENT)
 def create_order(user_id, confirmation_number, buyer_first_name, buyer_last_name,
-                 buyer_email, buyer_contact, buyer_meeting_location, total_amount):
+                 buyer_email, buyer_contact, buyer_meeting_location, total_amount,
+                 order_status="SUBMITTED"):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
         INSERT INTO orders (user_id, confirmation_number, buyer_first_name, buyer_last_name,
                             buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'SUBMITTED')
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING id, user_id, confirmation_number, buyer_first_name, buyer_last_name,
                   buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status, created_at;
     """, (user_id, confirmation_number, buyer_first_name, buyer_last_name,
-          buyer_email, buyer_contact, buyer_meeting_location, total_amount))
+          buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status))
     row = cur.fetchone()
     conn.commit()
     cur.close()
@@ -256,7 +258,8 @@ class InventoryError(Exception):
     pass
 
 
-def place_order_with_inventory(user_id, confirmation_number, buyer, cart_items, total_amount):
+def place_order_with_inventory(user_id, confirmation_number, buyer, cart_items, total_amount,
+                               order_status="SUBMITTED"):
     """
     Checks stock, saves the order + order items, and lowers the stock, all at once.
 
@@ -336,11 +339,11 @@ def place_order_with_inventory(user_id, confirmation_number, buyer, cart_items, 
         cur.execute("""
             INSERT INTO orders (user_id, confirmation_number, buyer_first_name, buyer_last_name,
                                 buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 'SUBMITTED')
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id, user_id, confirmation_number, buyer_first_name, buyer_last_name,
                       buyer_email, buyer_contact, buyer_meeting_location, total_amount, order_status, created_at;
         """, (user_id, confirmation_number, buyer["first_name"], buyer["last_name"],
-              buyer["email"], buyer["contact"], buyer["meeting_location"], total_amount))
+              buyer["email"], buyer["contact"], buyer["meeting_location"], total_amount, order_status))
         row = cur.fetchone()
         order = {
             "id": row[0],
