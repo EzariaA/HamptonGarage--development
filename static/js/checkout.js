@@ -127,4 +127,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             }
         }
     });
+        // Message when the buyer comes back from Stripe without a finished order
+        const returnParams = new URLSearchParams(window.location.search);
+        const returnStatus = returnParams.get("status");
+        if (returnStatus === "cancelled") 
+        {
+            showError("Payment cancelled. Nothing was charged and your cart is still here. You can try again when you're ready.");
+        } 
+        else if (returnStatus === "order_failed") 
+        {
+            const rawRef = returnParams.get("ref") || "";
+            const ref = /^cs_[A-Za-z0-9_]+$/.test(rawRef) ? rawRef : "not available";
+            showError("Your payment went through, but we couldn't finish your order. Please don't pay again. Send us this reference and we'll sort it out: " + ref);
+        }
 });
