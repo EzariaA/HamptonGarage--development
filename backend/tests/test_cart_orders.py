@@ -43,35 +43,45 @@ def fake_order(**overrides):
 
 
 class TestOrderTotalsUseDatabasePrices(unittest.TestCase):
-    """complete_transaction_from_session (checkout_service.py)."""
+    """complete_transaction_from_session (checkout_service.py).
 
-    @patch(f"{SVC}._generate_confirmation_number", return_value="VAULT-261027-ABC123")
-    @patch(f"{SVC}.create_order_item", side_effect=lambda **kw: kw)
-    @patch(f"{SVC}.create_order", side_effect=lambda **kw: fake_order(total_amount=kw["total_amount"]))
-    @patch(f"{SVC}.get_listing_by_id")
-    @patch(f"{SVC}.check_listing_availability")
-    def test_total_and_item_prices_come_from_listings_not_cart(self, _avail, get_listing, create_order,
-                                                               create_item, _conf):
+    Updated by Ava Bell - Iteration 4 (HG-114): main now saves the order, items and stock
+    together in place_order_with_inventory() (Kyle Lewis), so these tests check what is
+    passed to that function instead of create_order / create_order_item.
+    """
+
+    def setUp(self):
+        patches = {
+            "conf": patch(f"{SVC}._generate_confirmation_number", return_value="VAULT-261027-ABC123"),
+            "place": patch(f"{SVC}.place_order_with_inventory",
+                           side_effect=lambda **kw: {"order": fake_order(total_amount=kw["total_amount"]),
+                                                     "order_items": kw["cart_items"]}),
+            "get_listing": patch(f"{SVC}.get_listing_by_id"),
+            "clear_cart": patch(f"{SVC}.clear_cart_for_user"),
+            "wishlist": patch(f"{SVC}.remove_purchased_from_wishlist"),
+        }
+        self.mocks = {name: p.start() for name, p in patches.items()}
+        for p in patches.values():
+            self.addCleanup(p.stop)
+
+    def test_total_and_item_prices_come_from_listings_not_cart(self):
         # The cart says $1.00, but the listing costs $25.00 in the database (what Stripe charged).
-        get_listing.return_value = {"id": 7, "price": 25.00}
+        self.mocks["get_listing"].return_value = {"id": 7, "price": 25.00}
         cart = [{"id": 7, "name": "Hampton Hoodie", "price": 1.00, "quantity": 2, "size": "M"}]
 
         result = checkout_service.complete_transaction_from_session(USER_ID, cart, BUYER)
 
         self.assertEqual(result["total_amount"], 50.00)
-        self.assertEqual(create_order.call_args.kwargs["total_amount"], 50.00)
-        self.assertEqual(create_item.call_args.kwargs["price_at_purchase"], 25.00)
-        self.assertEqual(create_item.call_args.kwargs["quantity"], 2)
-        self.assertEqual(create_item.call_args.kwargs["selected_size"], "M")
+        kwargs = self.mocks["place"].call_args.kwargs
+        self.assertEqual(kwargs["total_amount"], 50.00)
+        self.assertEqual(kwargs["cart_items"][0]["price"], 25.00)
+        self.assertEqual(kwargs["cart_items"][0]["quantity"], 2)
+        self.assertEqual(kwargs["cart_items"][0]["size"], "M")
+        self.mocks["clear_cart"].assert_called_once_with(USER_ID)
 
-    @patch(f"{SVC}._generate_confirmation_number", return_value="VAULT-261027-ABC123")
-    @patch(f"{SVC}.create_order_item", side_effect=lambda **kw: kw)
-    @patch(f"{SVC}.create_order", side_effect=lambda **kw: fake_order(total_amount=kw["total_amount"]))
-    @patch(f"{SVC}.get_listing_by_id")
-    @patch(f"{SVC}.check_listing_availability")
-    def test_total_adds_several_items_at_database_prices(self, _avail, get_listing, _order, _item, _conf):
+    def test_total_adds_several_items_at_database_prices(self):
         prices = {7: 25.00, 8: 12.50}
-        get_listing.side_effect = lambda listing_id: {"id": listing_id, "price": prices[listing_id]}
+        self.mocks["get_listing"].side_effect = lambda listing_id: {"id": listing_id, "price": prices[listing_id]}
         cart = [
             {"id": 7, "name": "Hoodie", "price": 1.00, "quantity": 1, "size": "M"},
             {"id": 8, "name": "Cap", "price": 1.00, "quantity": 3, "size": None},
@@ -82,42 +92,38 @@ class TestOrderTotalsUseDatabasePrices(unittest.TestCase):
         self.assertEqual(result["total_amount"], 62.50)  # 25.00 + 3 x 12.50
         self.assertEqual(len(result["order_items"]), 2)
 
-    @patch(f"{SVC}.create_order")
-    def test_empty_cart_is_rejected(self, create_order):
+    def test_empty_cart_is_rejected(self):
         with self.assertRaises(Exception) as ctx:
             checkout_service.complete_transaction_from_session(USER_ID, [], BUYER)
         self.assertIn("Cart is empty", str(ctx.exception))
-        create_order.assert_not_called()
+        self.mocks["place"].assert_not_called()
 
-    @patch(f"{SVC}.create_order")
-    @patch(f"{SVC}.get_listing_by_id", return_value={"id": 7, "price": 25.00})
-    @patch(f"{SVC}.check_listing_availability")
-    def test_missing_buyer_detail_is_rejected(self, _avail, _listing, create_order):
+    def test_missing_buyer_detail_is_rejected(self):
+        self.mocks["get_listing"].return_value = {"id": 7, "price": 25.00}
         buyer = dict(BUYER, meeting_location="   ")
         cart = [{"id": 7, "name": "Hoodie", "price": 25.00, "quantity": 1, "size": "M"}]
         with self.assertRaises(Exception) as ctx:
             checkout_service.complete_transaction_from_session(USER_ID, cart, buyer)
         self.assertIn("All buyer details are required", str(ctx.exception))
-        create_order.assert_not_called()
+        self.mocks["place"].assert_not_called()
 
-    @patch(f"{SVC}.create_order")
-    @patch(f"{SVC}.get_listing_by_id", return_value=None)
-    @patch(f"{SVC}.check_listing_availability")
-    def test_removed_listing_is_rejected(self, _avail, _listing, create_order):
+    def test_removed_listing_is_rejected(self):
+        self.mocks["get_listing"].return_value = None
         cart = [{"id": 7, "name": "Hoodie", "price": 25.00, "quantity": 1, "size": "M"}]
         with self.assertRaises(Exception) as ctx:
             checkout_service.complete_transaction_from_session(USER_ID, cart, BUYER)
         self.assertIn("no longer available", str(ctx.exception))
-        create_order.assert_not_called()
+        self.mocks["place"].assert_not_called()
 
-    @patch(f"{SVC}.create_order")
-    @patch(f"{SVC}.check_listing_availability", side_effect=Exception("Only 1 left in stock."))
-    def test_sold_out_item_is_rejected(self, _avail, create_order):
+    def test_sold_out_item_is_rejected(self):
+        # place_order_with_inventory raises when stock runs out; no cart clear happens.
+        self.mocks["get_listing"].return_value = {"id": 7, "price": 25.00}
+        self.mocks["place"].side_effect = Exception("Only 1 left in stock.")
         cart = [{"id": 7, "name": "Hoodie", "price": 25.00, "quantity": 2, "size": "M"}]
         with self.assertRaises(Exception) as ctx:
             checkout_service.complete_transaction_from_session(USER_ID, cart, BUYER)
         self.assertIn("Only 1 left", str(ctx.exception))
-        create_order.assert_not_called()
+        self.mocks["clear_cart"].assert_not_called()
 
 
 class TestOrderSummary(unittest.TestCase):

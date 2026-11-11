@@ -8,15 +8,12 @@ import string
 from datetime import datetime
 
 from models.checkout_model import (
-    create_order,
-    create_order_item,
+    place_order_with_inventory,
     get_order_by_confirmation,
     get_order_items_by_order_id,
     get_orders_by_user_id,
     clear_cart_for_user,
-    update_listing_size_inventory,
     remove_purchased_from_wishlist,
-    check_listing_availability,
 )
 from models.listing_model import get_listing_by_id
 
@@ -33,25 +30,17 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
 
     buyer_details keys: first_name, last_name, email, contact, meeting_location
     session_cart items: { id, name, price, quantity, size }
+
+    Kyle Lewis (K1) - the order and the stock change are now saved
+    together in place_order_with_inventory(). If something is sold out it raises
+    InventoryError and no order is made.
+
+    Ava Bell (HG-100) - each price comes from the listings table, not the session
+    cart, so the order total matches what Stripe charged (Stripe is also given the
+    database price). The price in the session cart is ignored.
     """
     if not session_cart:
         raise Exception("Cart is empty.")
-
-    # Validate all cart items are still available before creating the order.
-    # Each price comes from the listings table, not the session cart, so the order
-    # total matches what Stripe charged (Stripe is also given the database price).
-    # Updated by Ava Bell - Iteration 3 - 10/27/26 (HG-100)
-    db_prices = {}
-    for item in session_cart:
-        item_id = item.get("id")
-        quantity = int(item.get("quantity", 1))
-        if not item_id:
-            raise Exception("An item in your cart is no longer available.")
-        check_listing_availability(int(item_id), quantity)
-        listing = get_listing_by_id(int(item_id))
-        if not listing:
-            raise Exception("An item in your cart is no longer available.")
-        db_prices[int(item_id)] = round(float(listing["price"]), 2)
 
     first_name = (buyer_details.get("first_name") or "").strip()
     last_name = (buyer_details.get("last_name") or "").strip()
@@ -62,47 +51,62 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     if not all([first_name, last_name, email, contact, meeting_location]):
         raise Exception("All buyer details are required.")
 
-    total_amount = round(
-        sum(db_prices[int(item["id"])] * int(item.get("quantity", 1)) for item in session_cart),
-        2,
-    )
+    cart_items = []
+    for item in session_cart:
+        quantity = int(item.get("quantity", 1))
+        if quantity <= 0:
+            raise Exception("Item quantities must be at least 1.")
+        item_id = item.get("id")
+        if item_id in (None, ""):
+            raise Exception("An item in your cart is no longer available.")
+        listing = get_listing_by_id(int(item_id))
+        if not listing:
+            raise Exception("An item in your cart is no longer available.")
+        cart_items.append({
+            "listing_id": int(item_id),
+            "item_name": item.get("name", "Item"),
+            "quantity": quantity,
+            "price": round(float(listing["price"]), 2),  # database price (HG-100)
+            "size": item.get("size") or None,
+        })
 
+    total_amount = round(sum(i["price"] * i["quantity"] for i in cart_items), 2)
     confirmation_number = _generate_confirmation_number()
 
-    order = create_order(
+    result = place_order_with_inventory(
         user_id=user_id,
         confirmation_number=confirmation_number,
-        buyer_first_name=first_name,
-        buyer_last_name=last_name,
-        buyer_email=email,
-        buyer_contact=contact,
-        buyer_meeting_location=meeting_location,
+        buyer={
+            "first_name": first_name,
+            "last_name": last_name,
+            "email": email,
+            "contact": contact,
+            "meeting_location": meeting_location,
+        },
+        cart_items=cart_items,
         total_amount=total_amount,
         order_status="PENDING_PAYMENT",  # not paid yet
     )
 
-    order_items = []
-    for item in session_cart:
-        order_item = create_order_item(
-            order_id=order["id"],
-            listing_id=item.get("id"),
-            item_name=item.get("name", "Item"),
-            quantity=int(item.get("quantity", 1)),
-            price_at_purchase=db_prices[int(item["id"])],
-            selected_size=item.get("size"),
-        )
-        order_items.append(order_item)
+    clear_cart_for_user(user_id)
+
+    # Remove purchased listings from the user's wishlist
+    purchased_listing_ids = [i["listing_id"] for i in cart_items if i["listing_id"] is not None]
+    try:
+        remove_purchased_from_wishlist(user_id, purchased_listing_ids)
+    except Exception as e:
+        logger.warning(f"[checkout] wishlist cleanup failed: {e}")
 
     return {
         "confirmation_number": confirmation_number,
-        "order": order,
-        "order_items": order_items,
+        "order": result["order"],
+        "order_items": result["order_items"],
         "total_amount": total_amount,
     }
 
 
 def get_order_summary_service(confirmation_number, user_id):
-    """Returns order + items for the confirmation page. Validates user ownership."""
+    """Returns order + items for the confirmation page. Validatesuser ownership."""
     order = get_order_by_confirmation(confirmation_number)
     if not order:
         raise Exception("Order not found.")
