@@ -50,7 +50,20 @@ Updated by Mason Johnson 10/26/26 - added Pay button
                 </div>
                 <div class="input-group">
                     <label>Meeting Location</label>
-                    <textarea id="meetingLocation" placeholder="e.g. Student Center, 1st Floor" required></textarea>
+                    <div class="map-picker">
+                        <p class="map-hint">Tap the map to pick a meet-up spot, or choose a common one:</p>
+                        <div class="map-spots" id="mapSpots"></div>
+                        <div class="map-frame" id="campusMap">
+                            <img src="{{ url_for('static', filename='images/campus_map.jpg') }}"
+                                 alt="Hampton University campus map" draggable="false">
+                            <div class="map-pin" id="mapPin" hidden></div>
+                        </div>
+                        <div class="map-selection-row">
+                            <span id="mapSelection" class="map-selection"></span>
+                            <button type="button" id="mapClear" class="map-clear-btn" hidden>Clear</button>
+                        </div>
+                    </div>
+                    <textarea id="meetingLocation" placeholder="Pick a spot on the map, or type one (e.g. Student Center, 1st Floor)" required></textarea>
                 </div>
             </form>
         </section>
