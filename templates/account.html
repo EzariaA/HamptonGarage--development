@@ -40,12 +40,14 @@ Made by Madison Boyd on  3/23/2026
 
     <div id="listings" class="tab-content active">
         <h3>YOUR CREATED LISTINGS</h3>
+        <p id="listingsMessage" class="inline-message" role="alert"></p>
         <p id="listingsEmptyState" class="empty-state">Loading your listings...</p>
         <div id="myListingsContainer" class="listing-items"></div>
     </div>
 
     <div id="wishlist" class="tab-content">
         <h3>MY WISHLIST</h3>
+        <p id="wishlistMessage" class="inline-message" role="alert"></p>
         <p id="wishlistEmptyState" class="empty-state">Your wishlist is currently empty.</p>
         <div id="wishlistItemsContainer" class="wishlist-items"></div>
     </div>
@@ -65,6 +67,22 @@ Made by Madison Boyd on  3/23/2026
 
 {% block scripts %}
 <script>
+    // HG-119 (Mattie Edozie, I4): inline messages instead of alert() popups.
+    // Swap these for Mason's shared message component once it is on main.
+    function showInlineMessage(elementId, message) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = message;
+        el.style.display = "block";
+    }
+
+    function clearInlineMessage(elementId) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        el.textContent = "";
+        el.style.display = "none";
+    }
+
     async function getCurrentUserId() {
         const storedUserId = localStorage.getItem("vaultUserId") || sessionStorage.getItem("vaultUserId");
         if (storedUserId) return storedUserId;
@@ -194,6 +212,7 @@ Made by Madison Boyd on  3/23/2026
 
                     const res = await fetch("/auth/add_to_cart", { method: "POST", body: formData });
                     if (res.ok || res.redirected) {
+                        clearInlineMessage("wishlistMessage");
                         cartBtn.textContent = "Added!";
                         setTimeout(() => {
                             cartBtn.textContent = "+ Cart";
@@ -203,7 +222,7 @@ Made by Madison Boyd on  3/23/2026
                         throw new Error("Could not add to cart.");
                     }
                 } catch (err) {
-                    alert("Unable to add to cart: " + err.message);
+                    showInlineMessage("wishlistMessage", "Unable to add to cart: " + err.message);
                     cartBtn.textContent = "+ Cart";
                     cartBtn.disabled = false;
                 }
@@ -212,13 +231,14 @@ Made by Madison Boyd on  3/23/2026
             const removeBtn = row.querySelector(".wishlist-remove-btn");
             removeBtn.addEventListener("click", async () => {
                 removeBtn.disabled = true;
+                clearInlineMessage("wishlistMessage");
 
                 try {
+                    // Logged-in users: the server knows who you are from the session cookie.
                     const userId = await getCurrentUserId();
                     if (userId) {
                         const response = await fetch(`/api/wishlist/${Number(item.listing_id || item.id)}`, {
-                            method: "DELETE",
-                            headers: { "X-User-Id": String(userId) }
+                            method: "DELETE"
                         });
 
                         const result = await response.json().catch(() => ({}));
@@ -232,7 +252,7 @@ Made by Madison Boyd on  3/23/2026
                     renderWishlist(updated);
                 } catch (error) {
                     console.error("Unable to remove wishlist item:", error);
-                    alert("Unable to remove wishlist item: " + error.message);
+                    showInlineMessage("wishlistMessage", "Unable to remove wishlist item: " + error.message);
                     removeBtn.disabled = false;
                 }
             });
@@ -256,11 +276,7 @@ Made by Madison Boyd on  3/23/2026
                 return;
             }
 
-            const response = await fetch("/api/wishlist", {
-                headers: {
-                    "X-User-Id": String(userId)
-                }
-            });
+            const response = await fetch("/api/wishlist");
 
             const data = await response.json();
             if (!response.ok) {
@@ -318,17 +334,14 @@ Made by Madison Boyd on  3/23/2026
                     if (!shouldDelete) return;
 
                     deleteBtn.disabled = true;
+                    clearInlineMessage("listingsMessage");
 
                     try {
-                        const userId = await getCurrentUserId();
                         const response = await fetch(`/api/listings/${item.id}`, {
-                            method: "DELETE",
-                            headers: {
-                                "X-User-Id": userId || ""
-                            }
+                            method: "DELETE"
                         });
 
-                        const result = await response.json();
+                        const result = await response.json().catch(() => ({}));
                         if (!response.ok) {
                             throw new Error(result.error || "Failed to delete listing");
                         }
@@ -336,7 +349,7 @@ Made by Madison Boyd on  3/23/2026
                         await loadMyListings();
                     } catch (error) {
                         console.error("Error deleting listing:", error);
-                        alert("Unable to delete listing: " + error.message);
+                        showInlineMessage("listingsMessage", "Unable to delete listing: " + error.message);
                         deleteBtn.disabled = false;
                     }
                 });
@@ -350,12 +363,7 @@ Made by Madison Boyd on  3/23/2026
         const emptyState = document.getElementById("listingsEmptyState");
 
         try {
-            const userId = await getCurrentUserId();
-            const response = await fetch("/api/listings/my", {
-                headers: {
-                    "X-User-Id": userId || ""
-                }
-            });
+            const response = await fetch("/api/listings/my");
 
             const data = await response.json();
 

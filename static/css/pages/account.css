@@ -74,6 +74,19 @@
         /* "Nothing here yet" text */
         .empty-state { color: var(--text-gray); text-align: center; padding-top: 50px; font-style: italic; }
 
+        /* HG-119: inline error message (replaces alert() popups), same look as returns-feedback.error */
+        .inline-message {
+            display: none;
+            margin: 12px 0 0;
+            padding: 0.75rem 1rem;
+            background: #fdecec;
+            border: 1px solid #d64545;
+            border-left: 6px solid #d64545;
+            border-radius: 8px;
+            color: #b42318;
+            text-align: center;
+        }
+
         /* My Listings tab: one white row per listing */
         .listing-items { display: grid; gap: 12px; margin-top: 16px; }
         .listing-row {

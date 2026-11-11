@@ -97,30 +97,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (!form) return;
 
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitLabel = submitBtn ? submitBtn.textContent : "";
+
+    // HG-119 (Mattie Edozie, I4): loading state while the return is sent.
+    function setSubmitting(isSubmitting) {
+        if (!submitBtn) return;
+        submitBtn.disabled = isSubmitting;
+        submitBtn.textContent = isSubmitting ? "Submitting..." : submitLabel;
+    }
+
     form.addEventListener("submit", async (event) => {
         event.preventDefault();
         clearFeedback();
+        setSubmitting(true);
 
         try {
-            const userRes = await fetch("/auth/api/auth/me");
-            if (!userRes.ok) {
+            const formData = new FormData(form);
+
+            // HG-119: no X-User-Id / X-User-Role headers. The server reads
+            // the user from the session cookie, which the browser sends itself.
+            const response = await fetch("/returns", {
+                method: "POST",
+                body: formData
+            });
+
+            if (response.status === 401) {
                 window.location.href = "/auth/login";
                 return;
             }
 
-            const user = await userRes.json();
-            const formData = new FormData(form);
-
-            const response = await fetch("/returns", {
-                method: "POST",
-                headers: {
-                    "X-User-Id": user.id,
-                    "X-User-Role": user.role
-                },
-                body: formData
-            });
-
-            const result = await response.json();
+            const result = await response.json().catch(() => ({}));
             if (!response.ok) {
                 throw new Error(result.error || "Failed to submit return.");
             }
@@ -131,6 +138,8 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (error) {
             console.error("Error submitting return:", error);
             showFeedback(error.message || "Something went wrong while submitting your return.", "error");
+        } finally {
+            setSubmitting(false);
         }
     });
 });
