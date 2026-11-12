@@ -20,9 +20,12 @@ Or set SEED_DEMO_DATA=true and app.py runs it every time the app starts.
 """
 
 import secrets
+import logging
 
 from db import get_connection
 from utils.auth_utils import hash_password
+
+logger = logging.getLogger(__name__) # added - Makena Jelks
 
 # All the demo images live in static/images
 IMG = "/static/images/"
@@ -190,5 +193,6 @@ def seed_demo_data():
 
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     count = seed_demo_data()
-    print("Demo data loaded:", count, "new storefront(s) created.")
+    logger.info("Demo data loaded:", count, "new storefront(s) created.")
