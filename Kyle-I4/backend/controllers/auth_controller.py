@@ -1,0 +1,310 @@
+# By Ryan Grimes - Updated 3/19/2026
+# current_app on line 2 added by Makena Jelks 9/30/26
+from flask import Blueprint, request, session, redirect, url_for, render_template, flash, jsonify, current_app
+from services.auth_services import AuthService 
+# changed config.db to db - Makena Jelks 9/30/26
+from db import get_connection
+import logging  # added - ava
+logger = logging.getLogger(__name__)  # added - ava
+auth_bp = Blueprint('auth', __name__)
+service = AuthService()
+
+# Shows the login form. On submit, checks for empty fields, then the username and password,
+# then that the account's email is a Hampton student email (@my.hamptonu.edu).
+# Errors show on the form and the typed username is kept (the password never is).
+# Updated by Mason Johnson 10/26/26 - clear error messages instead of a plain text page
+# Updated by Mason Johnson 10/27/26 - only accounts with an @my.hamptonu.edu email can log in
+@auth_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = (request.form.get('username') or '').strip()
+        pw = request.form.get('password') or ''
+
+        # Empty field checks
+        errors = {}
+        if not user:
+            errors["username"] = "Enter your username."
+        if not pw:
+            errors["password"] = "Enter your password."
+        if errors:
+            return render_template('login.html', errors=errors, username=user)
+
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
+            errors["general"] = "We couldn't connect right now. Please try again in a moment."
+            return render_template('login.html', errors=errors, username=user)
+
+        success, role = service.validate_login(user, pw, conn)
+        # conn.close()
+        
+        if success:
+            # Look up the account's id and email - added by Mason Johnson 10/27/26
+            # (the id lookup used to happen below; it moved up so the email can be checked first)
+            user_row = None
+            try:
+                cur = conn.cursor()
+                cur.execute("SELECT id, email FROM users WHERE username = %s", (user,))
+                user_row = cur.fetchone()
+                cur.close()
+            except Exception as e:
+                logger.error(f"Error fetching user for login: {e}")
+
+            # Only Hampton student emails can log in. The session is NOT set,
+            # so the user stays logged out.
+            if user_row is None or not service.is_student_email(user_row[1]):
+                conn.close()
+                errors["general"] = "Only Hampton student emails (@my.hamptonu.edu) can log in. Please sign up with your student email."
+                return render_template('login.html', errors=errors, username=user)
+
+            session['user'] = user
+            session['role'] = role
+
+            #store user_id in sesion for storefront ownership checks - added by Day E 4/9/26
+            try:
+                row = user_row
+                if row:
+                    session['user_id'] = row[0] # Store user_id in session
+                    session['cart'] = service.get_user_cart(conn, row[0]) # Load user's cart into session on login
+            except Exception as e:
+                logger.error(f"Error fetching user_id for session: {e}")
+            finally:
+                conn.close()
+
+            #return redirect(url_for('auth.listings'))
+            # Redirect based on role - added by David Jackson 3/23/2026
+            if role and role.lower() == 'admin':
+                return redirect(url_for('admin.admin_dashboard'))
+            else:
+                return redirect(url_for('auth.listings'))
+
+        # Wrong username or password: one general message so we don't reveal which part was wrong
+        conn.close()
+        errors["general"] = "Incorrect username or password."
+        return render_template('login.html', errors=errors, username=user)
+
+    return render_template('login.html', errors={}, username="")
+
+# Shows the signup form. On submit, checks every field (empty, email format, Hampton email,
+# password rules, already-used username/email), then creates the account or shows the errors.
+# The typed username and email are kept; the password never is.
+# Updated by Mason Johnson 10/26/26 - clear error messages instead of a plain text page
+@auth_bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        user = (request.form.get('username') or '').strip()
+        pw = request.form.get('password') or ''
+        email = (request.form.get('email') or '').strip()
+
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
+            errors = {"general": "We couldn't connect right now. Please try again in a moment."}
+            return render_template('signup.html', errors=errors, username=user, email=email)
+
+        errors = service.validate_signup(user, email, pw, conn)
+
+        if not errors:
+            success, message = service.register_user(user, pw, email, conn)
+            if not success:
+                errors["general"] = "Signup failed. Please try again."
+        conn.close()
+
+        if not errors:
+            flash("Signup successful! Please log in with your new account.", "success")
+            return redirect(url_for('auth.login'))
+        return render_template('signup.html', errors=errors, username=user, email=email)
+
+    return render_template('signup.html', errors={}, username="", email="")
+
+@auth_bp.route('/listings')
+def listings():
+    if 'user' not in session:
+        return redirect(url_for('auth.login'))
+    return render_template('storefront.html')
+
+@auth_bp.route('/account')
+def account():
+    if 'user' not in session: 
+        return redirect(url_for('auth.login'))
+    return render_template('account.html')
+    
+@auth_bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('auth.login'))
+
+@auth_bp.route('/cart')
+def view_cart():
+    if 'cart' not in session:
+        session['cart'] = []
+    return render_template('cart.html')
+
+@auth_bp.route('/add_to_cart', methods=['POST'])
+def add_to_cart():
+    if 'user_id' not in session:
+        flash("Please login to add items to your bag.", "error")
+        return redirect(url_for('auth.login'))
+
+    item_id = request.form.get('item_id')
+    item_name = request.form.get('item_name')
+    price = request.form.get('price', 0)
+    quantity = request.form.get('quantity', 1)
+    size = request.form.get('size')
+
+    # Validate listing availability before adding to cart
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT status, quantity_on_hand, is_made_to_order FROM listings WHERE id = %s",
+            (item_id,)
+        )
+        listing = cur.fetchone()
+        cur.close()
+        conn.close()
+        if not listing:
+            return jsonify({"error": "This item is no longer available."}), 404
+        listing_status, qty_on_hand, is_made_to_order = listing
+        if listing_status == "SOLD_OUT" or (
+            not is_made_to_order and qty_on_hand is not None and int(qty_on_hand) <= 0
+        ):
+            return jsonify({"error": f"{item_name} is sold out and cannot be added to your bag."}), 409
+    except Exception as e:
+        logger.error(f"DB Error checking listing availability: {e}")
+
+    # PERSIST TO DATABASE
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO cart_items (user_id, item_id, item_name, price, quantity, size)
+            VALUES (%s, %s, %s, %s, %s, %s)
+        """, (session['user_id'], item_id, item_name, price, quantity, size))
+        conn.commit()
+        cur.close()
+        conn.close()
+    except Exception as e:
+        logger.error(f"DB Error adding to cart: {e}")
+
+    # Update session for immediate UI feedback
+    if 'cart' not in session:
+        session['cart'] = []
+    
+    cart_item = {'id': item_id, 'name': item_name, 'price': float(price), 'quantity': int(quantity), 'size': size}
+    temp_cart = session['cart']
+    temp_cart.append(cart_item)
+    session['cart'] = temp_cart
+    session.modified = True
+
+    flash(f"Added {item_name} to your bag!", "success")
+    return redirect(url_for('auth.view_cart'))
+
+@auth_bp.route('/remove_from_cart/<int:index>', methods=['POST'])
+def remove_from_cart(index):
+    if 'cart' in session and 'user_id' in session:
+        temp_cart = session['cart']
+        if 0 <= index < len(temp_cart):
+            removed_item = temp_cart.pop(index)
+            
+            # REMOVE FROM DATABASE
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+                # We delete one instance of this item for this user
+                cur.execute("""
+                    DELETE FROM cart_items 
+                    WHERE id = (
+                        SELECT id FROM cart_items 
+                        WHERE user_id = %s AND item_name = %s AND size = %s
+                        LIMIT 1
+                    )
+                """, (session['user_id'], removed_item['name'], removed_item['size']))
+                conn.commit()
+                cur.close()
+                conn.close()
+            except Exception as e:
+                logger.error(f"DB Error removing item: {e}")
+
+            session['cart'] = temp_cart
+            session.modified = True
+            flash(f"Removed {removed_item['name']} from bag.", "info")
+    return redirect(url_for('auth.view_cart'))
+
+# Added by Day E 4/9/26 - returns current session user info for frontend auth checks
+@auth_bp.route('/api/auth/me')
+def get_current_session_user():
+    if 'user' not in session:
+        return jsonify({"error": "Not logged in"}), 401
+    
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("SELECT id, username, role FROM users WHERE username = %s", (session['user'],))
+        user = cur.fetchone()
+        conn.close()
+
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        return jsonify({
+            "id": user[0],
+            "username": user[1],
+            "role": user[2]
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@auth_bp.route('/cart/json')
+def get_cart_json():
+    return jsonify(session.get('cart', []))
+
+# Kyle Lewis(Mk3) removed the /auth/debug/session route because it showed everything in the session
+
+# Admin login route - added by David Jackson 4/19/26
+# Kyle Lewis(Mk3) - took out the hardcoded admin/admin123 login.
+# Now the admin has to be a real user in the users table with role = 'admin' (made by seed_data.py)
+@auth_bp.route('/admin-login', methods=['GET', 'POST'])
+def admin_login():
+    if request.method == 'POST':
+        user = request.form.get('username')
+        pw = request.form.get('password')
+
+        try:
+            conn = get_connection()
+        except Exception as e:
+            current_app.logger.error(f"Database connection failed: {e}")
+            return "Database connection failed. <a href='/auth/admin-login'>Try again</a>"
+
+        # Updated by Kyle Lewis 11/11/26 - lockout after 5 failed tries (15 minutes) and logging
+        result = service.check_admin_login(user, pw, conn)
+
+        if result == "locked":
+            conn.close()
+            logger.warning(f"ADMIN LOGIN BLOCKED: '{user}' is locked out (ip {request.remote_addr})")
+            return "Too many failed login attempts. This account is locked for 15 minutes. <a href='/auth/admin-login'>Back</a>"
+
+        if result == "ok":
+            cur = conn.cursor()
+            cur.execute("SELECT id FROM users WHERE username = %s", (user,))
+            row = cur.fetchone()
+            cur.close()
+            conn.close()
+
+            session['user'] = user
+            session['role'] = 'admin'
+            if row:
+                session['user_id'] = row[0]
+            # makes the session timeout (set in app.py) apply to the admin - Kyle Lewis 11/11/26
+            session.permanent = True
+            logger.info(f"ADMIN LOGIN: '{user}' logged in (ip {request.remote_addr})")
+            return redirect(url_for('admin.admin_dashboard'))
+
+        conn.close()
+        logger.warning(f"ADMIN LOGIN FAILED: '{user}' (ip {request.remote_addr})")
+        return "Invalid Admin Credentials. <a href='/auth/admin-login'>Try again</a>"
+
+    return render_template('admin_login.html')
