@@ -1,6 +1,7 @@
 import sys
 import os
 from dotenv import load_dotenv  # added - ava
+from datetime import timedelta # added - Makena Jelks
 
 load_dotenv()  # added - ava: read settings from .env
 
@@ -30,6 +31,10 @@ def create_app():
     # added - ava: stop if the secret key is missing
     if not app.secret_key:
         raise RuntimeError("Add SECRET_KEY to your .env file")
+
+    # added - Makena Jelks: permanent admin sessions expire after 30 min
+    app.permanent_session_lifetime = timedelta(minutes=30)
+    
     # Run DB migrations on every startup so new columns are always present
     try:
         from init_db import create_vault_tables
