@@ -279,11 +279,15 @@ def admin_login():
             current_app.logger.error(f"Database connection failed: {e}")
             return "Database connection failed. <a href='/auth/admin-login'>Try again</a>"
 
-        # check the username and password the same way the normal login does
-        success, role = service.validate_login(user, pw, conn)
+        # Updated by Kyle Lewis 11/11/26 - lockout after 5 failed tries (15 minutes) and logging
+        result = service.check_admin_login(user, pw, conn)
 
-        # only let them in if the password is right AND they are an admin
-        if success and role and role.lower() == 'admin':
+        if result == "locked":
+            conn.close()
+            logger.warning(f"ADMIN LOGIN BLOCKED: '{user}' is locked out (ip {request.remote_addr})")
+            return "Too many failed login attempts. This account is locked for 15 minutes. <a href='/auth/admin-login'>Back</a>"
+
+        if result == "ok":
             cur = conn.cursor()
             cur.execute("SELECT id FROM users WHERE username = %s", (user,))
             row = cur.fetchone()
@@ -294,9 +298,13 @@ def admin_login():
             session['role'] = 'admin'
             if row:
                 session['user_id'] = row[0]
+            # makes the session timeout (set in app.py) apply to the admin - Kyle Lewis 11/11/26
+            session.permanent = True
+            logger.info(f"ADMIN LOGIN: '{user}' logged in (ip {request.remote_addr})")
             return redirect(url_for('admin.admin_dashboard'))
 
         conn.close()
+        logger.warning(f"ADMIN LOGIN FAILED: '{user}' (ip {request.remote_addr})")
         return "Invalid Admin Credentials. <a href='/auth/admin-login'>Try again</a>"
 
     return render_template('admin_login.html')
