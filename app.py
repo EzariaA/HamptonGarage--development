@@ -125,6 +125,16 @@ def create_app():
     app.register_blueprint(returns_bp)
     app.register_blueprint(checkout_bp, url_prefix='/api')
 
+    # added (line 129-136) - Makena Jelks
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(error):
+        app.logger.error("500 error: %s", error)
+        return render_template("errors/500.html"), 500
+
     @app.get("/health")
     def health():
         return {"status": "ok"}
