@@ -1,9 +1,16 @@
 import sys
 import os
+import logging
 from dotenv import load_dotenv  # added - ava
 from datetime import timedelta # added - Makena Jelks
 
 load_dotenv()  # added - ava: read settings from .env
+
+# added - Makena Jelks (lines 10 - 13) one logging setup for app
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 from flask import Flask, render_template, redirect, url_for, session
 
@@ -34,7 +41,7 @@ def create_app():
 
     # added - Makena Jelks: permanent admin sessions expire after 30 min
     app.permanent_session_lifetime = timedelta(minutes=30)
-    
+
     # Run DB migrations on every startup so new columns are always present
     try:
         from init_db import create_vault_tables
