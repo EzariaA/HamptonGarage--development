@@ -16,6 +16,8 @@ Frontend → Controller → Service → Model → Database
 """
 
 from flask import Blueprint, jsonify, request, session, abort, render_template  # Updated 4/21/2026
+import logging  # added - Kyle Lewis 11/11/26 (admin actions are logged)
+logger = logging.getLogger(__name__)
 
 # Import service functions
 from services.admin_service import (
@@ -50,16 +52,24 @@ def require_admin():
 
     # Check if the user is logged in - updated by David Jackson 3/23/2026
     if "user" not in session:
+        logger.warning(f"ADMIN ACCESS DENIED: not logged in - {request.method} {request.path}")  # added - Kyle Lewis 11/11/26
         abort(401)  # Unauthorized (user not logged in)
 
     # Check if the user has the admin role
     if session.get("role") != "admin":
+        logger.warning(f"ADMIN ACCESS DENIED: '{session.get('user')}' is not an admin - {request.method} {request.path}")  # added - Kyle Lewis 11/11/26
         abort(403)  # Forbidden (not an admin)
+
+
+# Added by Kyle Lewis 11/11/26 - writes one line to the log for every admin action
+def log_admin_action(action):
+    logger.info(f"ADMIN ACTION: '{session.get('user')}' (user id {session.get('user_id')}) {action}")
 
 
 @admin_bp.route("", methods=["GET"])
 def admin_dashboard():
     require_admin()
+    log_admin_action("opened the admin dashboard")
     return render_template("admin_dashboard.html")
 
 
@@ -73,6 +83,7 @@ def admin_dashboard_page():
 
     # Ensure only admins can access the dashboard
     require_admin()
+    log_admin_action("opened the admin dashboard")
 
     return render_template("admin_dashboard.html")
 
@@ -92,6 +103,7 @@ def get_users():
     require_admin()
 
     users = fetch_users()
+    log_admin_action("viewed all users")
 
     return jsonify(users)
 
@@ -111,6 +123,7 @@ def delete_user_route(user_id):
     require_admin()
 
     result = remove_user(user_id)
+    log_admin_action(f"deleted user {user_id} - result: {result}")
 
     return jsonify(result)
 
@@ -127,6 +140,7 @@ def get_listings():
     require_admin()
 
     listings = fetch_listings()
+    log_admin_action("viewed all listings")
 
     return jsonify(listings)
 
@@ -147,6 +161,7 @@ def delete_listing_route(listing_id):
     require_admin()
 
     result = remove_listing(listing_id)
+    log_admin_action(f"deleted listing {listing_id} - result: {result}")
 
     return jsonify(result)
 
@@ -165,6 +180,7 @@ def get_storefronts():
     require_admin()
 
     stores = fetch_storefronts()
+    log_admin_action("viewed all storefronts")
 
     return jsonify(stores)
 
@@ -174,6 +190,7 @@ def delete_storefront_route(store_id):
     require_admin()
 
     result = remove_storefront(store_id)
+    log_admin_action(f"deleted storefront {store_id} - result: {result}")
 
     return jsonify(result)
 
@@ -181,6 +198,7 @@ def delete_storefront_route(store_id):
 @admin_bp.route("/returns", methods=["GET"])
 def get_returns():
     require_admin()
+    log_admin_action("viewed all returns")
     return jsonify(fetch_returns())
 
 
@@ -191,8 +209,11 @@ def update_return_route(return_id):
     try:
         data = request.get_json(silent=True) or {}
         updated = update_return_status_service(return_id, data.get("status"))
+        log_admin_action(f"changed return {return_id} to status '{data.get('status')}'")
         return jsonify(updated)
     except ValueError as e:
+        log_admin_action(f"tried to change return {return_id} to '{data.get('status')}' - rejected: {e}")
         return jsonify({"error": str(e)}), 400
     except Exception as e:
+        logger.error(f"ADMIN ACTION FAILED: '{session.get('user')}' changing return {return_id}: {e}")
         return jsonify({"error": str(e)}), 500
