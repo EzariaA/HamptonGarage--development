@@ -132,7 +132,7 @@ def create_app():
 
     @app.errorhandler(500)
     def server_error(error):
-        app.logger.error("500 error: %s", error)
+        app.logger.error("500 error: %s", getattr(error, "original_exception", error))
         return render_template("errors/500.html"), 500
 
     @app.get("/health")
