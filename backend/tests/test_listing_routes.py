@@ -1,4 +1,8 @@
 # Hampton Garage
+# Listing route tests (services and S3 are mocked; no real listings are saved).
+# Updated by Ava Bell - Iteration 4 (HG-115): tests now log in through the Flask session
+# (session_transaction, same pattern as test_checkout.py) instead of the old X-User-Id header,
+# which the server no longer reads. Added tests for the update and delete listing routes.
 
 import io
 import json
@@ -51,25 +55,24 @@ class TestListingRoutes(unittest.TestCase):
         cls.app.config["TESTING"] = True
 
     def setUp(self):
-        # Every test starts logged in as USER_ID through the session.
-        # Updated by Clarence Bostic - Iteration 4: the app no longer accepts the X-User-Id header.
         self.client = self.app.test_client()
-        with self.client.session_transaction() as sess:
-            sess["user_id"] = USER_ID
 
-    def log_out(self):
+    def _login(self, user_id=USER_ID, role="user"):
+        """Log the test client in the same way the real login does: through the session."""
         with self.client.session_transaction() as sess:
-            sess.clear()
+            sess["user_id"] = user_id
+            sess["role"] = role
 
-    def post_form(self, form):
+    def post_form(self, form, logged_in=True):
+        if logged_in:
+            self._login()
         return self.client.post("/api/listings/create", data=form,
                                 content_type="multipart/form-data")
 
     # ---------- Create listing: POST /api/listings/create ----------
 
     def test_create_listing_requires_login(self):
-        self.log_out()
-        res = self.post_form(listing_form())
+        res = self.post_form(listing_form(), logged_in=False)
         self.assertEqual(res.status_code, 401)
 
     @patch(f"{CTRL}.get_my_storefront_service", return_value=None)
@@ -167,10 +170,77 @@ class TestListingRoutes(unittest.TestCase):
         res = self.client.get("/api/listings/999")
         self.assertEqual(res.status_code, 404)
 
+    # ---------- Update listing: PUT /api/listings/<id> (added HG-115) ----------
+
+    @patch(f"{CTRL}.update_listing_service")
+    def test_update_listing_requires_login(self, update):
+        res = self.client.put("/api/listings/101", json={"title": "New Title"})
+        self.assertEqual(res.status_code, 401)
+        update.assert_not_called()
+
+    @patch(f"{CTRL}.update_listing_service", return_value=dict(CREATED_LISTING, title="New Title", price=30.0))
+    def test_update_listing_success(self, update):
+        self._login()
+        res = self.client.put("/api/listings/101", json={"title": "New Title", "price": 30})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.get_json()["title"], "New Title")
+        user, listing_id, data = update.call_args.args
+        self.assertEqual((user["id"], listing_id), (USER_ID, 101))
+        self.assertEqual(data, {"title": "New Title", "price": 30})
+
+    @patch(f"{CTRL}.update_listing_service", side_effect=Exception("Unauthorized action."))
+    def test_update_someone_elses_listing_is_forbidden(self, _update):
+        self._login()
+        res = self.client.put("/api/listings/101", json={"title": "Not Mine"})
+        self.assertEqual(res.status_code, 403)
+
+    @patch(f"{CTRL}.update_listing_service", side_effect=Exception("Listing not found."))
+    def test_update_missing_listing_returns_404(self, _update):
+        self._login()
+        res = self.client.put("/api/listings/999", json={"title": "Ghost"})
+        self.assertEqual(res.status_code, 404)
+
+    @patch(f"{CTRL}.update_listing_service", side_effect=Exception("price cannot be negative."))
+    def test_update_with_invalid_data_returns_400(self, _update):
+        self._login()
+        res = self.client.put("/api/listings/101", json={"price": -5})
+        self.assertEqual(res.status_code, 400)
+        self.assertIn("price", res.get_json()["error"])
+
+    # ---------- Delete listing: DELETE /api/listings/<id> (added HG-115) ----------
+
+    @patch(f"{CTRL}.delete_listing_service")
+    def test_delete_listing_requires_login(self, delete):
+        res = self.client.delete("/api/listings/101")
+        self.assertEqual(res.status_code, 401)
+        delete.assert_not_called()
+
+    @patch(f"{CTRL}.delete_listing_service", return_value=dict(CREATED_LISTING, status="DELETED"))
+    def test_delete_listing_success(self, delete):
+        self._login()
+        res = self.client.delete("/api/listings/101")
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.get_json()["status"], "DELETED")
+        user, listing_id = delete.call_args.args
+        self.assertEqual((user["id"], listing_id), (USER_ID, 101))
+
+    @patch(f"{CTRL}.delete_listing_service", side_effect=Exception("Unauthorized action."))
+    def test_delete_someone_elses_listing_is_forbidden(self, _delete):
+        self._login()
+        res = self.client.delete("/api/listings/101")
+        self.assertEqual(res.status_code, 403)
+
+    @patch(f"{CTRL}.delete_listing_service", side_effect=Exception("Listing not found."))
+    def test_delete_missing_listing_returns_404(self, _delete):
+        self._login()
+        res = self.client.delete("/api/listings/999")
+        self.assertEqual(res.status_code, 404)
+
     # ---------- Listing images ----------
 
     @patch(f"{CTRL}.add_listing_image_service", return_value={"id": 7, "image_url": "https://s3.test/x.png"})
     def test_add_image_success(self, add_image):
+        self._login()
         res = self.client.post("/api/listings/101/images",
                                json={"image_url": "https://s3.test/x.png", "is_primary": True})
         self.assertEqual(res.status_code, 201)
@@ -179,6 +249,7 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.add_listing_image_service", side_effect=Exception("Unauthorized: not your listing"))
     def test_add_image_to_someone_elses_listing_is_forbidden(self, _add):
+        self._login()
         res = self.client.post("/api/listings/101/images",
                                json={"image_url": "https://s3.test/x.png"})
         self.assertEqual(res.status_code, 403)
@@ -197,6 +268,7 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.set_primary_image_service", return_value={"id": 8, "is_primary": True})
     def test_set_primary_image_success(self, set_primary):
+        self._login()
         res = self.client.patch("/api/listings/101/images/8/primary")
         self.assertEqual(res.status_code, 200)
         user, listing_id, image_id = set_primary.call_args.args
@@ -204,6 +276,7 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.delete_listing_image_service", side_effect=Exception("Image not found"))
     def test_delete_missing_image_returns_404(self, _delete):
+        self._login()
         res = self.client.delete("/api/listings/101/images/999")
         self.assertEqual(res.status_code, 404)
 

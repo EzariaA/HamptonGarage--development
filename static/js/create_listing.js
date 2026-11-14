@@ -6,6 +6,8 @@ CSC 405 Sp 26
 Created by Elali McNair - Iteration 4
 Updated by Day Ekoi - Iteration 5 4/9/26
 Updated by Day Ekoi - Iteration 5 4/22/26 - One Size mode, per-size quantities, Made-to-Order
+Updated by Ava Bell - CSC 404 Iteration 4 - removed X-User-Id/X-User-Role headers (server uses the
+  session), replaced alert() popups with inline form messages
 
 Purpose:
 Handles form submission for Create Listing page. Supports:
@@ -45,6 +47,27 @@ document.addEventListener('DOMContentLoaded', function() {
   const storefrontSelect = document.getElementById("storefrontSelect");
   const previewInputs = [1, 2, 3, 4].map((index) => document.getElementById(`previewImage${index}`));
   const selectedListingImages = [null, null, null, null];
+
+  // Inline message shown at the top of the form (replaces the old alert() popups)
+  function showFormMessage(message, tone = "error") {
+    if (!listingForm) return;
+    let box = document.getElementById("listingFormMessage");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "listingFormMessage";
+      box.setAttribute("role", "alert");
+      box.setAttribute("aria-live", "assertive");
+      listingForm.prepend(box);
+    }
+    box.className = `form-message ${tone === "success" ? "success" : "error"}`;
+    box.textContent = message;
+    box.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function clearFormMessage() {
+    const box = document.getElementById("listingFormMessage");
+    if (box) box.remove();
+  }
 
   // ── Size mode elements ──────────────────────────────────────
   const oneSizeToggle = document.getElementById("oneSizeToggle");
@@ -191,14 +214,16 @@ document.addEventListener('DOMContentLoaded', function() {
   if (listingForm) {
     listingForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      clearFormMessage();
 
       const userRes = await fetch("/auth/api/auth/me");
       if (!userRes.ok) {
-        alert("You must be logged in to create a listing.");
-        window.location.href = "/auth/login";
+        showFormMessage("You must be logged in to create a listing. Redirecting to login...");
+        window.setTimeout(() => {
+          window.location.href = "/auth/login";
+        }, 2000);
         return;
       }
-      const user = await userRes.json();
 
       const storefrontId = document.getElementById("storefrontSelect").value;
       const listingName = document.getElementById("listingName").value.trim();
@@ -207,12 +232,12 @@ document.addEventListener('DOMContentLoaded', function() {
       const isMadeToOrder = madeToOrderToggle && madeToOrderToggle.checked;
 
       if (!storefrontId) {
-        alert("Please select a storefront for this listing.");
+        showFormMessage("Please select a storefront for this listing.");
         return;
       }
 
       if (!listingName || price < 0 || isNaN(price)) {
-        alert("Please fill in all required fields with valid values.");
+        showFormMessage("Please fill in all required fields with valid values.");
         return;
       }
 
@@ -223,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
       if (isOneSizeMode) {
         const qty = parseInt(oneSizeQty ? oneSizeQty.value : "0", 10);
         if (!isMadeToOrder && (isNaN(qty) || qty < 0)) {
-          alert("Please enter a valid quantity for One Size.");
+          showFormMessage("Please enter a valid quantity for One Size.");
           return;
         }
         sizes = ["One Size"];
@@ -232,7 +257,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const sizeCheckboxes = document.querySelectorAll("input[name='sizes']:checked");
         sizes = Array.from(sizeCheckboxes).map(cb => cb.value);
         if (sizes.length === 0) {
-          alert("Please select at least one size.");
+          showFormMessage("Please select at least one size.");
           return;
         }
         for (const size of sizes) {
@@ -241,7 +266,7 @@ document.addEventListener('DOMContentLoaded', function() {
             : null;
           const qty = qtyInput ? parseInt(qtyInput.value, 10) : NaN;
           if (!isMadeToOrder && (isNaN(qty) || qty < 0)) {
-            alert(`Please enter a valid quantity for size ${size}.`);
+            showFormMessage(`Please enter a valid quantity for size ${size}.`);
             return;
           }
           sizeQuantities[size] = isMadeToOrder ? 0 : (isNaN(qty) ? 0 : qty);
@@ -252,7 +277,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
       const listingImages = selectedListingImages.filter(Boolean);
       if (listingImages.length === 0) {
-        alert("Please upload at least one listing image.");
+        showFormMessage("Please upload at least one listing image.");
         return;
       }
 
@@ -272,10 +297,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const response = await fetch("/api/listings/create", {
           method: "POST",
-          headers: {
-            "X-User-Id": user.id,
-            "X-User-Role": user.role
-          },
           body: formData,
         });
 
@@ -287,11 +308,11 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = "/my-storefront";
           }, 2500);
         } else {
-          alert("Error creating listing: " + (result.error || "Unknown error"));
+          showFormMessage("Error creating listing: " + (result.error || "Unknown error"));
         }
       } catch (error) {
         console.error("Error submitting form:", error);
-        alert("Error creating listing: " + error.message);
+        showFormMessage("Error creating listing: " + error.message);
       }
     });
   }
@@ -309,14 +330,9 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = "/auth/login";
         return;
       }
-      const user = await userRes.json();
 
       const response = await fetch("/api/storefronts/me", {
         method: "GET",
-        headers: {
-          "X-User-Id": user.id,
-          "X-User-Role": user.role
-        },
       });
 
       if (response.ok) {

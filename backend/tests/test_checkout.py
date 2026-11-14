@@ -1,5 +1,6 @@
 # Hampton Garage
-
+# AI assistance: Claude (Anthropic) helped draft these tests.
+# Ezaria Alexander reviewed every test, ran them, and edited them to match the app.
 import os
 import sys
 import unittest
