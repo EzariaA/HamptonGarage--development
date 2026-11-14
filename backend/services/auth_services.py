@@ -189,18 +189,16 @@ class AuthService:
         db_conn.commit()
         cur.close()
 
-    def get_user_cart(self, db_conn, user_id): #Retrieves all items from the persistent database for a specific user.
-        try:
-            cur = db_conn.cursor()
-            cur.execute("""
-                SELECT item_id, item_name, price, quantity, size 
-                FROM cart_items WHERE user_id = %s
-            """, (user_id,))
-            rows = cur.fetchall()
-            return [{'id': r[0], 'name': r[1], 'price': float(r[2]), 'quantity': r[3], 'size': r[4]} for r in rows]
-        except Exception as e:
-            logger.warning(f"Service Error: Could not fetch cart: {e}")
-            return []
+    def get_user_cart(self, db_conn, user_id):
+        cur = db_conn.cursor()
+        cur.execute("""
+            SELECT item_id, item_name, price, quantity, size, id
+            FROM cart_items WHERE user_id = %s ORDER BY id
+        """, (user_id,))
+        rows = cur.fetchall()
+        cur.close()
+        return [{'id': r[0], 'name': r[1], 'price': float(r[2]), 'quantity': r[3],
+                 'size': r[4], 'cart_id': r[5]} for r in rows]
 
     def clear_user_cart(self, db_conn, user_id): #Removes all items from the database bag (useful after checkout).
         try:

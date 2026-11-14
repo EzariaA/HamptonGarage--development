@@ -1,19 +1,13 @@
-# Hampton Garage
-# CSC 404 FALL 26'
-# Updated by Ezaria Alexander - Stripe Checkout (create-session / success)
-# 10/27/26 - Team decision: Ezaria's Stripe flow is the only checkout flow.
-#   Mattie's alternate payment routes and Mason's mock card check were removed
-#   after the merge, to keep checkout simple.
-#
-# How checkout works:
+#Hampton Garage
+#Author: Ezaria Alexander 
+#How checkout works:
 #   1. checkout.js sends the buyer's details to /api/checkout/create-session
 #   2. We check stock and prices (from the database), then ask Stripe for a payment page
 #   3. The buyer pays on Stripe's page (we never see the card)
-#   4. Stripe sends the buyer to /api/checkout/success; we confirm with Stripe that it was paid,
-#      and only then create the order, update stock, and empty the cart
+#   4. Stripe sends the buyer to /api/checkout/success; we confirm with Stripe that it was paid, and only then create the order, update stock, and empty the cart
 
+import logging
 import os
-
 import stripe
 from flask import Blueprint, request, jsonify, session, redirect
 
@@ -29,6 +23,7 @@ from services.checkout_service import (
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 REQUIRED_FIELDS = ["first_name", "last_name", "email", "contact", "meeting_location"]
 
+logger = logging.getLogger(__name__)
 checkout_bp = Blueprint("checkout", __name__)
 
 
@@ -96,7 +91,7 @@ def create_checkout_session():
             line_items=line_items,
             customer_email=buyer["email"],
             success_url=request.host_url + "api/checkout/success?session_id={CHECKOUT_SESSION_ID}",
-            cancel_url=request.host_url + "checkout",
+            cancel_url=request.host_url + "checkout?status=cancelled",
             metadata={"user_id": str(user_id)},
         )
     except Exception as e:
@@ -128,7 +123,17 @@ def checkout_success():
             return redirect("/checkout")
 
         buyer = session.pop("pending_buyer", {})
-        result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
+        try:
+            result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
+        except Exception:
+            # The buyer has paid, but the order could not be created (for example, an item
+            # sold out in between). Log it, keep the cart, and send the buyer back with the
+            # Stripe session ID as a reference.
+            logger.error(
+                "Paid but no order created: user_id=%s stripe_session_id=%s",
+                user_id, session_id, exc_info=True,
+            )
+            return redirect(f"/checkout?status=order_failed&ref={session_id}")
         cur.execute(
             "UPDATE orders SET stripe_session_id = %s, payment_status = 'paid' WHERE confirmation_number = %s",
             (session_id, result["confirmation_number"]),
