@@ -5,8 +5,9 @@
 Designed & Built by David Jackson, Elali McNair, Day Ekoi, Ryan Grimes, Kaila Roberts, and Madison Boyd
 CSC 405 — Spring 26'
 
-Adopted by Ezaria Alexander, Ava Bell, Clarence Bostic, Mattie Edoziie, Makens Jelks Mason Johnson, and Kyle Lewis 
+Adopted by Ezaria Alexander, Ava Bell, Clarence Bostic, Mattie Edozie, Makena Jelks, Mason Johnson, and Kyle Lewis
 CSC 404 - Fall '26
+
 ---
 
 ## Live Deployment
@@ -15,9 +16,9 @@ CSC 404 - Fall '26
 
 ---
 
-## What is The Vault?
+## What is Hampton Garage?
 
-The Vault is a web-based campus marketplace exclusively for Hampton University students. It allows student brand owners to create storefronts, publish clothing listings, and manage inventory, while other students can browse, wishlist, and purchase items.
+Hampton Garage is a web-based campus marketplace exclusively for Hampton University students. It allows student brand owners to create storefronts, publish clothing listings, and manage inventory, while other students can browse, wishlist, and purchase items.
 
 ---
 
@@ -87,6 +88,11 @@ AWS_SECRET_ACCESS_KEY=
 AWS_S3_BUCKET=
 AWS_REGION=us-east-2
 
+# Admin account (used by backend/seed_data.py, see "Create the admin account" below)
+ADMIN_USERNAME=admin
+ADMIN_EMAIL=admin@hamptonu.edu
+ADMIN_PASSWORD=pick-a-strong-password
+
 # Optional: load the demo storefronts on startup
 SEED_DEMO_DATA=true
 ```
@@ -98,6 +104,22 @@ The app creates and updates the tables every time it starts. To do it by hand:
 ```bash
 python backend/init_db.py
 ```
+
+### Create the admin account
+
+There is no built-in admin login anymore (the old hardcoded `admin` / `admin123` account was removed). The admin account is created by `seed_data.py`, using `ADMIN_USERNAME`, `ADMIN_EMAIL` and `ADMIN_PASSWORD` from your `.env`. Run it after `init_db.py`:
+
+```bash
+python backend/seed_data.py
+```
+
+It prints `SEED: admin user 'admin' is ready.` If `ADMIN_PASSWORD` is missing, it prints a warning and creates nothing. It is safe to run more than once; it never makes duplicates. You can also pass the password for one run only instead of saving it in `.env`:
+
+```bash
+ADMIN_PASSWORD='pick-a-strong-password' python backend/seed_data.py
+```
+
+Log in at `http://127.0.0.1:5000/auth/admin-login` (or the **Admin** button on the login page) with that username and password.
 
 ### Load demo data (optional)
 
@@ -140,17 +162,42 @@ Copy the `whsec_...` value it prints into `STRIPE_WEBHOOK_SECRET`. Test card: `4
 
 ## Running Tests
 
-Unit tests run without a database or internet:
+The tests use **pytest** and their own database, `vault_test`, so they never touch your local `thevault` data. Before each test, every table in `vault_test` is emptied (see `backend/tests/conftest.py`).
+
+**One-time setup** (with your venv active):
 
 ```bash
-python -m unittest backend.tests.test_stripe_payment backend.tests.test_wishlist_unit backend.tests.test_env_config backend.tests.test_seed_demo_data -v
+pip install pytest pytest-cov
+createdb vault_test
 ```
 
-Full suite (some older tests need the local database from the setup steps above, with at least one user):
+**Run all the tests** from the project folder:
 
 ```bash
-python -m unittest discover -s backend/tests -t . -v
+pytest
 ```
+
+**Run one file**, or show each test name:
+
+```bash
+pytest backend/tests/test_listing_routes.py
+pytest -v
+```
+
+**With a coverage report** (open `htmlcov/index.html` afterward):
+
+```bash
+pytest --cov --cov-report=html
+```
+
+By default the tests connect to `vault_test` on `localhost:5432` as user `postgres` with password `postgres`. If your local PostgreSQL uses a different user or password, set these before running `pytest`:
+
+```bash
+export TEST_DB_USER=your_mac_username
+export TEST_DB_PASSWORD=
+```
+
+The test database name has to end in `_test`; the tests refuse to run otherwise. Which test files are skipped is set in `pytest.ini`. GitHub also runs `pytest` on every pull request (`.github/workflows`), so check that **Tests / pytest** is green before asking for a merge.
 
 ---
 
