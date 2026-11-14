@@ -9,71 +9,82 @@
 {% endblock %}
 
 {% block content %}
+<!-- Shared baby blue banner (styles in base.css) -->
+<header class="site-banner">
+    <a href="/storefronts">HAMPTON GARAGE</a>
+</header>
+
 <div class="cart-container">
+    <!-- Page title on the left, continue shopping link on the right -->
     <div class="cart-header">
-        <h1>Secured Bag</h1>
-        <a href="{{ url_for('auth.listings') }}" class="back-link">← CONTINUE SHOPPING</a>
+        <h1>Your Bag</h1>
+        <a href="{{ url_for('auth.listings') }}" class="back-link">← Continue Shopping</a>
     </div>
 
+    <!-- Messages from the server (for example, "item removed") -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div style="color: var(--gold); margin-bottom: 15px; font-size: 0.9rem;">{{ message }}</div>
+          <div class="cart-flash">{{ message }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
     {% if session['cart'] and session['cart']|length > 0 %}
-        <table class="cart-table">
-            <thead>
-                <tr>
-                    <th>Designation (Item)</th>
-                    <th>Size</th>
-                    <th>Qty</th>
-                    <th>Price</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in session['cart'] %}
+        <!-- One row per item in the bag -->
+        <div class="table-wrap">
+            <table class="cart-table">
+                <thead>
                     <tr>
-                        <td>
-                            <div class="item-info">
-                                <h4>{{ item.name }}</h4>
-                                <span>ID: {{ item.id }}</span>
-                            </div>
-                        </td>
-                        <td>{{ item.size }}</td>
-                        <td>{{ item.quantity }}</td>
-                        <td class="price-col">${{ "%.2f"|format(item.price|float) }}</td>
-                        <td>
-                            <form action="{{ url_for('auth.remove_from_cart', index=loop.index0) }}" method="POST">
-                                <button type="submit" style="background:none; border:none; color:#ff4444; cursor:pointer; font-size: 1.2rem;" title="Remove Item">×</button>
-                            </form>
-                        </td>
+                        <th>Item</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Remove</th>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="cart-summary">
-            <div class="total-row">
-                <span>TOTAL: </span>
-                <span>$
-                    {% set total_price = namespace(value=0) %}
+                </thead>
+                <tbody>
                     {% for item in session['cart'] %}
-                        {% set total_price.value = total_price.value + (item.price|float * item.quantity|int) %}
+                        <tr>
+                            <td>
+                                <div class="item-info">
+                                    <h4>{{ item.name }}</h4>
+                                    <span>ID: {{ item.id }}</span>
+                                </div>
+                            </td>
+                            <td>{{ item.size }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td class="price-col">${{ "%.2f"|format(item.price|float) }}</td>
+                            <td>
+                                <!-- Small red x that removes this item -->
+                                <form action="{{ url_for('auth.remove_from_cart', index=loop.index0) }}" method="POST">
+                                    <button type="submit" class="remove-btn" title="Remove item" aria-label="Remove {{ item.name }}">×</button>
+                                </form>
+                            </td>
+                        </tr>
                     {% endfor %}
-                    {{ "%.2f"|format(total_price.value) }}
-                </span>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Total and the button to go to checkout -->
+        <div class="cart-summary">
+            {# Add up price x quantity for every item #}
+            {% set total_price = namespace(value=0) %}
+            {% for item in session['cart'] %}
+                {% set total_price.value = total_price.value + (item.price|float * item.quantity|int) %}
+            {% endfor %}
+
+            <div class="total-row">
+                <span class="total-label">Total: </span>
+                <span>${{ "%.2f"|format(total_price.value) }}</span>
             </div>
-           <a href="{{ url_for('checkout') }}" style="text-decoration: none;">
-    <button class="checkout-btn">Initialize Checkout</button>
-</a>
+            <a href="{{ url_for('checkout') }}" class="checkout-btn">Checkout</a>
         </div>
     {% else %}
+        <!-- Nothing in the bag yet -->
         <div class="empty-msg">
-            <p>Your vault bag is currently empty.</p>
+            <p>Your bag is empty.</p>
             <a href="{{ url_for('auth.listings') }}" class="back-link">Browse Storefronts</a>
         </div>
     {% endif %}

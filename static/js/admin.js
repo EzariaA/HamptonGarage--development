@@ -1,158 +1,157 @@
 // File Created By David Jackson
+// showLoading, showEmpty, showMessage and showConfirm come from ui.js (loaded in base.html)
 
-// USERS SECTION
+// The last list loaded for each table, so the delete buttons can find the item's name
+let loadedUsers = [];
+let loadedListings = [];
+let loadedStorefronts = [];
 
-/*
- * Fetch all users from backend and display them in table
- * Calls: GET /admin/users
- */
+
+// HELPERS
+
+// Finds the item with this id in a list (or null if it isn't there)
+function findById(list, id) {
+    for (let i = 0; i < list.length; i++) {
+        if (list[i].id === id) return list[i];
+    }
+    return null;
+}
+
+// Makes text safe to put in the table, so HTML in a username or title can't run
+function escapeHtml(value) {
+    if (value === null || value === undefined) return "";
+    return String(value)
+        .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+}
+
+// Loads a list from the server into a table.
+// Shows loading bars first, "nothing found" if the list is empty, or an error if it fails.
+// makeRow(item) returns the <tr> HTML for one item. Returns the list (or [] on error).
+async function loadTable(tableId, url, name, makeRow) {
+    const table = document.querySelector(`#${tableId} tbody`);
+    showLoading(table, 3);
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Request failed");
+        const items = await response.json();
+
+        if (items.length === 0) {
+            showEmpty(table, `No ${name} found.`);
+            return items;
+        }
+
+        let rows = "";
+        items.forEach(item => { rows += makeRow(item); });
+        table.innerHTML = rows;
+        return items;
+    } catch (error) {
+        showMessage(table, `Could not load ${name}. Please try again.`, "error");
+        return [];
+    }
+}
+
+// Asks "Are you sure?" and, if Yes, deletes with DELETE <url>,
+// shows a green or red message at the bottom of the page, then reloads the table.
+function confirmDelete(question, url, doneText, reloadTable) {
+    showConfirm(question, async function () {
+        try {
+            const response = await fetch(url, { method: "DELETE" });
+            if (!response.ok) throw new Error("Request failed");
+            showMessage("adminMessage", `${doneText} was deleted.`, "success");
+        } catch (error) {
+            showMessage("adminMessage", `Could not delete ${doneText}. Please try again.`, "error");
+        }
+        reloadTable();
+    });
+}
+
+
+// USERS  (GET /admin/users, DELETE /admin/users/<id>)
+
 async function loadUsers() {
-    const response = await fetch('/admin/users'); // API request
-    const users = await response.json(); // Convert response to JSON
-
-    const table = document.querySelector('#usersTable tbody');
-    table.innerHTML = ""; // Clear existing rows
-
-    // Loop through users and create table rows
-    users.forEach(user => {
-        const row = `
-            <tr>
-                <td>${user.id}</td>
-                <td>${user.username || ""}</td>
-                <td>${user.email}</td>
-                <td>${user.role || "user"}</td>
-                <td>${user.created_at || ""}</td>
-                <td>
-                    <!-- Delete button calls deleteUser() -->
-                    <button class="delete" onclick="deleteUser(${user.id})">Delete</button>
-                </td>
-            </tr>
-        `;
-        table.innerHTML += row;
-    });
+    loadedUsers = await loadTable("usersTable", "/admin/users", "users", user => `
+        <tr>
+            <td>${user.id}</td>
+            <td>${escapeHtml(user.username)}</td>
+            <td>${escapeHtml(user.email)}</td>
+            <td>${escapeHtml(user.role || "user")}</td>
+            <td>${escapeHtml(user.created_at)}</td>
+            <td><button class="delete" onclick="deleteUser(${user.id})">Delete</button></td>
+        </tr>`);
 }
 
-/*
- * Delete a user by ID
- * Calls: DELETE /admin/users/<id>
- */
-async function deleteUser(userId) {
-    await fetch(`/admin/users/${userId}`, {
-        method: 'DELETE'
-    });
-
-    // Reload users after deletion
-    loadUsers();
+function deleteUser(userId) {
+    const user = findById(loadedUsers, userId);
+    const name = user ? (user.username || user.email) : "this user";
+    confirmDelete(
+        `Delete user "${name}" (ID ${userId})? This also deletes their storefront, listings, wishlist and returns. This can't be undone.`,
+        `/admin/users/${userId}`, `User "${name}"`, loadUsers
+    );
 }
 
 
-// LISTINGS SECTION
+// LISTINGS  (GET /admin/listings, DELETE /admin/listings/<id>)
 
-/*
- * Fetch all listings and display them
- * Calls: GET /admin/listings
- */
 async function loadListings() {
-    const response = await fetch('/admin/listings');
-    const listings = await response.json();
-
-    const table = document.querySelector('#listingsTable tbody');
-    table.innerHTML = "";
-
-    listings.forEach(listing => {
-        const row = `
-            <tr>
-                <td>${listing.id}</td>
-                <td>${listing.storefront_id}</td>
-                <td>${listing.title}</td>
-                <td>${listing.price}</td>
-                <td>${listing.quantity_on_hand}</td>
-                <td>${listing.status || "ACTIVE"}</td>
-                <td>${listing.fulfillment_type || ""}</td>
-                <td>${listing.created_at || ""}</td>
-                <td>
-                    <button class="delete" onclick="deleteListing(${listing.id})">Delete</button>
-                </td>
-            </tr>
-        `;
-        table.innerHTML += row;
-    });
+    loadedListings = await loadTable("listingsTable", "/admin/listings", "listings", listing => `
+        <tr>
+            <td>${listing.id}</td>
+            <td>${escapeHtml(listing.storefront_id)}</td>
+            <td>${escapeHtml(listing.title)}</td>
+            <td>${escapeHtml(listing.price)}</td>
+            <td>${escapeHtml(listing.quantity_on_hand)}</td>
+            <td>${escapeHtml(listing.status || "ACTIVE")}</td>
+            <td>${escapeHtml(listing.fulfillment_type)}</td>
+            <td>${escapeHtml(listing.created_at)}</td>
+            <td><button class="delete" onclick="deleteListing(${listing.id})">Delete</button></td>
+        </tr>`);
 }
 
-/*
- * Delete a listing by ID
- * Calls: DELETE /admin/listings/<id>
- */
-async function deleteListing(listingId) {
-    await fetch(`/admin/listings/${listingId}`, {
-        method: 'DELETE'
-    });
-
-    // Reload listings after deletion
-    loadListings();
+// Listings are "soft" deleted: hidden from the marketplace, not erased
+function deleteListing(listingId) {
+    const listing = findById(loadedListings, listingId);
+    const name = listing ? listing.title : "this listing";
+    confirmDelete(
+        `Delete listing "${name}" (ID ${listingId})? It will be removed from the marketplace.`,
+        `/admin/listings/${listingId}`, `Listing "${name}"`, loadListings
+    );
 }
 
 
-// STOREFRONTS SECTION
+// STOREFRONTS  (GET /admin/storefronts, DELETE /admin/storefronts/<id>)
 
-/*
- * Fetch all storefronts
- * Calls: GET /admin/storefronts
- */
 async function loadStorefronts() {
-    const response = await fetch('/admin/storefronts');
-    const stores = await response.json();
-
-    const table = document.querySelector('#storefrontsTable tbody');
-    table.innerHTML = "";
-
-    stores.forEach(store => {
-        const row = `
-            <tr>
-                <td>${store.id}</td>
-                <td>${store.brand_name || store.name || ""}</td>
-                <td>${store.owner_id}</td>
-                <td>
-                    <!-- Delete storefront button -->
-                    <button class="delete" onclick="deleteStorefront(${store.id})">Delete</button>
-                </td>
-            </tr>
-        `;
-        table.innerHTML += row;
-    });
+    loadedStorefronts = await loadTable("storefrontsTable", "/admin/storefronts", "storefronts", store => `
+        <tr>
+            <td>${store.id}</td>
+            <td>${escapeHtml(store.brand_name || store.name)}</td>
+            <td>${escapeHtml(store.owner_id)}</td>
+            <td><button class="delete" onclick="deleteStorefront(${store.id})">Delete</button></td>
+        </tr>`);
 }
 
-/*
- * Delete a storefront by ID
- * Calls: DELETE /admin/storefronts/<id>
- */
-async function deleteStorefront(storeId) {
-    await fetch(`/admin/storefronts/${storeId}`, {
-        method: 'DELETE'
-    });
-
-    // Reload storefronts after deletion
-    loadStorefronts();
+function deleteStorefront(storeId) {
+    const store = findById(loadedStorefronts, storeId);
+    const name = store ? (store.brand_name || store.name || "this storefront") : "this storefront";
+    confirmDelete(
+        `Delete storefront "${name}" (ID ${storeId})? This also deletes all of its listings. This can't be undone.`,
+        `/admin/storefronts/${storeId}`, `Storefront "${name}"`, loadStorefronts
+    );
 }
 
 
-// RETURNS SECTION
+// RETURNS  (GET /admin/returns, PATCH /admin/returns/<id>)
 
 async function loadReturns() {
-    const response = await fetch('/admin/returns');
-    const returns = await response.json();
-
-    const table = document.querySelector('#returnsTable tbody');
-    table.innerHTML = "";
-
-    returns.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
+    await loadTable("returnsTable", "/admin/returns", "return requests", item => `
+        <tr>
             <td>${item.id}</td>
-            <td>${item.username || ""}<br><small>${item.email || ""}</small></td>
-            <td>${item.order_number}</td>
+            <td>${escapeHtml(item.username)}<br><small>${escapeHtml(item.email)}</small></td>
+            <td>${escapeHtml(item.order_number)}</td>
             <td>${item.has_damage ? "Yes" : "No"}</td>
-            <td>${item.damage_image_url ? `<a href="${item.damage_image_url}" target="_blank">View</a>` : "—"}</td>
+            <td>${item.damage_image_url ? `<a href="${escapeHtml(item.damage_image_url)}" target="_blank">View</a>` : "—"}</td>
             <td>
                 <select data-return-id="${item.id}">
                     <option value="pending" ${item.status === "pending" ? "selected" : ""}>Pending</option>
@@ -161,28 +160,25 @@ async function loadReturns() {
                 </select>
                 <button onclick="saveReturnStatus(${item.id})">Save</button>
             </td>
-            <td>${item.reason}</td>
-        `;
-        table.appendChild(row);
-    });
+            <td>${escapeHtml(item.reason)}</td>
+        </tr>`);
 }
 
+// Saves the status picked in the dropdown for one return
 async function saveReturnStatus(returnId) {
     const select = document.querySelector(`select[data-return-id="${returnId}"]`);
     if (!select) return;
 
-    const response = await fetch(`/admin/returns/${returnId}`, {
-        method: "PATCH",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ status: select.value })
-    });
-
-    if (!response.ok) {
-        alert("Failed to update return status.");
-        return;
+    try {
+        const response = await fetch(`/admin/returns/${returnId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ status: select.value })
+        });
+        if (!response.ok) throw new Error("Request failed");
+        showMessage("adminMessage", `Return #${returnId} saved as "${select.value}".`, "success");
+        loadReturns();
+    } catch (error) {
+        showMessage("adminMessage", "Failed to update return status. Please try again.", "error");
     }
-
-    loadReturns();
 }

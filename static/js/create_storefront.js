@@ -14,6 +14,14 @@ const cancelBtn = document.getElementById("cancelBtn");
 const categoryCheckboxes = Array.from(document.querySelectorAll('input[name="categories"]'));
 const categoryValidationMessage = document.getElementById("categoryValidationMessage");
 const MAX_CATEGORY_SELECTIONS = 3;
+const submitBtn = form.querySelector('button[type="submit"]');
+
+// While saving, the button says "Creating..." and can't be clicked twice
+function setSaving(isSaving) {
+    if (!submitBtn) return;
+    submitBtn.disabled = isSaving;
+    submitBtn.textContent = isSaving ? "Creating..." : "Create Storefront";
+}
 
 cancelBtn.addEventListener("click", () => {
     window.location.href = "/storefronts";
@@ -61,15 +69,15 @@ function setupCategoryLimitGuard() {
     try {
         const userRes = await fetch("/auth/api/auth/me");
         if (!userRes.ok) return;
-        const user = await userRes.json();
 
-        const sfRes = await fetch("/api/storefronts/me", {
-            headers: { "X-User-Id": user.id, "X-User-Role": user.role }
-        });
+        const sfRes = await fetch("/api/storefronts/me");
 
         if (sfRes.ok) {
-            alert("You already have a storefront. Redirecting to your dashboard.");
-            window.location.href = "/storefronts/dashboard";
+            showMessage("pageMessage", "You already have a storefront. Taking you to your dashboard...", "info");
+            // Wait 2 seconds so the user can read the message, then go to the next page
+            setTimeout(function () {
+                window.location.href = "/storefronts/dashboard";
+            }, 2000);
         }
     } catch (err) {
         // silently allow page to load if check fails
@@ -161,14 +169,20 @@ async function uploadImageToS3(file, folder) {
 form.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    // Turn on the loading state. "created" stays false unless the save works.
+    setSaving(true);
+    let created = false;
+
     try {
         const userRes = await fetch("/auth/api/auth/me");
         if (!userRes.ok) {
-            alert("You must be logged in to create a storefront.");
-            window.location.href = "/auth/login";
+            showMessage("pageMessage", "You must be logged in to create a storefront. Taking you to the login page...", "error");
+            // Wait 2 seconds so the user can read the message, then go to the next page
+            setTimeout(function () {
+                window.location.href = "/auth/login";
+            }, 2000);
             return;
         }
-        const user = await userRes.json();
 
         const formData = new FormData(form);
 
@@ -177,7 +191,7 @@ form.addEventListener("submit", async (event) => {
         const logoFile = document.getElementById("logoUpload").files[0];
         if (logoFile) {
             try { logoUrl = await uploadImageToS3(logoFile, "storefronts/logos"); }
-            catch (err) { alert("Failed to upload logo image. Please try again."); return; }
+            catch (err) { showMessage("pageMessage", "Failed to upload logo image. Please try again.", "error"); return; }
         }
 
         // upload banner
@@ -185,7 +199,7 @@ form.addEventListener("submit", async (event) => {
         const bannerFile = document.getElementById("bannerUpload").files[0];
         if (bannerFile) {
             try { bannerUrl = await uploadImageToS3(bannerFile, "storefronts/banners"); }
-            catch (err) { alert("Failed to upload banner image. Please try again."); return; }
+            catch (err) { showMessage("pageMessage", "Failed to upload banner image. Please try again.", "error"); return; }
         }
 
         // upload 4 individual preview images - Updated by Day Ekoi 4/20/26
@@ -196,7 +210,7 @@ form.addEventListener("submit", async (event) => {
                 try {
                     previewUrls[i] = await uploadImageToS3(file, "storefronts/previews");
                 } catch (err) {
-                    alert(`Failed to upload preview image ${i + 1}. Please try again.`);
+                    showMessage("pageMessage", `Failed to upload preview image ${i + 1}. Please try again.`, "error");
                     return;
                 }
             }
@@ -223,9 +237,7 @@ form.addEventListener("submit", async (event) => {
         const res = await fetch("/api/storefronts", {
             method: "POST",
             headers: {
-                "Content-Type": "application/json",
-                "X-User-Id": user.id,
-                "X-User-Role": user.role
+                "Content-Type": "application/json"
             },
             body: JSON.stringify(payload)
         });
@@ -233,14 +245,21 @@ form.addEventListener("submit", async (event) => {
         const data = await res.json();
 
         if (!res.ok) {
-            alert(data.error || "Failed to create storefront.");
+            showMessage("pageMessage", data.error || "Failed to create storefront.", "error");
             return;
         }
 
+        created = true;
         window.location.href = "/storefronts/dashboard";
 
     } catch (err) {
         console.error("Error creating storefront:", err);
-        alert("Something went wrong. Please try again.");
+        showMessage("pageMessage", "Something went wrong. Please try again.", "error");
+    } finally {
+        // If it didn't work, turn the button back on so the user can try again.
+        // (If it worked, leave it off while the page goes to the dashboard.)
+        if (!created) {
+            setSaving(false);
+        }
     }
 });

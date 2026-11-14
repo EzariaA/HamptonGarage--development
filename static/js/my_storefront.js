@@ -31,7 +31,6 @@ const viewStorefrontBtn = document.getElementById("viewStorefrontBtn");
 const deactivateStorefrontBtn = document.getElementById("deactivateStorefrontBtn");
 
 let storefrontId = null;
-let currentUser = null;
 
 
 // renders empty state in listing grid
@@ -114,11 +113,7 @@ function createListingCard(item) {
 
         try {
             const response = await fetch(`/api/listings/${item.id}/${endpoint}`, {
-                method: "PATCH",
-                headers: {
-                    "X-User-Id": currentUser?.id || "",
-                    "X-User-Role": currentUser?.role || "user"
-                }
+                method: "PATCH"
             });
 
             const result = await response.json().catch(() => ({}));
@@ -128,7 +123,7 @@ function createListingCard(item) {
 
             await loadMyStorefront();
         } catch (error) {
-            alert(error.message || `Unable to ${actionLabel} listing.`);
+            showMessage("pageMessage", error.message || `Unable to ${actionLabel} listing.`, "error");
         }
     });
 
@@ -139,11 +134,7 @@ function createListingCard(item) {
 
         try {
             const response = await fetch(`/api/listings/${item.id}`, {
-                method: "DELETE",
-                headers: {
-                    "X-User-Id": currentUser?.id || "",
-                    "X-User-Role": currentUser?.role || "user"
-                }
+                method: "DELETE"
             });
 
             const result = await response.json().catch(() => ({}));
@@ -153,7 +144,7 @@ function createListingCard(item) {
 
             await loadMyStorefront();
         } catch (error) {
-            alert(error.message || "Unable to delete listing.");
+            showMessage("pageMessage", error.message || "Unable to delete listing.", "error");
         }
     });
 
@@ -171,22 +162,15 @@ function createListingCard(item) {
 // fetches storefront and listings and renders the page
 async function loadMyStorefront() {
     try {
-        // get current user
+        // make sure the user is logged in (sends them to login if not)
         const userRes = await fetch("/auth/api/auth/me");
         if (!userRes.ok) {
             window.location.href = "/auth/login";
             return;
         }
-        const user = await userRes.json();
-        currentUser = user;
 
         // get user's storefront
-        const sfRes = await fetch("/api/storefronts/me", {
-            headers: {
-                "X-User-Id": user.id,
-                "X-User-Role": user.role
-            }
-        });
+        const sfRes = await fetch("/api/storefronts/me");
 
         if (!sfRes.ok) { // updated by Day E 4/9/26 - if user has no storefront, show empty state instead of redirecting to create page
             if (pageTitle) pageTitle.textContent = "No Storefront Found";
@@ -259,33 +243,27 @@ async function loadMyStorefront() {
 
             try {
                 const res = await fetch(`/api/storefronts/${storefrontId}/deactivate`, {
-                    method: "PATCH",
-                    headers: {
-                        "X-User-Id": user.id,
-                        "X-User-Role": user.role
-                    }
+                    method: "PATCH"
                 });
 
                 if (res.ok) {
-                    alert("Your storefront has been deactivated.");
-                    window.location.href = "/storefronts";
+                    showMessage("pageMessage", "Your storefront has been deactivated.", "success");
+                    // Wait 2 seconds so the user can read the message, then go to the next page
+                    setTimeout(function () {
+                        window.location.href = "/storefronts";
+                    }, 2000);
                 } else {
                     const err = await res.json();
-                    alert("Could not deactivate: " + (err.error || "Unknown error"));
+                    showMessage("pageMessage", "Could not deactivate: " + (err.error || "Unknown error"), "error");
                 }
             } catch (e) {
-                alert("Something went wrong. Please try again.");
+                showMessage("pageMessage", "Something went wrong. Please try again.", "error");
             }
             };
         }
 
         // fetch listings
-        const listRes = await fetch(`/api/listings/my?include_deleted=1`, {
-            headers: {
-                "X-User-Id": user.id,
-                "X-User-Role": user.role
-            }
-        });
+        const listRes = await fetch(`/api/listings/my?include_deleted=1`);
 
         if (!listRes.ok) {
             renderEmpty("Could not load listings.");

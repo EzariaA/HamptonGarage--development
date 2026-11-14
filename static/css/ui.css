@@ -1,0 +1,68 @@
+/* Inside a CSS grid (like the storefront grid), stretch across every column */
+.ui-message, .ui-loading, .ui-empty { grid-column: 1 / -1; }
+
+/* ---------- Message (replaces alert()) ---------- */
+.ui-message {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    padding: 12px 16px; margin: 10px 0;
+    border: 1px solid; border-left-width: 5px; border-radius: 8px;
+    font-family: 'Segoe UI', Arial, sans-serif; font-size: 0.95rem;
+}
+.ui-message-success { background: #ecfdf3; border-color: #12b76a; color: #05603a; }
+.ui-message-error   { background: #fdecec; border-color: #f04438; color: #b42318; }
+.ui-message-info    { background: #eef6fd; border-color: var(--baby-blue-dark); color: var(--navy); }
+
+/* Optional: class="ui-message-area" pins messages to the bottom of the screen (for long pages) */
+.ui-message-area {
+    position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%);
+    width: calc(100% - 32px); max-width: 480px; z-index: 900;
+}
+.ui-message-area .ui-message { box-shadow: 0 8px 20px rgba(28, 53, 87, 0.2); }
+
+/* The small x that closes a message */
+.ui-message-close {
+    background: none; border: none; color: inherit;
+    font-size: 1.3rem; line-height: 1; padding: 0 4px; cursor: pointer;
+}
+
+/* ---------- Loading bars ---------- */
+.ui-loading { display: grid; gap: 10px; padding: 10px 0; }
+.ui-loading-bar {
+    height: 18px; border-radius: 6px; background: var(--border-gray);
+    animation: ui-pulse 1.2s ease-in-out infinite;
+}
+.ui-loading-bar:nth-child(even) { width: 70%; } /* every other bar shorter, like real rows */
+
+@keyframes ui-pulse { 50% { opacity: 0.45; } }
+
+/* No pulsing for people who turned on "reduce motion" */
+@media (prefers-reduced-motion: reduce) {
+    .ui-loading-bar { animation: none; }
+}
+
+/* ---------- Empty text ---------- */
+.ui-empty { color: var(--text-gray); font-style: italic; text-align: center; padding: 24px 0; margin: 0; }
+
+/* ---------- Confirm popup (replaces confirm()) ---------- */
+.ui-confirm-overlay {
+    position: fixed; inset: 0; z-index: 1000; padding: 16px;
+    display: flex; justify-content: center; align-items: center;
+    background: rgba(28, 53, 87, 0.45);
+}
+.ui-confirm {
+    width: 100%; max-width: 420px; padding: 22px 24px;
+    background: var(--card-white); color: var(--navy);
+    border-top: 5px solid var(--baby-blue-dark); border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.25);
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+.ui-confirm h3 { margin: 0 0 8px; }
+.ui-confirm p { margin: 0 0 20px; color: var(--text-gray); }
+
+.ui-confirm-buttons { display: flex; justify-content: flex-end; gap: 10px; }
+.ui-confirm-buttons button { border-radius: 999px; padding: 8px 16px; font-weight: 600; cursor: pointer; }
+
+.ui-confirm-cancel { background: white; border: 1px solid var(--btn-gray); color: var(--btn-gray-dark); }
+.ui-confirm-cancel:hover { background: var(--page-gray); }
+.ui-confirm-yes { background: #b42318; border: 1px solid #912018; color: white; }
+.ui-confirm-yes:hover { background: #912018; }

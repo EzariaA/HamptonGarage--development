@@ -20,8 +20,7 @@ All system rules + permission checks happen in services/listing_service.py.
 """
 
 
-from flask import Blueprint, request, jsonify
-from utils.auth_utils import get_current_user # I3 - Makena Jelks
+from flask import Blueprint, request, jsonify, session
 import logging  # added - ava
 logger = logging.getLogger(__name__)  # added - ava
 
@@ -53,6 +52,25 @@ from services.storefront_service import get_my_storefront_service
 listing_bp = Blueprint("listing_bp", __name__, url_prefix="/api")
 
 
+def get_current_user():
+    """Returns {"id", "role"} for the logged-in user, or None.
+    Checks the login session first (the browser can't fake it), then the old X-User-Id header."""
+    if session.get("user_id"):
+        return {"id": int(session["user_id"]), "role": session.get("role", "user")}
+
+    # Old way, kept until every page stops sending the header
+    user_id = request.headers.get("X-User-Id")
+    role = request.headers.get("X-User-Role", "user")
+
+    if not user_id:
+        return None
+
+    try:
+        return {"id": int(user_id), "role": role}
+    except Exception:
+        return None
+
+
 # __________________________________________________________
 # CREATE LISTING FROM FORM (with file upload)
 # POST /api/listings/create
@@ -77,7 +95,7 @@ def create_listing_from_form():
 
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         # Get user's storefront to validate ownership
@@ -210,7 +228,7 @@ def create_listing_from_form():
 def create_listing_route(storefront_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -249,7 +267,7 @@ def get_storefront_listings_route(storefront_id):
 def get_my_listings_route():
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         user_storefront = get_my_storefront_service(current_user)
@@ -292,7 +310,7 @@ def get_listing_route(listing_id):
 def update_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     data = request.get_json(silent=True) or {}
 
@@ -317,7 +335,7 @@ def update_listing_route(listing_id):
 def delete_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         deleted = delete_listing_service(current_user, listing_id)
@@ -337,7 +355,7 @@ def delete_listing_route(listing_id):
 def deactivate_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         updated = deactivate_listing_service(current_user, listing_id)
@@ -357,7 +375,7 @@ def deactivate_listing_route(listing_id):
 def reactivate_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         updated = reactivate_listing_service(current_user, listing_id)
@@ -377,7 +395,7 @@ def reactivate_listing_route(listing_id):
 def restore_deleted_listing_route(listing_id):
     current_user = get_current_user()
     if current_user is None:
-        return jsonify({"error": "Unauthorized: please log in"}), 401
+        return jsonify({"error": "Unauthorized: missing/invalid X-User-Id"}), 401
 
     try:
         updated = restore_deleted_listing_service(current_user, listing_id)

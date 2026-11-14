@@ -11,13 +11,8 @@
     that color on every page that uses it.
 */
 :root {
-    /* Old Vault colors - still used by the cart page (cart.css, cart.html).
-       Can be removed once that page is switched to the garage theme. */
-    --gold: #B8860B;
-    --gold-light: #d4af37;
-    --dark-bg: #121212;
-
-    /* Garage theme colors (baby blue + gray) */
+    /* Garage theme colors (baby blue + gray). The old Vault gold colors were
+       removed 11/12/26 once every page was switched to this theme. */
     --baby-blue: #a7d3f2;       /* banner top, highlights */
     --baby-blue-dark: #7fbce8;  /* banner bottom, card top lines, focus glow */
     --navy: #1c3557;            /* titles and main text */

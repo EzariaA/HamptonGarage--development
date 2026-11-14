@@ -1,50 +1,73 @@
-/*
-    cart.css
-    Moved out of the inline <style> block in cart.html
-    by Mason Johnson, Iteration 2, 10/1/26
-*/
-        :root { --gold: #B8860B; --dark-bg: #121212; }
-        
-        body { background-color: #000; color: white; font-family: 'Segoe UI', sans-serif; }
+body {
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
 
-        .cart-container {
-            max-width: 900px; margin: 50px auto; padding: 30px;
-            background: rgba(18, 18, 18, 0.95); border: 1px solid var(--gold);
-            box-shadow: 0 0 20px rgba(184, 134, 11, 0.2);
-        }
+.site-banner { margin-bottom: 30px; }
 
-        .cart-header {
-            border-bottom: 2px solid var(--gold); padding-bottom: 15px; margin-bottom: 30px;
-            display: flex; justify-content: space-between; align-items: center;
-        }
+/* White card that holds the whole bag */
+.cart-container {
+    max-width: 900px; margin: 0 auto 50px; padding: 30px;
+    background: var(--card-white);
+    border: 1px solid var(--border-gray); border-top: 5px solid var(--baby-blue-dark); border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
+}
+@media (max-width: 600px) {
+    .cart-container { margin: 0 16px 40px; padding: 20px; }
+}
 
-        .cart-header h1 { margin: 0; color: var(--gold); letter-spacing: 3px; text-transform: uppercase; }
+/* "Your Bag" on the left, continue shopping on the right */
+.cart-header {
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--baby-blue); padding-bottom: 15px; margin-bottom: 30px;
+}
+.cart-header h1 { margin: 0; color: var(--navy); letter-spacing: 2px; text-transform: uppercase; }
 
-        .cart-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-        .cart-table th { text-align: left; color: var(--gold); border-bottom: 1px solid #333; padding: 15px; text-transform: uppercase; font-size: 0.8rem; }
-        .cart-table td { padding: 15px; border-bottom: 1px solid #222; }
+/* Blue box for server messages like "item removed" */
+.cart-flash {
+    background: #eef6fd; color: var(--navy);
+    border: 1px solid var(--baby-blue-dark); border-left-width: 5px; border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 15px; font-size: 0.9rem;
+}
 
-        .item-info h4 { margin: 0; color: white; }
-        .item-info span { color: #888; font-size: 0.85rem; }
+/* Items table (scrolls sideways on a phone) */
+.table-wrap { overflow-x: auto; }
+.cart-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+.cart-table th {
+    text-align: left; padding: 12px 15px;
+    background: #f1f5f9; color: var(--navy); border-bottom: 1px solid var(--border-gray);
+    text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px;
+}
+.cart-table td { padding: 15px; border-bottom: 1px solid var(--border-gray); }
 
-        .price-col { font-family: 'Courier New', monospace; color: var(--gold); }
+.item-info h4 { margin: 0; color: var(--navy); }
+.item-info span { color: var(--text-gray); font-size: 0.85rem; }
+.price-col { font-weight: 700; color: var(--navy); }
 
-        .cart-summary {
-            background: #1a1a1a; padding: 20px; border: 1px solid #333;
-            text-align: right;
-        }
+/* Small red x that removes an item */
+.remove-btn {
+    width: 30px; height: 30px; cursor: pointer;
+    background: #fdecec; color: #b42318; border: 1px solid #f1a5a5; border-radius: 6px;
+    font-size: 1.1rem; font-weight: 700; line-height: 1;
+}
+.remove-btn:hover { background: #f9d4d4; }
 
-        .total-row { font-size: 1.5rem; color: var(--gold); font-weight: bold; margin-bottom: 20px; }
+/* Total and checkout button */
+.cart-summary { background: #f8fafc; padding: 20px; border: 1px solid var(--border-gray); border-radius: 8px; text-align: right; }
+.total-row { font-size: 1.5rem; color: var(--navy); font-weight: bold; margin-bottom: 20px; }
+.total-label { color: var(--text-gray); }
 
-        .checkout-btn {
-            background: var(--gold); color: black; border: none; padding: 15px 40px;
-            font-weight: bold; text-transform: uppercase; cursor: pointer;
-            transition: 0.3s; letter-spacing: 2px;
-        }
+.checkout-btn {
+    display: inline-block; padding: 14px 40px; border-radius: 999px;
+    background: linear-gradient(to bottom, var(--btn-gray), var(--btn-gray-dark)); color: white;
+    font-weight: bold; text-transform: uppercase; text-decoration: none; letter-spacing: 2px;
+    transition: 0.2s;
+}
+.checkout-btn:hover { background: var(--btn-gray-dark); transform: translateY(-2px); }
 
-        .checkout-btn:hover { background: #DAA520; transform: translateY(-2px); }
-
-        .empty-msg { text-align: center; padding: 50px; color: #555; font-style: italic; }
-        
-        .back-link { color: var(--gold); text-decoration: none; font-size: 0.9rem; margin-top: 20px; display: inline-block; }
-    
+/* Empty bag text and the links */
+.empty-msg { text-align: center; padding: 50px; color: var(--text-gray); font-style: italic; }
+.back-link { color: var(--btn-gray-dark); font-weight: 600; text-decoration: none; font-size: 0.9rem; display: inline-block; }
+.back-link:hover { color: var(--navy); text-decoration: underline; }
+.empty-msg .back-link { margin-top: 10px; font-style: normal; }

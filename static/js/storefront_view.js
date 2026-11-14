@@ -122,7 +122,6 @@ async function getListingSizeOptions(listingId, item) {
             .map((entry) => String(entry.size || "").trim())
             .filter(Boolean);
     } catch (error) {
-        console.error("Unable to load listing sizes:", error);
         return [];
     }
 }
@@ -151,7 +150,7 @@ async function fetchListingImages(listingId, fallbackImageUrl) {
             return normalized;
         }
     } catch (error) {
-        console.error(`Unable to load images for listing ${listingId}:`, error);
+        // Images could not load: fall through and use the placeholder image below
     }
 
     const fallback = [fallbackImageUrl || LISTING_IMAGE_FALLBACK];
@@ -164,7 +163,6 @@ function getLocalWishlistItems() {
         const raw = localStorage.getItem("vaultWishlistLocalItems");
         return raw ? JSON.parse(raw) : [];
     } catch (error) {
-        console.error("Unable to read local wishlist:", error);
         return [];
     }
 }
@@ -213,7 +211,6 @@ async function getCurrentSessionUser() {
         }
         return user;
     } catch (error) {
-        console.error("Unable to determine current user:", error);
         return null;
     }
 }
@@ -224,11 +221,7 @@ async function getWishlistIdSet(userId) {
     }
 
     try {
-        const response = await fetch("/api/wishlist", {
-            headers: {
-                "X-User-Id": String(userId)
-            }
-        });
+        const response = await fetch("/api/wishlist");
 
         if (!response.ok) {
             throw new Error("Failed to load wishlist status");
@@ -240,7 +233,6 @@ async function getWishlistIdSet(userId) {
 
         return new Set(wishlistItems.map((item) => String(item.listing_id || item.id)));
     } catch (error) {
-        console.error("Unable to load wishlist ids:", error);
         return new Set(getLocalWishlistItems().map((item) => String(item.listing_id || item.id)));
     }
 }
@@ -458,8 +450,11 @@ async function createListingCard(item, wishlistIds, currentUserId) {
     const wishlistBtn = card.querySelector(".wishlist-lock-btn");
     wishlistBtn.addEventListener("click", async () => {
         if (!currentUserId) {
-            alert("Please log in to add items to your wishlist.");
-            window.location.href = "/auth/login";
+            showMessage("pageMessage", "Please log in to add items to your wishlist. Taking you to the login page...", "info");
+            // Wait 2 seconds so the user can read the message, then go to the next page
+            setTimeout(function () {
+                window.location.href = "/auth/login";
+            }, 2000);
             return;
         }
 
@@ -470,8 +465,7 @@ async function createListingCard(item, wishlistIds, currentUserId) {
             const response = await fetch(isActive ? `/api/wishlist/${listingId}` : "/api/wishlist", {
                 method: isActive ? "DELETE" : "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-User-Id": String(currentUserId)
+                    "Content-Type": "application/json"
                 },
                 body: isActive ? undefined : JSON.stringify({ listing_id: listingId })
             });
@@ -500,8 +494,7 @@ async function createListingCard(item, wishlistIds, currentUserId) {
                 removeLocalWishlistItem(listingId);
             }
         } catch (error) {
-            console.error("Wishlist update failed:", error);
-            alert(error.message || "Unable to update wishlist right now.");
+            showMessage("pageMessage", error.message || "Unable to update wishlist right now.", "error");
         } finally {
             wishlistBtn.disabled = false;
         }
@@ -514,8 +507,11 @@ async function createListingCard(item, wishlistIds, currentUserId) {
     if (addToCartBtn) {
         addToCartBtn.addEventListener("click", async () => {
             if (!currentUserId) {
-                alert("Please log in to add items to your cart.");
-                window.location.href = "/auth/login";
+                showMessage("pageMessage", "Please log in to add items to your cart. Taking you to the login page...", "info");
+                // Wait 2 seconds so the user can read the message, then go to the next page
+                setTimeout(function () {
+                    window.location.href = "/auth/login";
+                }, 2000);
                 return;
             }
 
@@ -567,7 +563,6 @@ async function createListingCard(item, wishlistIds, currentUserId) {
 
                 showCartToast(`${title} (${selectedSize}) x${selectedCount} added to cart.`);
             } catch (error) {
-                console.error("Add to cart failed:", error);
                 showCartToast(error.message || "Unable to add to cart.", "error");
             } finally {
                 addToCartBtn.disabled = false;
@@ -585,7 +580,6 @@ async function loadStorefrontView() {
         if (!sfRes.ok) throw new Error("Storefront not found");
         storefront = await sfRes.json();
     } catch (error) {
-        console.error("Error loading storefront:", error);
         if (pageTitle) pageTitle.textContent = "Storefront Unavailable";
         storeDescription.textContent = "Could not load storefront details. Please try again.";
         renderEmpty("Could not load listings.");
@@ -631,7 +625,6 @@ async function loadStorefrontView() {
         );
         cards.forEach((card) => listingGrid.appendChild(card));
     } catch (error) {
-        console.error("Error loading listings:", error);
         renderEmpty("Could not load listings. Please try again.");
     }
 }

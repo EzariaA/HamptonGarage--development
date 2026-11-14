@@ -33,6 +33,9 @@ Updated by Mason Johnson 10/26/26 - added Danger Zone with permanent Delete Stor
         </div>
     </header>
 
+    <!-- Messages from ui.js showMessage() show up here, pinned to the bottom of the screen -->
+    <div id="pageMessage" class="ui-message-area"></div>
+
     <main class="create-page">
         <!-- Messages from the server (for example, a failed delete) -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -40,6 +43,9 @@ Updated by Mason Johnson 10/26/26 - added Danger Zone with permanent Delete Stor
                 <div class="flash-msg flash-msg--{{ category }}">{{ message }}</div>
             {% endfor %}
         {% endwith %}
+
+        <!-- Gray loading bars show here while the storefront loads (edit_storefront.js) -->
+        <div id="editLoading"></div>
 
         <form class="storefront-form" id="storefrontForm" enctype="multipart/form-data">
 

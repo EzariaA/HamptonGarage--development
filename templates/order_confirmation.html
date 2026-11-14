@@ -13,6 +13,11 @@ Updated by Mattie Edozie 10/26/26 - checks the Stripe payment when the buyer ret
 {% endblock %}
 
 {% block content %}
+    <!-- Shared baby blue banner (styles in base.css) -->
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
     <div class="page-wrapper">
         <div class="conf-card" id="confCard">
             <p class="loading-msg" id="loadingMsg">Loading your order confirmation...</p>
@@ -40,6 +45,17 @@ Updated by Mattie Edozie 10/26/26 - checks the Stripe payment when the buyer ret
         if (!conf) {
             renderError("No confirmation number found.");
             return;
+        }
+
+        // Coming back from Stripe: ask the server to check the payment with Stripe first.
+        // If this fails, the Stripe webhook still marks the order paid.
+        const sessionId = params.get("session_id");
+        if (sessionId) {
+            try {
+                await fetch(`/api/checkout/confirm?session_id=${encodeURIComponent(sessionId)}`);
+            } catch (e) {
+                console.warn("Could not confirm payment yet:", e);
+            }
         }
 
         let order, orderItems;
@@ -71,7 +87,7 @@ Updated by Mattie Edozie 10/26/26 - checks the Stripe payment when the buyer ret
         card.innerHTML = `
             <div class="conf-header">
                 <div class="success-badge">${order.order_status === "PAID" ? "&#10003; Payment Confirmed" : "Payment Processing"}</div>
-                <h1><span>The</span> Vault — Thank You!</h1>
+                <h1>Thank You for Your Order!</h1>
                 <p class="conf-number">Confirmation: <strong>${order.confirmation_number}</strong></p>
             </div>
 
