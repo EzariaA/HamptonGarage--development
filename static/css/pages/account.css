@@ -206,3 +206,17 @@ body {
 
 .wishlist-cart-btn:disabled,
 .delete-listing-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* HG-119 (Mattie Edozie, I4): inline error message that replaces the old
+   alert() popups. account.html shows it with showInlineMessage(). */
+.inline-message {
+    display: none;
+    margin: 12px 0 0;
+    padding: 0.75rem 1rem;
+    border: 1px solid #f1a5a5;
+    border-left: 6px solid #b42318;
+    border-radius: 8px;
+    background: #fdecec;
+    color: #b42318;
+    text-align: center;
+}
