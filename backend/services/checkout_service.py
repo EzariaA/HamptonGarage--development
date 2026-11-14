@@ -15,6 +15,7 @@ from models.checkout_model import (
     clear_cart_for_user,
     remove_purchased_from_wishlist,
 )
+from models.listing_model import get_listing_by_id
 
 
 def _generate_confirmation_number():
@@ -33,6 +34,10 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
     Kyle Lewis (K1) - the order and the stock change are now saved
     together in place_order_with_inventory(). If something is sold out it raises
     InventoryError and no order is made.
+
+    Ava Bell (HG-100) - each price comes from the listings table, not the session
+    cart, so the order total matches what Stripe charged (Stripe is also given the
+    database price). The price in the session cart is ignored.
     """
     if not session_cart:
         raise Exception("Cart is empty.")
@@ -52,11 +57,16 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
         if quantity <= 0:
             raise Exception("Item quantities must be at least 1.")
         item_id = item.get("id")
+        if item_id in (None, ""):
+            raise Exception("An item in your cart is no longer available.")
+        listing = get_listing_by_id(int(item_id))
+        if not listing:
+            raise Exception("An item in your cart is no longer available.")
         cart_items.append({
-            "listing_id": int(item_id) if item_id not in (None, "") else None,
+            "listing_id": int(item_id),
             "item_name": item.get("name", "Item"),
             "quantity": quantity,
-            "price": float(item.get("price", 0)),
+            "price": round(float(listing["price"]), 2),  # database price (HG-100)
             "size": item.get("size") or None,
         })
 
@@ -96,7 +106,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
 
 
 def get_order_summary_service(confirmation_number, user_id):
-    """Returns order + items for the confirmation page. Validates user ownership."""
+    """Returns order + items for the confirmation page. Validatesuser ownership."""
     order = get_order_by_confirmation(confirmation_number)
     if not order:
         raise Exception("Order not found.")
