@@ -140,8 +140,19 @@ def logout():
 def view_cart():
     if 'cart' not in session:
         session['cart'] = []
+    # Risk K3
+    if 'user_id' in session:
+        conn = None
+        try:
+            conn = get_connection()
+            session['cart'] = service.get_user_cart(conn, session['user_id'])
+        except Exception as e:
+            logger.error(f"DB Error loading cart: {e}")
+            flash("We couldn't refresh your cart, so it may be out of date.", "error")
+        finally:
+            if conn:
+                conn.close()
     return render_template('cart.html')
-
 @auth_bp.route('/add_to_cart', methods=['POST'])
 def add_to_cart():
     if 'user_id' not in session:
@@ -176,24 +187,35 @@ def add_to_cart():
         logger.error(f"DB Error checking listing availability: {e}")
 
     # PERSIST TO DATABASE
+    conn = None
     try:
         conn = get_connection()
         cur = conn.cursor()
         cur.execute("""
             INSERT INTO cart_items (user_id, item_id, item_name, price, quantity, size)
             VALUES (%s, %s, %s, %s, %s, %s)
+            RETURNING id
         """, (session['user_id'], item_id, item_name, price, quantity, size))
+        cart_row_id = cur.fetchone()[0]
         conn.commit()
         cur.close()
         conn.close()
     except Exception as e:
         logger.error(f"DB Error adding to cart: {e}")
+        if conn:
+            try:
+                conn.rollback()
+                conn.close()
+            except Exception:
+                pass
+        return jsonify({"error": "We couldn't save your cart. Please try again."}), 500
 
-    # Update session for immediate UI feedback
+    # The database saved it, so now update the session copy (keeping the row id)
     if 'cart' not in session:
         session['cart'] = []
-    
-    cart_item = {'id': item_id, 'name': item_name, 'price': float(price), 'quantity': int(quantity), 'size': size}
+
+    cart_item = {'id': item_id, 'name': item_name, 'price': float(price),
+                 'quantity': int(quantity), 'size': size, 'cart_id': cart_row_id}
     temp_cart = session['cart']
     temp_cart.append(cart_item)
     session['cart'] = temp_cart
@@ -205,29 +227,44 @@ def add_to_cart():
 @auth_bp.route('/remove_from_cart/<int:index>', methods=['POST'])
 def remove_from_cart(index):
     if 'cart' in session and 'user_id' in session:
-        temp_cart = session['cart']
+        temp_cart = list(session['cart'])
         if 0 <= index < len(temp_cart):
-            removed_item = temp_cart.pop(index)
-            
-            # REMOVE FROM DATABASE
+            removed_item = temp_cart[index]
+
+            # K3
+            conn = None
             try:
                 conn = get_connection()
                 cur = conn.cursor()
-                # We delete one instance of this item for this user
-                cur.execute("""
-                    DELETE FROM cart_items 
-                    WHERE id = (
-                        SELECT id FROM cart_items 
-                        WHERE user_id = %s AND item_name = %s AND size = %s
-                        LIMIT 1
+                if removed_item.get('cart_id'):
+                    cur.execute(
+                        "DELETE FROM cart_items WHERE id = %s AND user_id = %s",
+                        (removed_item['cart_id'], session['user_id'])
                     )
-                """, (session['user_id'], removed_item['name'], removed_item['size']))
+                else:
+                    cur.execute("""
+                        DELETE FROM cart_items
+                        WHERE id = (
+                            SELECT id FROM cart_items
+                            WHERE user_id = %s AND item_name = %s AND size = %s
+                            LIMIT 1
+                        )
+                    """, (session['user_id'], removed_item['name'], removed_item['size']))
                 conn.commit()
                 cur.close()
                 conn.close()
             except Exception as e:
                 logger.error(f"DB Error removing item: {e}")
+                if conn:
+                    try:
+                        conn.rollback()
+                        conn.close()
+                    except Exception:
+                        pass
+                flash("We couldn't remove that item. Please try again.", "error")
+                return redirect(url_for('auth.view_cart'))
 
+            temp_cart.pop(index)
             session['cart'] = temp_cart
             session.modified = True
             flash(f"Removed {removed_item['name']} from bag.", "info")
@@ -279,11 +316,15 @@ def admin_login():
             current_app.logger.error(f"Database connection failed: {e}")
             return "Database connection failed. <a href='/auth/admin-login'>Try again</a>"
 
-        # check the username and password the same way the normal login does
-        success, role = service.validate_login(user, pw, conn)
+        # Updated by Kyle Lewis 11/11/26 - lockout after 5 failed tries (15 minutes) and logging
+        result = service.check_admin_login(user, pw, conn)
 
-        # only let them in if the password is right AND they are an admin
-        if success and role and role.lower() == 'admin':
+        if result == "locked":
+            conn.close()
+            logger.warning(f"ADMIN LOGIN BLOCKED: '{user}' is locked out (ip {request.remote_addr})")
+            return "Too many failed login attempts. This account is locked for 15 minutes. <a href='/auth/admin-login'>Back</a>"
+
+        if result == "ok":
             cur = conn.cursor()
             cur.execute("SELECT id FROM users WHERE username = %s", (user,))
             row = cur.fetchone()
@@ -294,9 +335,13 @@ def admin_login():
             session['role'] = 'admin'
             if row:
                 session['user_id'] = row[0]
+            # makes the session timeout (set in app.py) apply to the admin - Kyle Lewis 11/11/26
+            session.permanent = True
+            logger.info(f"ADMIN LOGIN: '{user}' logged in (ip {request.remote_addr})")
             return redirect(url_for('admin.admin_dashboard'))
 
         conn.close()
+        logger.warning(f"ADMIN LOGIN FAILED: '{user}' (ip {request.remote_addr})")
         return "Invalid Admin Credentials. <a href='/auth/admin-login'>Try again</a>"
 
     return render_template('admin_login.html')

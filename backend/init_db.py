@@ -16,6 +16,8 @@ Run this file manually when:
 # Updated by Day Ekoi - Iteration 5 - 4/20/26 - added contact_info, preview_image_1-4, categories columns to storefronts; added ALTER TABLE migrations
 # replaced lines 18-22 with an import from the connection files - Makena Jelks 9/30/2026
 from db import get_connection # added by Makena Jelks - 9/30/2026
+import logging  # added - Kyle Lewis 11/11/26 (replaces the print statements)
+logger = logging.getLogger(__name__)
 
 def create_vault_tables():
     try:
@@ -37,6 +39,9 @@ def create_vault_tables():
             );
         """
         cur.execute(create_users_table)
+        # admin lockout columns - added by Kyle Lewis 11/11/26
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS failed_login_attempts INTEGER DEFAULT 0;")
+        cur.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS locked_until TIMESTAMP;")
 
         # ________________________________________________________
         # STOREFRONTS TABLE (One storefront per user)
@@ -337,13 +342,13 @@ def create_vault_tables():
 
         conn.commit()
 
-        print("DATABASE INITIALIZED: users, storefronts, listings, listing_images, listing_sizes, purchases, wishlist, orders, and order_items tables are ready.")
+        logger.info("DATABASE INITIALIZED: users, storefronts, listings, listing_images, listing_sizes, purchases, wishlist, returns, cart_items, orders, and order_items tables are ready.")
 
         cur.close()
         conn.close()
 
     except Exception as e:
-        print(f"SCHEMA ERROR: {e}")
+        logger.error(f"SCHEMA ERROR: {e}")
 
 
 if __name__ == "__main__":
