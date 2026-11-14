@@ -37,7 +37,7 @@ DEMO_STOREFRONTS = [
         "brand_name": "Nike Campus Drop",
         "bio": "Demo storefront: Nike hoodies, jackets and pants.",
         "logo": "nikelogo.png",
-        "categories": "Hoodies,Jackets,Pants",
+        "categories": "Athleisure,Streetwear",
         "listings": [
             {"title": "Nike Tech Fleece Hoodie", "price": 65.00, "images": ["nikehoodie1.png", "nikehoodie2.png"]},
             {"title": "Nike Windrunner Jacket", "price": 80.00, "images": ["nikejacket.png"]},
@@ -49,7 +49,7 @@ DEMO_STOREFRONTS = [
         "brand_name": "Essentials Closet",
         "bio": "Demo storefront: everyday Essentials pieces.",
         "logo": "essentialslogo.png",
-        "categories": "Hoodies,Sweats",
+        "categories": "Casual,Streetwear",
         "listings": [
             {"title": "Essentials Pullover Hoodie", "price": 45.00, "images": ["essentials1.png"]},
             {"title": "Essentials Crewneck", "price": 40.00, "images": ["essentials2.png"]},
@@ -62,7 +62,7 @@ DEMO_STOREFRONTS = [
         "brand_name": "Von Dutch Vintage",
         "bio": "Demo storefront: vintage Von Dutch finds.",
         "logo": "vondutchlogo.png",
-        "categories": "Hats,Tees",
+        "categories": "Vintage,Retro,Accessories",
         "listings": [
             {"title": "Von Dutch Trucker Hat", "price": 30.00, "images": ["vondutch1.png"]},
             {"title": "Von Dutch Graphic Tee", "price": 28.00, "images": ["vondutch2.png"]},
@@ -75,7 +75,7 @@ DEMO_STOREFRONTS = [
         "brand_name": "Onyx Apparel",
         "bio": "Demo storefront: a student-run streetwear brand.",
         "logo": "onyxlogo.jpeg",
-        "categories": "Hoodies",
+        "categories": "Streetwear",
         "listings": [
             {"title": "Onyx Signature Hoodie", "price": 50.00, "images": ["onyxhoodie.png"]},
         ],

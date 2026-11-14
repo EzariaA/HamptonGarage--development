@@ -11,6 +11,8 @@ for path in (PROJECT_ROOT, BACKEND_ROOT):
     if path not in sys.path:
         sys.path.append(path)
  
+from models.checkout_model import InventoryError
+
 CTRL = "controllers.checkout_controller"
  
 BUYER = {
@@ -179,7 +181,26 @@ class TestStripeCheckout(unittest.TestCase):
         self.assertIn("/order-confirmation?conf=VAULT-261027-ABC123", res.headers["Location"])
         complete_tx.assert_not_called()
         stripe_mock.checkout.Session.retrieve.assert_not_called()
- 
+
+    # Added by Clarence Bostic 11/14/26
+    @patch(f"{CTRL}.complete_transaction_from_session",
+           side_effect=InventoryError('"Hampton Hoodie" is sold out.'))
+    @patch(f"{CTRL}.stripe")
+    @patch(f"{CTRL}.get_connection")
+    def test_success_refunds_when_item_sold_out_during_payment(self, get_conn, stripe_mock, complete_tx):
+        conn, _ = self._mock_db(existing_row=None)
+        get_conn.return_value = conn
+        paid = self._stripe_session(paid=True)
+        paid.payment_intent = "pi_test_1"
+        stripe_mock.checkout.Session.retrieve.return_value = paid
+        self._login(cart=CART, pending_buyer=BUYER)
+
+        res = self.client.get("/api/checkout/success?session_id=cs_test_1")
+
+        self.assertTrue(res.headers["Location"].endswith("/checkout?error=sold_out"))
+        stripe_mock.Refund.create.assert_called_once_with(payment_intent="pi_test_1")
+        conn.commit.assert_not_called()
+
  
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,7 @@ from flask import Blueprint, request, jsonify, session, redirect
 
 from db import get_connection
 from models.listing_model import get_listing_by_id
-from models.checkout_model import check_listing_availability
+from models.checkout_model import check_listing_availability, InventoryError
 from services.checkout_service import (
     complete_transaction_from_session,
     get_order_summary_service,
@@ -128,7 +128,14 @@ def checkout_success():
             return redirect("/checkout")
 
         buyer = session.pop("pending_buyer", {})
-        result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
+        try:
+            result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
+        except InventoryError:
+            try:
+                stripe.Refund.create(payment_intent=stripe_session.payment_intent)
+            except stripe.StripeError:
+                pass  # already refunded (the buyer refreshed this page)
+            return redirect("/checkout?error=sold_out")
         cur.execute(
             "UPDATE orders SET stripe_session_id = %s, payment_status = 'paid' WHERE confirmation_number = %s",
             (session_id, result["confirmation_number"]),

@@ -17,7 +17,6 @@ CTRL = "controllers.listing_controller"
 S3_UPLOAD = "utils.s3.upload_image_to_s3"
 
 USER_ID = 42
-AUTH = {"X-User-Id": str(USER_ID)}
 STOREFRONT = {"id": 5, "name": "Ezaria's Closet"}
 CREATED_LISTING = {"id": 101, "title": "Hampton Hoodie", "price": 25.0}
 
@@ -52,16 +51,25 @@ class TestListingRoutes(unittest.TestCase):
         cls.app.config["TESTING"] = True
 
     def setUp(self):
+        # Every test starts logged in as USER_ID through the session.
+        # Updated by Clarence Bostic - Iteration 4: the app no longer accepts the X-User-Id header.
         self.client = self.app.test_client()
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = USER_ID
 
-    def post_form(self, form, headers=AUTH):
+    def log_out(self):
+        with self.client.session_transaction() as sess:
+            sess.clear()
+
+    def post_form(self, form):
         return self.client.post("/api/listings/create", data=form,
-                                headers=headers, content_type="multipart/form-data")
+                                content_type="multipart/form-data")
 
     # ---------- Create listing: POST /api/listings/create ----------
 
     def test_create_listing_requires_login(self):
-        res = self.post_form(listing_form(), headers={})
+        self.log_out()
+        res = self.post_form(listing_form())
         self.assertEqual(res.status_code, 401)
 
     @patch(f"{CTRL}.get_my_storefront_service", return_value=None)
@@ -163,7 +171,7 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.add_listing_image_service", return_value={"id": 7, "image_url": "https://s3.test/x.png"})
     def test_add_image_success(self, add_image):
-        res = self.client.post("/api/listings/101/images", headers=AUTH,
+        res = self.client.post("/api/listings/101/images",
                                json={"image_url": "https://s3.test/x.png", "is_primary": True})
         self.assertEqual(res.status_code, 201)
         user, listing_id, url, is_primary = add_image.call_args.args
@@ -171,7 +179,7 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.add_listing_image_service", side_effect=Exception("Unauthorized: not your listing"))
     def test_add_image_to_someone_elses_listing_is_forbidden(self, _add):
-        res = self.client.post("/api/listings/101/images", headers=AUTH,
+        res = self.client.post("/api/listings/101/images",
                                json={"image_url": "https://s3.test/x.png"})
         self.assertEqual(res.status_code, 403)
 
@@ -189,14 +197,14 @@ class TestListingRoutes(unittest.TestCase):
 
     @patch(f"{CTRL}.set_primary_image_service", return_value={"id": 8, "is_primary": True})
     def test_set_primary_image_success(self, set_primary):
-        res = self.client.patch("/api/listings/101/images/8/primary", headers=AUTH)
+        res = self.client.patch("/api/listings/101/images/8/primary")
         self.assertEqual(res.status_code, 200)
         user, listing_id, image_id = set_primary.call_args.args
         self.assertEqual((user["id"], listing_id, image_id), (USER_ID, 101, 8))
 
     @patch(f"{CTRL}.delete_listing_image_service", side_effect=Exception("Image not found"))
     def test_delete_missing_image_returns_404(self, _delete):
-        res = self.client.delete("/api/listings/101/images/999", headers=AUTH)
+        res = self.client.delete("/api/listings/101/images/999")
         self.assertEqual(res.status_code, 404)
 
 

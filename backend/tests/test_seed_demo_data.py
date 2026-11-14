@@ -185,6 +185,15 @@ class TestSeedDemoData(unittest.TestCase):
                 path = os.path.join(images_folder, picture)
                 self.assertTrue(os.path.isfile(path), "missing static/images/" + picture)
 
+    # Added by Clarence Bostic 11/14/26 - stores with unknown categories never show on the Categories page
+    def test_demo_categories_are_on_the_site_list(self):
+        from services.listing_service import STOREFRONT_CATEGORIES
+        for store in seed_demo_data.DEMO_STOREFRONTS:
+            categories = store["categories"].split(",")
+            self.assertLessEqual(len(categories), 3, store["brand_name"] + " has more than 3 categories")
+            for category in categories:
+                self.assertIn(category, STOREFRONT_CATEGORIES, store["brand_name"] + ": " + category)
+
 
 if __name__ == "__main__":
     unittest.main()
