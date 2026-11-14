@@ -1,0 +1,92 @@
+{# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
+{% extends "base.html" %}
+
+{% block title %}Your Bag{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/storefront.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/cart.css') }}">
+{% endblock %}
+
+{% block content %}
+<!-- Shared baby blue banner (styles in base.css) -->
+<header class="site-banner">
+    <a href="/storefronts">HAMPTON GARAGE</a>
+</header>
+
+<div class="cart-container">
+    <!-- Page title on the left, continue shopping link on the right -->
+    <div class="cart-header">
+        <h1>Your Bag</h1>
+        <a href="{{ url_for('auth.listings') }}" class="back-link">← Continue Shopping</a>
+    </div>
+
+    <!-- Messages from the server (for example, "item removed") -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="cart-flash">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if session['cart'] and session['cart']|length > 0 %}
+        <!-- One row per item in the bag -->
+        <div class="table-wrap">
+            <table class="cart-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Size</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Remove</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in session['cart'] %}
+                        <tr>
+                            <td>
+                                <div class="item-info">
+                                    <h4>{{ item.name }}</h4>
+                                    <span>ID: {{ item.id }}</span>
+                                </div>
+                            </td>
+                            <td>{{ item.size }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td class="price-col">${{ "%.2f"|format(item.price|float) }}</td>
+                            <td>
+                                <!-- Small red x that removes this item -->
+                                <form action="{{ url_for('auth.remove_from_cart', index=loop.index0) }}" method="POST">
+                                    <button type="submit" class="remove-btn" title="Remove item" aria-label="Remove {{ item.name }}">×</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Total and the button to go to checkout -->
+        <div class="cart-summary">
+            {# Add up price x quantity for every item #}
+            {% set total_price = namespace(value=0) %}
+            {% for item in session['cart'] %}
+                {% set total_price.value = total_price.value + (item.price|float * item.quantity|int) %}
+            {% endfor %}
+
+            <div class="total-row">
+                <span class="total-label">Total: </span>
+                <span>${{ "%.2f"|format(total_price.value) }}</span>
+            </div>
+            <a href="{{ url_for('checkout') }}" class="checkout-btn">Checkout</a>
+        </div>
+    {% else %}
+        <!-- Nothing in the bag yet -->
+        <div class="empty-msg">
+            <p>Your bag is empty.</p>
+            <a href="{{ url_for('auth.listings') }}" class="back-link">Browse Storefronts</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
