@@ -1,188 +1,208 @@
 /*
     account.css
-    Moved out of the inline <style> block in account.html
-    by Mason Johnson, Iteration 2, 10/1/26
-    Switched to the garage theme (blue banner, light gray page, white card,
-    navy text, gray buttons) by Mason Johnson, 10/27/26.
-    Colors like var(--navy) come from base.css.
+    Styles for the account page (templates/account.html).
+    Ezaria ALexander with Mason Johnso
+    Rewritten November 2026. Colors come from the variables in base.css.
 */
-        /* Light gray page instead of the old black one */
-        body {
-            background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
-            color: var(--navy);
-            font-family: 'Segoe UI', Arial, sans-serif;
-        }
 
-        /* Space between the blue banner and the account card */
-        .site-banner {
-            margin-bottom: 30px;
-        }
+/* Page and layout */
+body {
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
 
-        /* White card that holds the whole account page */
-        .account-container {
-            max-width: 1000px; margin: 0 auto 50px; padding: 24px;
-            background: var(--card-white);
-            border: 1px solid var(--border-gray);
-            border-top: 5px solid var(--baby-blue-dark);
-            border-radius: 12px;
-            box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
-        }
+.site-banner { margin-bottom: 30px; }
 
-        /* Username + role on the left, logout on the right */
-        .profile-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid var(--baby-blue); padding-bottom: 20px; margin-bottom: 30px;
-        }
+.account-container {
+    max-width: 1000px;
+    margin: 0 auto 50px;
+    padding: 24px;
+    background: var(--card-white);
+    border: 1px solid var(--border-gray);
+    border-top: 5px solid var(--baby-blue-dark);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
+}
 
-        /* Username */
-        .user-meta h1 { margin: 0 0 6px; color: var(--navy); letter-spacing: 2px; }
+.back-btn {
+    color: var(--btn-gray-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.back-btn:hover { color: var(--navy); text-decoration: underline; }
 
-        /* Small "STUDENT" / "ADMIN" pill under the username */
-        .role-badge {
-            background: var(--baby-blue); color: var(--navy); padding: 2px 10px;
-            border-radius: 999px;
-            font-size: 0.8rem; font-weight: bold; text-transform: uppercase;
-        }
+/* Header: name and role on the left, logout on the right */
+.profile-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--baby-blue);
+}
+.user-meta h1 { margin: 0 0 6px; letter-spacing: 2px; }
 
-        /* Logout link (red so it stands out as "leaving") */
-        .logout-link {
-            color: #b42318;
-            font-weight: 700;
-            text-decoration: none;
-            border: 1px solid #f1a5a5;
-            border-radius: 999px;
-            padding: 6px 14px;
-        }
-        .logout-link:hover { background: #fdecec; }
+.role-badge {
+    padding: 2px 10px;
+    border-radius: 999px;
+    background: var(--baby-blue);
+    font-size: 0.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+}
 
-        /* Tabs Styling: the active tab gets a navy underline */
-        .tab-menu { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; border-bottom: 1px solid var(--border-gray); }
-        .tab-link {
-            padding: 10px 20px; cursor: pointer; background: none; border: none;
-            color: var(--text-gray); font-weight: 600; text-transform: uppercase; transition: 0.3s;
-        }
-        .tab-link:hover { color: var(--navy); }
-        .tab-link.active { color: var(--navy); border-bottom: 3px solid var(--baby-blue-dark); }
+.logout-link {
+    padding: 6px 14px;
+    border: 1px solid #f1a5a5;
+    border-radius: 999px;
+    color: #b42318;
+    font-weight: 700;
+    text-decoration: none;
+}
+.logout-link:hover { background: #fdecec; }
 
-        /* Only the active tab's content is shown (account.html's openTab() switches it) */
-        .tab-content { display: none; padding: 20px; background: #f8fafc; border-radius: 8px; min-height: 200px; }
-        .tab-content.active { display: block; }
+/* Tabs */
+.tab-menu {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-gray);
+}
+.tab-link {
+    padding: 10px 20px;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: none;
+    color: var(--text-gray);
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.tab-link:hover { color: var(--navy); }
+.tab-link.active {
+    color: var(--navy);
+    border-bottom-color: var(--baby-blue-dark);
+}
 
-        /* Section headings inside each tab */
-        .tab-content h3 { margin-top: 0; color: var(--navy); letter-spacing: 1px; }
+/* Tab panels: openTab() in account.html adds .active to the visible one */
+.tab-content {
+    display: none;
+    min-height: 200px;
+    padding: 20px;
+    border-radius: 8px;
+    background: #f8fafc;
+}
+.tab-content.active { display: block; }
+.tab-content h3 { margin-top: 0; letter-spacing: 1px; }
 
-        /* "Nothing here yet" text */
-        .empty-state { color: var(--text-gray); text-align: center; padding-top: 50px; font-style: italic; }
+.empty-state {
+    padding-top: 50px;
+    color: var(--text-gray);
+    font-style: italic;
+    text-align: center;
+}
 
-        /* My Listings tab: one white row per listing */
-        .listing-items { display: grid; gap: 12px; margin-top: 16px; }
-        .listing-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border-gray);
-            border-radius: 8px;
-            background: white;
-            padding: 12px 14px;
-        }
-        .listing-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
+/* Lists of rows (listings, wishlist, purchases) */
+.listing-items,
+.wishlist-items,
+.purchase-items {
+    display: grid;
+    gap: 12px;
+    margin-top: 16px;
+}
 
-        /* Small red "x" button that deletes a listing */
-        .delete-listing-btn {
-            width: 28px;
-            height: 28px;
-            border: 1px solid #f1a5a5;
-            border-radius: 6px;
-            background: #fdecec;
-            color: #b42318;
-            font-size: 1rem;
-            font-weight: 700;
-            line-height: 1;
-            cursor: pointer;
-        }
-        .delete-listing-btn:hover {
-            background: #f9d4d4;
-        }
-        .delete-listing-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        .listing-title { font-weight: 700; color: var(--navy); }
-        .listing-meta { color: var(--text-gray); font-size: 0.9rem; margin-top: 3px; }
-        .listing-price { color: var(--btn-gray-dark); font-weight: 700; }
+.listing-row,
+.wishlist-row,
+.purchase-row {
+    padding: 12px 14px;
+    border: 1px solid var(--border-gray);
+    border-radius: 8px;
+    background: white;
+}
+.listing-row,
+.wishlist-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.purchase-row {
+    padding: 14px;
+    border-left: 5px solid var(--baby-blue-dark);
+}
 
-        /* Wishlist tab: one white row per saved item */
-        .wishlist-items { display: grid; gap: 12px; margin-top: 16px; }
-        .wishlist-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border: 1px solid var(--border-gray);
-            border-radius: 8px;
-            background: white;
-            padding: 12px 14px;
-        }
-        .wishlist-left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .wishlist-thumb {
-            width: 46px;
-            height: 46px;
-            object-fit: cover;
-            border: 1px solid var(--border-gray);
-            border-radius: 6px;
-            background: var(--page-gray);
-        }
-        .wishlist-title { font-weight: 700; color: var(--navy); }
-        .wishlist-meta { color: var(--text-gray); font-size: 0.9rem; margin-top: 3px; }
+.listing-main,
+.wishlist-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
 
-        /* "Remove" button: white with a gray outline */
-        .wishlist-remove-btn {
-            border: 1px solid var(--btn-gray);
-            border-radius: 999px;
-            background: white;
-            color: var(--btn-gray-dark);
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-        }
-        .wishlist-remove-btn:hover { background: var(--page-gray); }
+/* Titles and small text inside rows */
+.listing-title,
+.wishlist-title { font-weight: 700; }
+.listing-meta,
+.wishlist-meta,
+.purchase-meta { color: var(--text-gray); font-size: 0.9rem; margin-top: 3px; }
+.purchase-meta { font-size: 0.85rem; margin-top: 4px; }
+.listing-price { color: var(--btn-gray-dark); font-weight: 700; }
 
-        /* "Add to cart" button: solid gray */
-        .wishlist-cart-btn {
-            border: 1px solid var(--btn-gray-dark);
-            border-radius: 999px;
-            background: var(--btn-gray);
-            color: white;
-            padding: 6px 12px;
-            cursor: pointer;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            margin-right: 6px;
-        }
-        .wishlist-cart-btn:hover { background: var(--btn-gray-dark); }
-        .wishlist-cart-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.wishlist-thumb {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;
+    border: 1px solid var(--border-gray);
+    border-radius: 6px;
+    background: var(--page-gray);
+}
 
-        /* Purchases tab: one white box per order */
-        .purchase-items { display: grid; gap: 12px; margin-top: 16px; }
-        .purchase-row {
-            border: 1px solid var(--border-gray);
-            border-left: 5px solid var(--baby-blue-dark);
-            border-radius: 8px;
-            background: white;
-            padding: 14px;
-        }
-        .purchase-conf { color: var(--navy); font-size: 0.8rem; font-weight: bold; letter-spacing: 1px; margin-bottom: 4px; }
-        .purchase-meta { color: var(--text-gray); font-size: 0.85rem; margin-top: 4px; }
-        .purchase-total { color: var(--navy); font-weight: bold; float: right; }
+.purchase-conf {
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+.purchase-total { float: right; font-weight: bold; }
 
-        /* "Back to storefront" link at the top of the card */
-        .back-btn { color: var(--btn-gray-dark); font-weight: 600; text-decoration: none; font-size: 0.9rem; }
-        .back-btn:hover { color: var(--navy); text-decoration: underline; }
+/* Buttons */
+.wishlist-remove-btn,
+.wishlist-cart-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+.wishlist-remove-btn {
+    border: 1px solid var(--btn-gray);
+    background: white;
+    color: var(--btn-gray-dark);
+}
+.wishlist-remove-btn:hover { background: var(--page-gray); }
+.wishlist-cart-btn {
+    margin-right: 6px;
+    border: 1px solid var(--btn-gray-dark);
+    background: var(--btn-gray);
+    color: white;
+}
+.wishlist-cart-btn:hover { background: var(--btn-gray-dark); }
+
+.delete-listing-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid #f1a5a5;
+    border-radius: 6px;
+    background: #fdecec;
+    color: #b42318;
+    font-size: 1rem;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+.delete-listing-btn:hover { background: #f9d4d4; }
+
+.wishlist-cart-btn:disabled,
+.delete-listing-btn:disabled { opacity: 0.5; cursor: not-allowed; }
