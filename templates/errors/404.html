@@ -1,0 +1,23 @@
+{# custom 404 page - Makena Jelks #}
+{% extends "base.html" %}
+
+{% block title %}Page Not Found{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/errors.css') }}">
+{% endblock %}
+
+{% block content %}
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
+    <main class="error-page">
+        <div class="error-card">
+            <p class="error-code">404</p>
+            <h1>Page not found</h1>
+            <p>The page you're looking for doesn't exist or may have been moved.</p>
+            <a class="error-btn" href="/storefronts">Back to storefronts</a>
+        </div>
+    </main>
+{% endblock %}

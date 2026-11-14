@@ -9,9 +9,11 @@ Run this script manually when:
 - You want to populate listings for all storefronts without altering mock_data.py
 - Testing storefront views with real data
 """
+import logging
 
 from db import get_connection
 
+logger = logging.getLogger(__name__) # added - Makena Jelks
 
 def create_listings_for_storefronts():
     conn = get_connection()
@@ -23,7 +25,8 @@ def create_listings_for_storefronts():
         storefront_ids = [row[0] for row in cur.fetchall()]
 
         if not storefront_ids:
-            print("No active storefronts found. Run mock_data.py first to create storefronts.")
+            # print replaced with logger.warning - Makena Jelks
+            logger.warning("No active storefronts found. Run mock_data.py first to create storefronts.")
             return
 
         # For each storefront, create 1 listing
@@ -76,11 +79,13 @@ def create_listings_for_storefronts():
                     )
 
         conn.commit()
-        print(f"Created 1 listing for each of {len(storefront_ids)} storefronts.")
+        # print replaced with logger.info - Makena Jelks
+        logger.info(f"Created 1 listing for each of {len(storefront_ids)} storefronts.")
 
     except Exception as e:
         conn.rollback()
-        print("Error creating listings:", e)
+        # print replaced with logger.error - Makena Jelks
+        logger.error("Error creating listings: %s", e)
 
     finally:
         cur.close()
@@ -88,4 +93,5 @@ def create_listings_for_storefronts():
 
 
 if __name__ == "__main__":
-    create_listings_for_storefronts()
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    create_listings_for_storefronts

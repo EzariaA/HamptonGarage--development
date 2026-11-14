@@ -1,0 +1,23 @@
+{# custom 500 page - Makena Jelks #}
+{% extends "base.html" %}
+
+{% block title %}Something Went Wrong{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/pages/errors.css') }}">
+{% endblock %}
+
+{% block content %}
+    <header class="site-banner">
+        <a href="/storefronts">HAMPTON GARAGE</a>
+    </header>
+
+    <main class="error-page">
+        <div class="error-card">
+            <p class="error-code">500</p>
+            <h1>Something went wrong</h1>
+            <p>We hit a problem on our end. Please try again in a moment.</p>
+            <a class="error-btn" href="/storefronts">Back to storefronts</a>
+        </div>
+    </main>
+{% endblock %}
