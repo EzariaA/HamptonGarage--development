@@ -5,10 +5,11 @@
     Updated by Day Ekoi - 4/22/26
     - Reads cart from session via /auth/cart/json
     - Displays items with size, qty, and subtotals
-    - Submits buyer details to /api/checkout/create-session (Ezaria's Stripe flow)
-    - Sends the buyer to Stripe's payment page; Stripe returns them to the order confirmation
-    Updated by Mason Johnson - 10/26/26 - Pay button
-    10/27/26 - mock card form removed; the card is entered on Stripe's page only
+    - Submits buyer details to /api/checkout/complete
+    - Redirects to order confirmation on success
+    Updated by Mason Johnson - 10/26/26
+    - Pay button shows the mock card form, then sends the card with the order
+    - Shows card errors from the server next to the matching field
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -26,6 +27,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     function hideError() {
         if (errorMsg) errorMsg.style.display = "none";
+    }
+
+    // Stripe sends the buyer back here with ?canceled=1 if they leave the payment page
+    if (new URLSearchParams(window.location.search).get("canceled")) {
+        showError("Payment was canceled. Your order has not been paid. You can try again below.");
     }
 
     // Load cart from Flask session
@@ -57,16 +63,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             const subtotal = price * qty;
             total += subtotal;
 
+            // One row per item. The look comes from checkout.css
+            // (inline colors swapped for classes by Mason Johnson 11/12/26 for the garage theme)
             const row = document.createElement("div");
-            row.style.cssText = "display:flex; justify-content:space-between; margin-bottom:10px; border-bottom:1px solid rgba(184,134,11,0.2); padding-bottom:8px;";
+            row.className = "checkout-item";
             row.innerHTML = `
                 <div>
-                    <div style="font-weight:bold; color:#f0f0f0;">${item.name || "Item"}</div>
-                    <div style="color:#888; font-size:0.82rem; margin-top:2px;">
+                    <div class="checkout-item-name">${item.name || "Item"}</div>
+                    <div class="checkout-item-meta">
                         ${item.size ? `Size: ${item.size} &nbsp;|&nbsp; ` : ""}Qty: ${qty}
                     </div>
                 </div>
-                <span class="gold" style="white-space:nowrap; align-self:center;">$${subtotal.toFixed(2)}</span>
+                <span class="checkout-item-price">$${subtotal.toFixed(2)}</span>
             `;
             itemsList.appendChild(row);
         });
@@ -74,10 +82,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (totalDisplay) totalDisplay.textContent = `$${total.toFixed(2)}`;
 
+    // Mock card form - Added by Mason Johnson 10/26/26
+    // Maps each card field name from the server to its input and error line on the page
+    const cardSection = document.getElementById("cardSection");
+    const cardFields = {
+        name: { input: document.getElementById("cardName"), error: document.getElementById("cardNameError") },
+        number: { input: document.getElementById("cardNumber"), error: document.getElementById("cardNumberError") },
+        expiry: { input: document.getElementById("cardExpiry"), error: document.getElementById("cardExpiryError") },
+        cvv: { input: document.getElementById("cardCvv"), error: document.getElementById("cardCvvError") },
+    };
     const payLabel = `Pay $${total.toFixed(2)}`;
-    if (submitBtn) submitBtn.textContent = payLabel;
 
-    // Handle form submission: send buyer details, then go to Stripe's payment page
+    // Clears all card error messages and red borders
+    function clearCardErrors() {
+        for (const field in cardFields) {
+            cardFields[field].error.textContent = "";
+            cardFields[field].input.classList.remove("input-invalid");
+        }
+    }
+
+    // Puts each error message under the card field it belongs to
+    function showCardErrors(errors) {
+        for (const field in errors) {
+            if (cardFields[field]) {
+                cardFields[field].error.textContent = errors[field];
+                cardFields[field].input.classList.add("input-invalid");
+            }
+        }
+    }
+
+    // Handle form submission: first Pay click opens the card form, the next one sends the payment
     const form = document.getElementById("checkoutForm");
     if (!form) return;
 
@@ -96,6 +130,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
+        // Step 1: buyer details are filled in, so show the card form
+        if (cardSection.style.display === "none") {
+            cardSection.style.display = "block";
+            if (submitBtn) submitBtn.textContent = payLabel;
+            cardFields.name.input.focus();
+            return;
+        }
+
+        // Step 2: send the order with the card info
+        clearCardErrors();
+
         if (submitBtn) {
             submitBtn.disabled = true;
             submitBtn.textContent = "Processing...";
@@ -111,12 +156,21 @@ document.addEventListener("DOMContentLoaded", async () => {
                     email,
                     contact,
                     meeting_location: meetingLocation,
+                    card: {
+                        name: cardFields.name.input.value,
+                        number: cardFields.number.input.value,
+                        expiry: cardFields.expiry.input.value,
+                        cvv: cardFields.cvv.input.value,
+                    },
                 }),
             });
 
             const data = await res.json();
 
-            if (!res.ok) throw new Error(data.error || "Transaction failed.");
+            if (!res.ok) {
+                if (data.card_errors) showCardErrors(data.card_errors);
+                throw new Error(data.error || "Transaction failed.");
+            }
 
             window.location.href = data.url;
         } catch (err) {

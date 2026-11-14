@@ -184,7 +184,14 @@ this function loops through all storefrotn objects in the storefronts array, cre
 */
 function renderStorefronts() {
   if (!grid) return; // Updated by Day E 3/22/26
-  grid.innerHTML = ""; // this clears the gird. Useful for if there needs to be re-rendering 
+  grid.innerHTML = ""; // this clears the gird. Useful for if there needs to be re-rendering
+
+  // No storefronts yet: show gray "nothing here" text instead of a blank page (ui.js) - Mason Johnson, Iteration 4
+  if (storefronts.length === 0) {
+    showEmpty(grid, "No storefronts yet. Check back soon!");
+    return;
+  }
+
   storefronts.forEach(store => { // loops through each store object in the storefronts array
     const card = createCard(store); //creates a card for the current store object
     grid.appendChild(card); // inserts the created card into the storefront grid in the HTML
@@ -199,6 +206,9 @@ If the backend returns storefront data successfully, it replaces the placeholder
 If the backend route is not ready yet or fails, the placeholder data will still be used.
 */
 async function fetchStorefronts() {
+  // Show gray loading bars until the storefronts arrive (ui.js) - Mason Johnson, Iteration 4
+  showLoading(grid, 6);
+
   try {
     const response = await fetch("/api/storefronts");
 
@@ -235,8 +245,8 @@ async function fetchStorefronts() {
 
     renderStorefronts();
   } catch (error) {
-    console.error("Error fetching storefronts from Flask API:", error);
-    if (grid) grid.innerHTML = `<p style="color:#4b5563; font-style:italic; text-align:center; grid-column:1/-1; padding:2rem;">Could not load storefronts. Please try again.</p>`;
+    // Show a red error message in place of the grid (ui.js) - Mason Johnson, Iteration 4
+    showMessage(grid, "Could not load storefronts. Please refresh the page to try again.", "error");
   }
 }
 

@@ -21,12 +21,20 @@ const deactivateBtn = document.getElementById("deactivateBtn");
 const categoryCheckboxes = Array.from(document.querySelectorAll('input[name="categories"]'));
 const categoryValidationMessage = document.getElementById("categoryValidationMessage");
 const MAX_CATEGORY_SELECTIONS = 3;
+const submitBtn = form.querySelector('button[type="submit"]');
 
 const storefrontId = parseInt(window.location.pathname.split("/")[2]);
 
 cancelBtn.addEventListener("click", () => {
     window.location.href = "/storefronts/dashboard";
 });
+
+// While saving, the button says "Saving..." and can't be clicked twice
+function setSaving(isSaving) {
+    if (!submitBtn) return;
+    submitBtn.disabled = isSaving;
+    submitBtn.textContent = isSaving ? "Saving..." : "Save Changes";
+}
 
 
 // Delete Storefront confirmation box - Added by Mason Johnson 10/26/26
@@ -103,7 +111,7 @@ function setupCategoryLimitGuard() {
 }
 
 
-function configureStorefrontStatusButton(storefront, user) {
+function configureStorefrontStatusButton(storefront) {
     if (!deactivateBtn) return;
 
     const isActive = storefront?.is_active !== false;
@@ -118,11 +126,7 @@ function configureStorefrontStatusButton(storefront, user) {
 
         try {
             const res = await fetch(`/api/storefronts/${storefrontId}/${action}`, {
-                method: "PATCH",
-                headers: {
-                    "X-User-Id": user.id,
-                    "X-User-Role": user.role
-                }
+                method: "PATCH"
             });
 
             const data = await res.json().catch(() => ({}));
@@ -132,7 +136,7 @@ function configureStorefrontStatusButton(storefront, user) {
 
             window.location.href = "/storefronts/dashboard";
         } catch (error) {
-            alert(error.message || `Could not ${action} storefront.`);
+            showMessage("pageMessage", error.message || `Could not ${action} storefront.`, "error");
         }
     };
 }
@@ -229,14 +233,15 @@ async function uploadImageToS3(file, folder) {
 }
 
 
-async function loadStorefront(userId, userRole) {
-    const res = await fetch(`/api/storefronts/${storefrontId}`, {
-        headers: { "X-User-Id": userId, "X-User-Role": userRole }
-    });
+async function loadStorefront() {
+    const res = await fetch(`/api/storefronts/${storefrontId}`);
 
     if (!res.ok) {
-        alert("Could not load storefront data.");
-        window.location.href = "/storefronts/dashboard";
+        showMessage("pageMessage", "Could not load storefront data. Taking you back to your dashboard...", "error");
+        // Wait 2 seconds so the user can read the message, then go to the next page
+        setTimeout(function () {
+            window.location.href = "/storefronts/dashboard";
+        }, 2000);
         return null;
     }
 
@@ -286,15 +291,24 @@ async function loadStorefront(userId, userRole) {
 
 
 async function init() {
+    // Loading state: hide the empty form and show gray bars until the data arrives - Mason Johnson, Iteration 4
+    form.style.display = "none";
+    showLoading("editLoading", 6);
+
     try {
         const userRes = await fetch("/auth/api/auth/me");
         if (!userRes.ok) {
             window.location.href = "/auth/login";
             return;
         }
-        const user = await userRes.json();
-        const currentStorefront = await loadStorefront(user.id, user.role);
+        const currentStorefront = await loadStorefront();
+
+        // Data is here (or it failed): remove the loading bars
+        document.getElementById("editLoading").innerHTML = "";
         if (!currentStorefront) return;
+
+        // Show the filled-in form again
+        form.style.display = "";
 
         // set up drop zones - Updated by Day Ekoi 4/20/26 - 4 individual preview slots
         setupDropZone("bannerZone", "bannerUpload", "bannerPreview", 1);
@@ -304,90 +318,105 @@ async function init() {
         setupDropZone("previewZone3", "previewImage3", "previewPreview3", 1);
         setupDropZone("previewZone4", "previewImage4", "previewPreview4", 1);
         setupCategoryLimitGuard();
-        configureStorefrontStatusButton(currentStorefront, user);
+        configureStorefrontStatusButton(currentStorefront);
         setupDeleteStorefront(currentStorefront.brand_name || "");
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
 
-            const logoFile = document.getElementById("logoUpload").files[0];
-            const bannerFile = document.getElementById("bannerUpload").files[0];
+            // Turn on the loading state. "saved" stays false unless the save works.
+            setSaving(true);
+            let saved = false;
 
-            let logoUrl = currentStorefront.logo_url;
-            let bannerUrl = currentStorefront.banner_url;
+            try {
+                const logoFile = document.getElementById("logoUpload").files[0];
+                const bannerFile = document.getElementById("bannerUpload").files[0];
 
-            if (logoFile) {
-                try { logoUrl = await uploadImageToS3(logoFile, "storefronts/logos"); }
-                catch (err) { alert("Failed to upload logo. Please try again."); return; }
-            }
+                let logoUrl = currentStorefront.logo_url;
+                let bannerUrl = currentStorefront.banner_url;
 
-            if (bannerFile) {
-                try { bannerUrl = await uploadImageToS3(bannerFile, "storefronts/banners"); }
-                catch (err) { alert("Failed to upload banner. Please try again."); return; }
-            }
+                if (logoFile) {
+                    try { logoUrl = await uploadImageToS3(logoFile, "storefronts/logos"); }
+                    catch (err) { showMessage("pageMessage", "Failed to upload logo. Please try again.", "error"); return; }
+                }
 
-            // upload each preview slot independently, keep existing if no new file - Updated by Day Ekoi 4/20/26
-            const existingPreviewUrls = [
-                currentStorefront.preview_image_1,
-                currentStorefront.preview_image_2,
-                currentStorefront.preview_image_3,
-                currentStorefront.preview_image_4,
-            ];
-            const previewUrls = [...existingPreviewUrls];
-            for (let i = 0; i < 4; i++) {
-                const file = document.getElementById(`previewImage${i + 1}`).files[0];
-                if (file) {
-                    try {
-                        previewUrls[i] = await uploadImageToS3(file, "storefronts/previews");
-                    } catch (err) {
-                        alert(`Failed to upload preview image ${i + 1}. Please try again.`);
-                        return;
+                if (bannerFile) {
+                    try { bannerUrl = await uploadImageToS3(bannerFile, "storefronts/banners"); }
+                    catch (err) { showMessage("pageMessage", "Failed to upload banner. Please try again.", "error"); return; }
+                }
+
+                // upload each preview slot independently, keep existing if no new file - Updated by Day Ekoi 4/20/26
+                const existingPreviewUrls = [
+                    currentStorefront.preview_image_1,
+                    currentStorefront.preview_image_2,
+                    currentStorefront.preview_image_3,
+                    currentStorefront.preview_image_4,
+                ];
+                const previewUrls = [...existingPreviewUrls];
+                for (let i = 0; i < 4; i++) {
+                    const file = document.getElementById(`previewImage${i + 1}`).files[0];
+                    if (file) {
+                        try {
+                            previewUrls[i] = await uploadImageToS3(file, "storefronts/previews");
+                        } catch (err) {
+                            showMessage("pageMessage", `Failed to upload preview image ${i + 1}. Please try again.`, "error");
+                            return;
+                        }
                     }
                 }
+
+                const formData = new FormData(form);
+                const checkedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(cb => cb.value);
+                if (!validateCategoryLimit()) {
+                    return;
+                }
+
+                const payload = {
+                    brand_name: formData.get("brand_name"),
+                    bio: formData.get("description"),
+                    contact_info: formData.get("contact_info"),
+                    logo_url: logoUrl,
+                    banner_url: bannerUrl,
+                    preview_image_1: previewUrls[0] || null,
+                    preview_image_2: previewUrls[1] || null,
+                    preview_image_3: previewUrls[2] || null,
+                    preview_image_4: previewUrls[3] || null,
+                    categories: checkedCategories.length > 0 ? checkedCategories.join(",") : null,
+                };
+
+                const res = await fetch(`/api/storefronts/${storefrontId}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                if (!res.ok) {
+                    showMessage("pageMessage", data.error || "Failed to update storefront.", "error");
+                    return;
+                }
+
+                saved = true;
+                window.location.href = "/storefronts/dashboard";
+            } catch (err) {
+                showMessage("pageMessage", "Something went wrong while saving. Please try again.", "error");
+            } finally {
+                // If it didn't work, turn the button back on so the user can try again.
+                // (If it worked, leave it off while the page goes to the dashboard.)
+                if (!saved) {
+                    setSaving(false);
+                }
             }
-
-            const formData = new FormData(form);
-            const checkedCategories = Array.from(document.querySelectorAll('input[name="categories"]:checked')).map(cb => cb.value);
-            if (!validateCategoryLimit()) {
-                return;
-            }
-
-            const payload = {
-                brand_name: formData.get("brand_name"),
-                bio: formData.get("description"),
-                contact_info: formData.get("contact_info"),
-                logo_url: logoUrl,
-                banner_url: bannerUrl,
-                preview_image_1: previewUrls[0] || null,
-                preview_image_2: previewUrls[1] || null,
-                preview_image_3: previewUrls[2] || null,
-                preview_image_4: previewUrls[3] || null,
-                categories: checkedCategories.length > 0 ? checkedCategories.join(",") : null,
-            };
-
-            const res = await fetch(`/api/storefronts/${storefrontId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-User-Id": user.id,
-                    "X-User-Role": user.role
-                },
-                body: JSON.stringify(payload)
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-                alert(data.error || "Failed to update storefront.");
-                return;
-            }
-
-            window.location.href = "/storefronts/dashboard";
         });
 
     } catch (err) {
         console.error("Error initializing edit page:", err);
-        alert("Something went wrong. Please try again.");
+        // Stop the loading bars and tell the user it didn't work
+        document.getElementById("editLoading").innerHTML = "";
+        showMessage("pageMessage", "Something went wrong. Please refresh the page to try again.", "error");
     }
 }
 

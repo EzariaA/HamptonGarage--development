@@ -1,136 +1,91 @@
-/* checkout.css
-    The Vault Campus Marketplace
-    Created by Kaila Roberts - Iteration 4
-    
-    This file pulls the theme from storefront.css to ensure 
-    consistent branding across the purchase flow.
-*/
-
-
-/* Base Page Styles */
+/* Created by Kaila Roberts - Iteration 4 */
 body {
-    /* Uses the specific background gradient and image path from the project */
-    background: linear-gradient(rgba(0, 0, 0, 0.58), rgba(0, 0, 0, 0.58)),
-                url("/static/images/background.png") no-repeat center center fixed;
-    background-size: cover;
-    color: white;
-    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(to bottom, var(--page-gray), #cfd6df) fixed;
+    color: var(--navy);
+    font-family: 'Segoe UI', Arial, sans-serif;
     margin: 0;
 }
 
-/* Header & Navigation Styles */
-.storefront-banner {
-    width: min(1200px, 92%);
-    margin: 1.5rem auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* Back link on the left, "Checkout" title on the right */
+.checkout-header {
+    width: min(1200px, 92%); margin: 1.5rem auto;
+    display: flex; justify-content: space-between; align-items: center; gap: 1rem;
 }
+.back-btn { color: var(--btn-gray-dark); font-weight: 600; text-decoration: none; font-size: 0.95rem; }
+.back-btn:hover { color: var(--navy); text-decoration: underline; }
 
-.nav-link { text-decoration: none; } /* Removes default blue underline from links */
+.brand-block { text-align: right; }
+.brand-title { font-size: 1.8rem; margin: 0; letter-spacing: 2px; color: var(--navy); }
+.brand-subtitle { color: var(--text-gray); margin: 4px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 
-/* THE BACK BUTTON: Secondary style (Gold outline, transparent center) */
-.secondary-btn {
-    background: transparent;
-    color: #d4af37;
-    border: 1px solid #d4af37;
-    padding: 0.8rem 1.5rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    cursor: pointer;
-    transition: all 0.3s ease; /* Smooth transition for the hover effect */
-    border-radius: 2px;
-}
-
-.secondary-btn:hover {
-    background: rgba(212, 175, 55, 0.1); /* Subtle gold glow on hover */
-    transform: translateY(-2px); /* Matches movement of storefront cards */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-}
-
-/* Form & Input Styles */
-.checkout-layout-wrapper {
-    width: min(1200px, 92%);
-    margin: 0 auto;
-    display: flex;
-    gap: 2rem;
-}
-
-.form-card {
-    background: rgba(0, 0, 0, 0.85);
-    border: 1px solid rgba(184, 134, 11, 0.65);
-    padding: 2rem;
-    box-shadow: 0 0 25px rgba(184, 134, 11, 0.18);
-}
-
+/* Form on the left (wider), order summary on the right; stacked on phones */
+.checkout-layout-wrapper { width: min(1200px, 92%); margin: 0 auto 50px; display: flex; align-items: flex-start; gap: 2rem; }
 .checkout-form-container { flex: 2; }
 .order-summary-container { flex: 1; }
 
-.section-label {
-    color: #d4af37;
-    text-transform: uppercase;
-    font-weight: 800;
-    margin-bottom: 20px;
+@media (max-width: 800px) {
+    .checkout-layout-wrapper { flex-direction: column; }
+    .checkout-form-container, .order-summary-container { width: 100%; box-sizing: border-box; }
 }
 
-/* Input boxes match the 'create_storefront' form style */
+/* White card with the blue top line */
+.form-card {
+    background: var(--card-white);
+    border: 1px solid var(--border-gray); border-top: 5px solid var(--baby-blue-dark); border-radius: 12px;
+    padding: 2rem;
+    box-shadow: 0 10px 25px rgba(28, 53, 87, 0.12);
+}
+
+.section-label { color: var(--navy); text-transform: uppercase; font-weight: 800; letter-spacing: 1px; margin: 0 0 20px; }
+label { font-weight: 600; font-size: 0.9rem; color: var(--navy); }
+
+/* Text boxes, with a blue glow when clicked */
 input, textarea {
-    width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(184, 134, 11, 0.5);
-    padding: 1rem;
-    color: white;
-    margin-top: 5px;
-    margin-bottom: 20px;
-    outline: none;
+    width: 100%; box-sizing: border-box;
+    background: #f8fafc; color: var(--navy);
+    border: 1px solid var(--border-gray); border-radius: 8px;
+    padding: 0.9rem; margin: 5px 0 20px;
+    font-family: inherit; font-size: 0.95rem; outline: none;
 }
+input:focus, textarea:focus { background: white; border-color: var(--baby-blue-dark); box-shadow: 0 0 0 3px rgba(127, 188, 232, 0.35); }
 
-/* COMPLETE TRANSACTION BUTTON: Primary style (Solid Gold Gradient) */
+/* Pay button: gray pill */
 .primary-btn {
-    width: 100%;
-    padding: 1rem;
-    background: linear-gradient(145deg, #B8860B, #8B6508);
-    color: black;
-    border: none;
-    font-weight: 800;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: 0.3s;
+    width: 100%; padding: 1rem; border: none; border-radius: 999px;
+    background: linear-gradient(to bottom, var(--btn-gray), var(--btn-gray-dark)); color: white;
+    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+    cursor: pointer; transition: 0.2s;
 }
+.primary-btn:hover { background: var(--btn-gray-dark); transform: translateY(-2px); }
+.primary-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
-.primary-btn:hover {
-    filter: brightness(1.2);
-    transform: translateY(-2px);
-}
+.helper-text { color: var(--text-gray); font-size: 0.9rem; }
 
-.primary-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-}
-
-.gold { color: #d4af37; }
-
-.helper-text { color: #888; font-size: 0.9rem; }
-
+/* Red box at the top of the form when checkout fails */
 .error-msg {
-    background: rgba(180, 40, 40, 0.2);
-    border: 1px solid rgba(200, 60, 60, 0.5);
-    color: #ff8a8a;
-    padding: 10px 14px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
+    background: #fdecec; color: #b42318;
+    border: 1px solid #f1a5a5; border-left: 5px solid #f04438; border-radius: 8px;
+    padding: 10px 14px; margin-bottom: 16px; font-size: 0.9rem;
 }
 
-.price-display {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin: 20px 0 16px;
-    border-top: 1px solid rgba(184, 134, 11, 0.4);
-    padding-top: 16px;
-}
+/* One row per item in "Review Order" (built in checkout.js) */
+.checkout-item { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border-gray); }
+.checkout-item-name { font-weight: bold; color: var(--navy); }
+.checkout-item-meta { color: var(--text-gray); font-size: 0.82rem; margin-top: 2px; }
+.checkout-item-price { white-space: nowrap; align-self: center; font-weight: 700; color: var(--navy); }
 
-.brand-title { font-size: 1.8rem; margin: 0; letter-spacing: 2px; }
-.brand-subtitle { color: #888; margin: 4px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
-.brand-block { text-align: right; }
+/* Total line above the Pay button */
+.price-display { font-size: 1.2rem; font-weight: bold; margin: 20px 0 16px; padding-top: 16px; border-top: 2px solid var(--baby-blue); }
+.total-label { color: var(--text-gray); }
+.total-amount { color: var(--navy); }
+
+/* Card form (expiration and CVV side by side) */
+.card-section { margin-top: 10px; padding-top: 20px; border-top: 1px solid var(--border-gray); }
+.card-note { margin: -10px 0 20px; }
+.card-row { display: flex; gap: 1rem; }
+.card-row .input-group { flex: 1; }
+
+/* Red error text and border on a field that failed the check */
+.field-error { color: #b42318; font-size: 0.85rem; margin: -14px 0 16px; }
+.field-error:empty { display: none; }
+.input-invalid { border-color: #f04438; }
