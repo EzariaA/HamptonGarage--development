@@ -8,6 +8,8 @@
     - Per-size quantity inputs
     - Made-to-Order toggle
     Updated by Day E - April 22nd - multi-image edit management using existing S3 and listing image routes
+    Updated by Ava Bell - CSC 404 Iteration 4 - removed X-User-Id/X-User-Role headers (server uses the
+      session), replaced alert() popups with inline form messages
 */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -30,6 +32,27 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentUser = null;
     let existingImages = [];
     let sizesArray = [];
+
+    // Inline message shown at the top of the form (replaces the old alert() popups)
+    function showFormMessage(message, tone = "error") {
+        if (!form) return;
+        let box = document.getElementById("editListingFormMessage");
+        if (!box) {
+            box = document.createElement("div");
+            box.id = "editListingFormMessage";
+            box.setAttribute("role", "alert");
+            box.setAttribute("aria-live", "assertive");
+            form.prepend(box);
+        }
+        box.className = `form-message ${tone === "success" ? "success" : "error"}`;
+        box.textContent = message;
+        box.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function clearFormMessage() {
+        const box = document.getElementById("editListingFormMessage");
+        if (box) box.remove();
+    }
 
     if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
@@ -140,7 +163,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const nextTotal = existingImages.length + pendingCount - replacingExistingPending + (chosenFile ? 1 : 0);
 
             if (nextTotal > 4) {
-                alert("You can upload up to 4 listing images total.");
+                showFormMessage("You can upload up to 4 listing images total.");
                 input.value = "";
                 return;
             }
@@ -222,11 +245,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     if (!currentUser) return;
                     try {
                         const response = await fetch(`/api/listings/${listingId}/images/${image.id}/primary`, {
-                            method: "PATCH",
-                            headers: {
-                                "X-User-Id": currentUser.id,
-                                "X-User-Role": currentUser.role
-                            }
+                            method: "PATCH"
                         });
                         const result = await response.json().catch(() => ({}));
                         if (!response.ok) {
@@ -235,7 +254,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         await refreshListingImages();
                     } catch (error) {
                         console.error("Unable to set primary image:", error);
-                        alert(error.message || "Could not update the primary image.");
+                        showFormMessage(error.message || "Could not update the primary image.");
                     }
                 });
             }
@@ -248,11 +267,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                     try {
                         const response = await fetch(`/api/listings/${listingId}/images/${image.id}`, {
-                            method: "DELETE",
-                            headers: {
-                                "X-User-Id": currentUser.id,
-                                "X-User-Role": currentUser.role
-                            }
+                            method: "DELETE"
                         });
                         const result = await response.json().catch(() => ({}));
                         if (!response.ok) {
@@ -261,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         await refreshListingImages();
                     } catch (error) {
                         console.error("Unable to remove listing image:", error);
-                        alert(error.message || "Could not remove the image.");
+                        showFormMessage(error.message || "Could not remove the image.");
                     }
                 });
             }
@@ -300,9 +315,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const response = await fetch(`/api/listings/${listingId}/images`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "X-User-Id": currentUser.id,
-                    "X-User-Role": currentUser.role
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
                     image_url: imageUrl,
@@ -334,12 +347,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const [listingRes, sizesRes, myStorefrontRes] = await Promise.all([
             fetch(`/api/listings/${listingId}`),
             fetch(`/api/listings/${listingId}/sizes`),
-            fetch("/api/storefronts/me", {
-                headers: {
-                    "X-User-Id": currentUser.id,
-                    "X-User-Role": currentUser.role
-                }
-            })
+            fetch("/api/storefronts/me")
         ]);
 
         if (!listingRes.ok) {
@@ -402,6 +410,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         form.addEventListener("submit", async (event) => {
             event.preventDefault();
+            clearFormMessage();
 
             const isOneSizeMode = oneSizeToggle && oneSizeToggle.checked;
             const isMadeToOrder = madeToOrderToggle && madeToOrderToggle.checked;
@@ -410,17 +419,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             const queuedImages = selectedListingImages.filter(Boolean);
 
             if (!title || price < 0) {
-                alert("Please enter valid listing details.");
+                showFormMessage("Please enter valid listing details.");
                 return;
             }
 
             if (existingImages.length + queuedImages.length === 0) {
-                alert("Please keep at least one listing image.");
+                showFormMessage("Please keep at least one listing image.");
                 return;
             }
 
             if (existingImages.length + queuedImages.length > 4) {
-                alert("You can upload up to 4 listing images total.");
+                showFormMessage("You can upload up to 4 listing images total.");
                 return;
             }
 
@@ -430,7 +439,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (isOneSizeMode) {
                 const qty = parseInt(oneSizeQty ? oneSizeQty.value : "0", 10);
                 if (!isMadeToOrder && (isNaN(qty) || qty < 0)) {
-                    alert("Please enter a valid quantity for One Size.");
+                    showFormMessage("Please enter a valid quantity for One Size.");
                     return;
                 }
                 checkedSizes = ["One Size"];
@@ -439,7 +448,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const checked = Array.from(document.querySelectorAll('input[name="sizes"]:checked'));
                 checkedSizes = checked.map((cb) => cb.value);
                 if (!checkedSizes.length) {
-                    alert("Please select at least one size.");
+                    showFormMessage("Please select at least one size.");
                     return;
                 }
                 for (const size of checkedSizes) {
@@ -448,7 +457,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         : null;
                     const qty = qtyInput ? parseInt(qtyInput.value, 10) : NaN;
                     if (!isMadeToOrder && (isNaN(qty) || qty < 0)) {
-                        alert(`Please enter a valid quantity for size ${size}.`);
+                        showFormMessage(`Please enter a valid quantity for size ${size}.`);
                         return;
                     }
                     sizeQuantities[size] = isMadeToOrder ? 0 : (isNaN(qty) ? 0 : qty);
@@ -459,61 +468,60 @@ document.addEventListener("DOMContentLoaded", async () => {
                 ? 0
                 : Object.values(sizeQuantities).reduce((a, b) => a + b, 0);
 
-            const updateRes = await fetch(`/api/listings/${listingId}`, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-User-Id": currentUser.id,
-                    "X-User-Role": currentUser.role
-                },
-                body: JSON.stringify({
-                    title,
-                    price,
-                    quantity_on_hand: totalQty,
-                    fulfillment_type: "IN_STOCK",
-                    status: "ACTIVE",
-                    sizes_available: checkedSizes,
-                    is_made_to_order: isMadeToOrder,
-                })
-            });
-
-            const updateData = await updateRes.json();
-            if (!updateRes.ok) {
-                throw new Error(updateData.error || "Failed to update listing.");
-            }
-
-            const existingSizeSet = new Set((Array.isArray(sizesArray) ? sizesArray : []).map((s) => String(s.size)));
-            const newSizeSet = new Set(checkedSizes);
-
-            for (const size of checkedSizes) {
-                await fetch(`/api/listings/${listingId}/sizes`, {
-                    method: "POST",
+            try {
+                const updateRes = await fetch(`/api/listings/${listingId}`, {
+                    method: "PUT",
                     headers: {
-                        "Content-Type": "application/json",
-                        "X-User-Id": currentUser.id,
-                        "X-User-Role": currentUser.role
+                        "Content-Type": "application/json"
                     },
-                    body: JSON.stringify({ size, quantity: sizeQuantities[size] || 0 })
+                    body: JSON.stringify({
+                        title,
+                        price,
+                        quantity_on_hand: totalQty,
+                        fulfillment_type: "IN_STOCK",
+                        status: "ACTIVE",
+                        sizes_available: checkedSizes,
+                        is_made_to_order: isMadeToOrder,
+                    })
                 });
-            }
 
-            for (const existing of existingSizeSet) {
-                if (newSizeSet.has(existing)) continue;
-                await fetch(`/api/listings/${listingId}/sizes/${existing}`, {
-                    method: "DELETE",
-                    headers: {
-                        "X-User-Id": currentUser.id,
-                        "X-User-Role": currentUser.role
-                    }
-                });
-            }
+                const updateData = await updateRes.json();
+                if (!updateRes.ok) {
+                    throw new Error(updateData.error || "Failed to update listing.");
+                }
 
-            await saveQueuedImages();
-            window.location.href = "/storefronts/dashboard";
+                const existingSizeSet = new Set((Array.isArray(sizesArray) ? sizesArray : []).map((s) => String(s.size)));
+                const newSizeSet = new Set(checkedSizes);
+
+                for (const size of checkedSizes) {
+                    await fetch(`/api/listings/${listingId}/sizes`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ size, quantity: sizeQuantities[size] || 0 })
+                    });
+                }
+
+                for (const existing of existingSizeSet) {
+                    if (newSizeSet.has(existing)) continue;
+                    await fetch(`/api/listings/${listingId}/sizes/${existing}`, {
+                        method: "DELETE"
+                    });
+                }
+
+                await saveQueuedImages();
+                window.location.href = "/storefronts/dashboard";
+            } catch (error) {
+                console.error("Error saving listing:", error);
+                showFormMessage(error.message || "Could not save your changes. Please try again.");
+            }
         });
     } catch (error) {
         console.error("Error loading edit listing page:", error);
-        alert(error.message || "Something went wrong while loading this listing.");
-        window.location.href = "/storefronts/dashboard";
+        showFormMessage((error.message || "Something went wrong while loading this listing.") + " Returning to your dashboard...");
+        window.setTimeout(() => {
+            window.location.href = "/storefronts/dashboard";
+        }, 2500);
     }
 });

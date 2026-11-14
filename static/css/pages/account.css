@@ -1,10 +1,8 @@
 /*
     account.css
-    Moved out of the inline <style> block in account.html
-    by Mason Johnson, Iteration 2, 10/1/26
-    Switched to the garage theme (blue banner, light gray page, white card,
-    navy text, gray buttons) by Mason Johnson, 10/27/26.
-    Colors like var(--navy) come from base.css.
+    Styles for the account page (templates/account.html).
+    Ezaria ALexander with Mason Johnso
+    Rewritten November 2026. Colors come from the variables in base.css.
 */
         /* Light gray page instead of the old black one */
         body {
