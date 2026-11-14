@@ -136,102 +136,74 @@ input, textarea {
 .brand-block { text-align: right; }
 
 
-/* Campus map picker - Mason Johnson */
+/* Campus map picker - Clarence Bostic */
 .map-picker {
-    margin-bottom: 10px;
-}
-
-.map-hint {
-    margin: 0 0 8px;
-    font-size: 0.85rem;
-    opacity: 0.85;
-}
-
-.map-spots {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    margin-bottom: 10px;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.map-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 170px;
+}
+
+.map-spot-btn,
+.map-clear-btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
 }
 
 .map-spot-btn {
     background: transparent;
     color: #d4af37;
     border: 1px solid #d4af37;
-    border-radius: 999px;
-    padding: 4px 10px;
-    font-size: 0.8rem;
-    cursor: pointer;
 }
 
+.map-spot-btn:hover,
 .map-spot-btn.active {
     background: #d4af37;
     color: #121212;
 }
 
-/* only real mouse hover - on phones a tapped button would stay highlighted */
-@media (hover: hover) {
-    .map-spot-btn:hover {
-        background: #d4af37;
-        color: #121212;
-    }
+.map-clear-btn {
+    background: transparent;
+    color: #ccc;
+    border: 1px solid #555;
+}
+
+.map-clear-btn[hidden] {
+    display: none;
 }
 
 .map-frame {
     position: relative;
-    width: 100%;
-    max-width: 520px;
-    border: 1px solid rgba(212, 175, 55, 0.6);
-    border-radius: 6px;
-    overflow: hidden;
-    cursor: crosshair;
+    flex: 1;
+    max-width: 420px;
 }
 
 .map-frame img {
     display: block;
     width: 100%;
-    height: auto;
-    user-select: none;
+    border-radius: 6px;
 }
 
-/* the pin's point sits exactly on the picked spot */
 .map-pin {
     position: absolute;
     width: 18px;
     height: 18px;
     background: #d4af37;
-    border: 3px solid #121212;
+    border: 2px solid #121212;
     border-radius: 50% 50% 50% 0;
     transform: translate(-50%, -100%) rotate(-45deg);
-    transform-origin: center;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     pointer-events: none;
 }
 
 .map-pin[hidden] {
     display: none;
-}
-
-.map-selection-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 10px;
-    margin-top: 8px;
-    min-height: 24px;
-}
-
-.map-selection {
-    font-weight: bold;
-    color: #d4af37;
-}
-
-.map-clear-btn {
-    flex-shrink: 0;
-    background: transparent;
-    color: white;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-radius: 4px;
-    padding: 2px 10px;
-    cursor: pointer;
 }

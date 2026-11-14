@@ -51,19 +51,20 @@ Updated by Mason Johnson 10/26/26 - added Pay button
                 <div class="input-group">
                     <label>Meeting Location</label>
                     <div class="map-picker">
-                        <p class="map-hint">Tap the map to pick a meet-up spot, or choose a common one:</p>
-                        <div class="map-spots" id="mapSpots"></div>
-                        <div class="map-frame" id="campusMap">
-                            <img src="{{ url_for('static', filename='images/campus_map.jpg') }}"
-                                 alt="Hampton University campus map" draggable="false">
-                            <div class="map-pin" id="mapPin" hidden></div>
+                        <div class="map-sidebar" id="mapSpots">
+                            <button type="button" class="map-spot-btn" data-name="Student Center" data-x="52.0" data-y="46.7">Student Center</button>
+                            <button type="button" class="map-spot-btn" data-name="Harvey Library" data-x="42.8" data-y="29.4">Harvey Library</button>
+                            <button type="button" class="map-spot-btn" data-name="Convocation Center" data-x="81.4" data-y="22.9">Convocation Center</button>
+                            <button type="button" class="map-spot-btn" data-name="Memorial Church" data-x="68.4" data-y="79.7">Memorial Church</button>
+                            <button type="button" class="map-spot-btn" data-name="Emancipation Oak" data-x="47.2" data-y="7.3">Emancipation Oak</button>
+                            <button type="button" class="map-spot-btn" data-name="Holly Tree Inn" data-x="48.3" data-y="72.6">Holly Tree Inn</button>
+                            <button type="button" class="map-clear-btn" id="mapClear" hidden>Clear</button>
                         </div>
-                        <div class="map-selection-row">
-                            <span id="mapSelection" class="map-selection"></span>
-                            <button type="button" id="mapClear" class="map-clear-btn" hidden>Clear</button>
+                        <div class="map-frame">
+                            <img src="{{ url_for('static', filename='images/campus_map.jpg') }}" alt="Hampton University campus map" id="campusMap">
+                            <span class="map-pin" id="mapPin" hidden></span>
                         </div>
                     </div>
-                    <textarea id="meetingLocation" placeholder="Pick a spot on the map, or type one (e.g. Student Center, 1st Floor)" required></textarea>
                 </div>
             </form>
         </section>
@@ -84,5 +85,7 @@ Updated by Mason Johnson 10/26/26 - added Pay button
 {% endblock %}
 
 {% block scripts %}
+{% block scripts %}
 <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+<script src="{{ url_for('static', filename='js/campus_map_picker.js') }}"></script>
 {% endblock %}
