@@ -25,7 +25,8 @@ def _generate_confirmation_number():
 
 def complete_transaction_from_session(user_id, session_cart, buyer_details):
     """
-    Saves the order and its items as PENDING_PAYMENT using the session cart and buyer details.
+    Saves the order and its items as PAID using the session cart and buyer details.
+    Only call this after Stripe confirms the payment (see /api/checkout/success).
 
     buyer_details keys: first_name, last_name, email, contact, meeting_location
     session_cart items: { id, name, price, quantity, size }
@@ -75,7 +76,7 @@ def complete_transaction_from_session(user_id, session_cart, buyer_details):
         },
         cart_items=cart_items,
         total_amount=total_amount,
-        order_status="PENDING_PAYMENT",  # not paid yet
+        order_status="PAID",
     )
 
     clear_cart_for_user(user_id)
