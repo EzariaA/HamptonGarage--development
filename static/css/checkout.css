@@ -134,3 +134,76 @@ input, textarea {
 .brand-title { font-size: 1.8rem; margin: 0; letter-spacing: 2px; }
 .brand-subtitle { color: #888; margin: 4px 0 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; }
 .brand-block { text-align: right; }
+
+
+/* Campus map picker - Clarence Bostic */
+.map-picker {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.map-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 170px;
+}
+
+.map-spot-btn,
+.map-clear-btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    text-align: left;
+    cursor: pointer;
+}
+
+.map-spot-btn {
+    background: transparent;
+    color: #d4af37;
+    border: 1px solid #d4af37;
+}
+
+.map-spot-btn:hover,
+.map-spot-btn.active {
+    background: #d4af37;
+    color: #121212;
+}
+
+.map-clear-btn {
+    background: transparent;
+    color: #ccc;
+    border: 1px solid #555;
+}
+
+.map-clear-btn[hidden] {
+    display: none;
+}
+
+.map-frame {
+    position: relative;
+    flex: 1;
+    max-width: 420px;
+}
+
+.map-frame img {
+    display: block;
+    width: 100%;
+    border-radius: 6px;
+}
+
+.map-pin {
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    background: #d4af37;
+    border: 2px solid #121212;
+    border-radius: 50% 50% 50% 0;
+    transform: translate(-50%, -100%) rotate(-45deg);
+    pointer-events: none;
+}
+
+.map-pin[hidden] {
+    display: none;
+}

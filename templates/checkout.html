@@ -1,8 +1,6 @@
 {#
 Created by Kaila Roberts 3/23/26
 Updated by Day Ekoi 4/22/26 - wired to checkout.js, added field IDs, error display
-Updated by Mason Johnson 10/26/26 - added Pay button
-10/27/26 - mock card form removed; buyers enter their card on Stripe's page (Ezaria's flow)
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
 {% extends "base.html" %}
@@ -48,6 +46,25 @@ Updated by Mason Johnson 10/26/26 - added Pay button
                     <label>Contact Number</label>
                     <input type="text" id="contactNumber" placeholder="e.g. (123) 456-7890" required>
                 </div>
+                {# Campus map with quick-pick buttons - Clarence Bostic, Iteration 4 #}
+                <div class="input-group">
+                    <label>Pick a Meetup Spot</label>
+                    <div class="map-picker">
+                        <div class="map-sidebar" id="mapSpots">
+                            <button type="button" class="map-spot-btn" data-name="Student Center" data-x="52.0" data-y="46.7">Student Center</button>
+                            <button type="button" class="map-spot-btn" data-name="Harvey Library" data-x="42.8" data-y="29.4">Harvey Library</button>
+                            <button type="button" class="map-spot-btn" data-name="Convocation Center" data-x="81.4" data-y="22.9">Convocation Center</button>
+                            <button type="button" class="map-spot-btn" data-name="Memorial Church" data-x="68.4" data-y="79.7">Memorial Church</button>
+                            <button type="button" class="map-spot-btn" data-name="Emancipation Oak" data-x="47.2" data-y="7.3">Emancipation Oak</button>
+                            <button type="button" class="map-spot-btn" data-name="Holly Tree Inn" data-x="48.3" data-y="72.6">Holly Tree Inn</button>
+                            <button type="button" class="map-clear-btn" id="mapClear" hidden>Clear</button>
+                        </div>
+                        <div class="map-frame">
+                            <img src="{{ url_for('static', filename='images/campus_map.jpg') }}" alt="Hampton University campus map" id="campusMap">
+                            <span class="map-pin" id="mapPin" hidden></span>
+                        </div>
+                    </div>
+                </div>
                 <div class="input-group">
                     <label>Meeting Location</label>
                     <textarea id="meetingLocation" placeholder="e.g. Student Center, 1st Floor" required></textarea>
@@ -64,12 +81,12 @@ Updated by Mason Johnson 10/26/26 - added Pay button
                 <span class="gold">Total: </span>
                 <span class="total-amount">$0.00</span>
             </div>
-            <!-- Pay button: sends the buyer details, then goes to Stripe's payment page -->
-            <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Pay</button>
+            <button type="submit" id="submitCheckoutBtn" form="checkoutForm" class="primary-btn">Complete Transaction</button>
         </aside>
     </main>
 {% endblock %}
 
 {% block scripts %}
 <script src="{{ url_for('static', filename='js/checkout.js') }}"></script>
+<script src="{{ url_for('static', filename='js/campus_map_picker.js') }}"></script>
 {% endblock %}

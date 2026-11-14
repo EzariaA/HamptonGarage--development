@@ -110,33 +110,42 @@ class TestOtherWishlistServiceFunctions(unittest.TestCase):
 
 # ________________________________________________________
 # ROUTE TESTS (controllers/wishlist_controller.py)
-# The wishlist routes know who you are from the X-User-Id header.
+# The wishlist routes know who you are from the login session.
+# Updated by Clarence Bostic - Iteration 4: log in through the session instead of
+# the old X-User-Id header, which the app no longer accepts.
 # ________________________________________________________
 
 class TestWishlistRoutes(unittest.TestCase):
 
     def setUp(self):
         app = Flask(__name__)
+        app.secret_key = "test-secret"
         app.register_blueprint(wishlist_bp)
         self.client = app.test_client()
-        self.logged_in = {"X-User-Id": "42"}
+
+    def log_in(self, user_id=42):
+        with self.client.session_transaction() as sess:
+            sess["user_id"] = user_id
 
     def test_add_without_user_is_unauthorized(self):
         res = self.client.post("/api/wishlist", json={"listing_id": 3})
         self.assertEqual(res.status_code, 401)
 
     def test_add_without_listing_id_is_rejected(self):
-        res = self.client.post("/api/wishlist", json={}, headers=self.logged_in)
+        self.log_in()
+        res = self.client.post("/api/wishlist", json={})
         self.assertEqual(res.status_code, 400)
 
     def test_add_with_text_listing_id_is_rejected(self):
-        res = self.client.post("/api/wishlist", json={"listing_id": "3"}, headers=self.logged_in)
+        self.log_in()
+        res = self.client.post("/api/wishlist", json={"listing_id": "3"})
         self.assertEqual(res.status_code, 400)
 
     @mock.patch("controllers.wishlist_controller.wishlist_service.add_item_to_wishlist",
                 return_value=(True, "Item added to wishlist"))
     def test_add_item_returns_201(self, add):
-        res = self.client.post("/api/wishlist", json={"listing_id": 3}, headers=self.logged_in)
+        self.log_in()
+        res = self.client.post("/api/wishlist", json={"listing_id": 3})
 
         self.assertEqual(res.status_code, 201)
         add.assert_called_once_with(42, 3)
@@ -144,7 +153,8 @@ class TestWishlistRoutes(unittest.TestCase):
     @mock.patch("controllers.wishlist_controller.wishlist_service.get_user_wishlist",
                 return_value=(True, [{"id": 1, "listing_id": 3}]))
     def test_get_wishlist_returns_items(self, get_wishlist):
-        res = self.client.get("/api/wishlist", headers=self.logged_in)
+        self.log_in()
+        res = self.client.get("/api/wishlist")
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(len(res.get_json()["wishlist"]), 1)
@@ -152,14 +162,16 @@ class TestWishlistRoutes(unittest.TestCase):
     @mock.patch("controllers.wishlist_controller.wishlist_service.remove_item_from_wishlist",
                 return_value=(False, "Item not found in wishlist"))
     def test_remove_missing_item_returns_404(self, remove):
-        res = self.client.delete("/api/wishlist/3", headers=self.logged_in)
+        self.log_in()
+        res = self.client.delete("/api/wishlist/3")
         self.assertEqual(res.status_code, 404)
 
     @mock.patch("controllers.wishlist_controller.wishlist_service.get_wishlist_item_details",
                 return_value=(True, {"id": 55, "user_id": 999}))
     def test_cannot_see_someone_elses_wishlist_item(self, get_details):
+        self.log_in()
         # Item 55 belongs to user 999, but user 42 is asking
-        res = self.client.get("/api/wishlist/items/55", headers=self.logged_in)
+        res = self.client.get("/api/wishlist/items/55")
         self.assertEqual(res.status_code, 403)
 
 
