@@ -1,10 +1,7 @@
 # Hampton Garage
-# Unit tests for checkout failure paths (Iteration 4, HG-113)
-#   1. The Stripe cancel URL carries a "cancelled" flag so checkout.js can show a message.
-#   2. If a buyer has paid but the order cannot be created ("charged but no order"),
-#      the app logs it, keeps the cart, and sends the buyer back to checkout with a reference.
-# Stripe and the database are mocked, so these tests run offline.
-
+# AI assistance: Claude (Anthropic) helped draft these tests.
+# Ezaria Alexander reviewed every test, ran them, and edited them to match the app.
+import os
 import os
 import sys
 import unittest
