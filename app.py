@@ -1,8 +1,16 @@
 import sys
 import os
+import logging
 from dotenv import load_dotenv  # added - ava
+from datetime import timedelta # added - Makena Jelks
 
 load_dotenv()  # added - ava: read settings from .env
+
+# added - Makena Jelks (lines 10 - 13) one logging setup for app
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+)
 
 from flask import Flask, render_template, redirect, url_for, session
 
@@ -30,6 +38,10 @@ def create_app():
     # added - ava: stop if the secret key is missing
     if not app.secret_key:
         raise RuntimeError("Add SECRET_KEY to your .env file")
+
+    # added - Makena Jelks: permanent admin sessions expire after 30 min
+    app.permanent_session_lifetime = timedelta(minutes=30)
+
     # Run DB migrations on every startup so new columns are always present
     try:
         from init_db import create_vault_tables
@@ -112,6 +124,16 @@ def create_app():
     app.register_blueprint(admin_bp) # Updated 3/19/2026 by Ryan Grimes
     app.register_blueprint(returns_bp)
     app.register_blueprint(checkout_bp, url_prefix='/api')
+
+    # added (line 129-136) - Makena Jelks
+    @app.errorhandler(404)
+    def page_not_found(error):
+        return render_template("errors/404.html"), 404
+
+    @app.errorhandler(500)
+    def server_error(error):
+        app.logger.error("500 error: %s", getattr(error, "original_exception", error))
+        return render_template("errors/500.html"), 500
 
     @app.get("/health")
     def health():

@@ -1,0 +1,53 @@
+/* styles for the 404 and 500 pages - Makena Jelks */
+body {
+    background: var(--page-gray);
+    margin: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+.error-page {
+    display: flex;
+    justify-content: center;
+    padding: 60px 16px;
+}
+
+.error-card {
+    background: var(--card-white);
+    border: 1px solid var(--border-gray);
+    border-top: 4px solid var(--baby-blue-dark);
+    border-radius: 12px;
+    padding: 40px 32px;
+    max-width: 480px;
+    text-align: center;
+}
+
+.error-code {
+    font-size: 4rem;
+    font-weight: 800;
+    color: var(--navy);
+    margin: 0;
+}
+
+.error-card h1 {
+    color: var(--navy);
+    margin: 8px 0;
+}
+
+.error-card p {
+    color: var(--text-gray);
+}
+
+.error-btn {
+    display: inline-block;
+    margin-top: 16px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    background: var(--btn-gray);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.error-btn:hover {
+    background: var(--btn-gray-dark);
+}

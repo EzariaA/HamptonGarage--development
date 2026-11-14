@@ -80,6 +80,39 @@ def get_all_returns(include_deleted=False):
     return results
 
 
+# HG-119 (Mattie Edozie, I4): the logged-in user's own returns, newest first,
+# for the "My returns" list on the returns page.
+def get_returns_by_user(user_id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    query = """
+        SELECT id, order_number, reason, has_damage, status, created_at
+        FROM returns
+        WHERE user_id = %s AND is_deleted = FALSE
+        ORDER BY created_at DESC;
+    """
+
+    cur.execute(query, (user_id,))
+    rows = cur.fetchall()
+
+    cur.close()
+    conn.close()
+
+    results = []
+    for row in rows:
+        results.append({
+            "id": row[0],
+            "order_number": row[1],
+            "reason": row[2],
+            "has_damage": row[3],
+            "status": row[4],
+            "created_at": row[5],
+        })
+
+    return results
+
+
 def update_return_status(return_id, status):
     conn = get_connection()
     cur = conn.cursor()

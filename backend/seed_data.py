@@ -26,10 +26,12 @@ It is ok to run it more than once, it won't make duplicates.
 """
 
 import os
+import logging
 
 from db import get_connection
 from utils.auth_utils import hash_password
 
+logger = logging.getLogger(__name__) # added - Makena Jelks
 
 def seed_admin(conn):
     username = os.getenv("ADMIN_USERNAME", "admin")
@@ -38,7 +40,8 @@ def seed_admin(conn):
 
     # stop if there is no password set
     if not password:
-        print("SEED: ADMIN_PASSWORD is not set, so the admin user was not created.")
+        # replaced print with logger.warning - Makena Jelks
+        logger.warning("SEED: ADMIN_PASSWORD is not set, so the admin user was not created.")
         return None
 
     cur = conn.cursor()
@@ -55,11 +58,14 @@ def seed_admin(conn):
     conn.commit()
     cur.close()
 
-    print(f"SEED: admin user '{username}' is ready.")
+    # replace print with logger.info - Makena Jelks
+    logger.info(f"SEED: admin user '{username}' is ready.")
     return admin_id
 
 
 if __name__ == "__main__":
+    # added (line 68) - Makena Jelks 
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     conn = get_connection()
     seed_admin(conn)
     conn.close()

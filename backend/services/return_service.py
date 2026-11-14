@@ -4,7 +4,7 @@ return_service.py
 Business rules and validation for return requests.
 """
 
-from models.return_model import create_return_record, get_all_returns, update_return_status
+from models.return_model import create_return_record, get_all_returns, get_returns_by_user, update_return_status
 
 VALID_RETURN_STATUSES = {"pending", "reviewed", "resolved"}
 
@@ -50,6 +50,21 @@ def create_return_service(current_user, data, damage_image_url=None):
 
 def fetch_returns_service():
     return get_all_returns(include_deleted=False)
+
+
+# HG-119 (Mattie Edozie, I4): only the logged-in user's returns.
+# Dates are sent as ISO text so the page can format them.
+def fetch_my_returns_service(current_user):
+    if not current_user or not current_user.get("id"):
+        raise Exception("Unauthorized.")
+
+    results = []
+    for item in get_returns_by_user(current_user["id"]):
+        row = dict(item)
+        if row.get("created_at") is not None:
+            row["created_at"] = row["created_at"].isoformat()
+        results.append(row)
+    return results
 
 
 def update_return_status_service(return_id, status):
