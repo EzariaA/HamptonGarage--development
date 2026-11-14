@@ -1,19 +1,8 @@
-# Hampton Garage
+# Hampton Garage 
 # CSC 404 FALL 26'
-# Updated by Ezaria Alexander - Stripe Checkout (create-session / success)
-# 10/27/26 - Team decision: Ezaria's Stripe flow is the only checkout flow.
-#   Mattie's alternate payment routes and Mason's mock card check were removed
-#   after the merge, to keep checkout simple.
-#
-# How checkout works:
-#   1. checkout.js sends the buyer's details to /api/checkout/create-session
-#   2. We check stock and prices (from the database), then ask Stripe for a payment page
-#   3. The buyer pays on Stripe's page (we never see the card)
-#   4. Stripe sends the buyer to /api/checkout/success; we confirm with Stripe that it was paid,
-#      and only then create the order, update stock, and empty the cart
+# Updated by Ezaria Alexnader
 
 import os
-
 import stripe
 from flask import Blueprint, request, jsonify, session, redirect
 
@@ -24,6 +13,13 @@ from services.checkout_service import (
     complete_transaction_from_session,
     get_order_summary_service,
     get_user_orders_service,
+    validate_card,
+)
+from services.payment_service import (
+    check_payment_on_return,
+    handle_stripe_webhook,
+    payments_configured,
+    start_stripe_checkout,
 )
 
 stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
@@ -31,6 +27,43 @@ REQUIRED_FIELDS = ["first_name", "last_name", "email", "contact", "meeting_locat
 
 checkout_bp = Blueprint("checkout", __name__)
 
+
+# Checks the mock card info, then places the order or sends back the card errors
+# Updated by Mason Johnson - Iteration 2 - 10/26/26 - added mock card check before placing the order
+@checkout_bp.route("/checkout/complete", methods=["POST"])
+def complete_checkout():
+    user_id = session.get("user_id")
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    session_cart = session.get("cart", [])
+    if not session_cart:
+        return jsonify({"error": "Cart is empty"}), 400
+
+    data = request.get_json() or {}
+
+    # Mock payment: check the card fields. Card data is not passed on or saved anywhere.
+    card_errors = validate_card(data.get("card") or {})
+    if card_errors:
+        return jsonify({
+            "error": "Please fix the card details below.",
+            "card_errors": card_errors,
+        }), 400
+
+    try:
+        result = complete_transaction_from_session(user_id, session_cart, data)
+        session["cart"] = []
+        session.modified = True
+        return jsonify({
+            "success": True,
+            "confirmation_number": result["confirmation_number"],
+            "order_id": result["order"]["id"],
+            "total_amount": result["total_amount"],
+        }), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+checkout_bp = Blueprint("checkout", __name__)
 
 @checkout_bp.route("/orders/by-confirmation/<confirmation_number>", methods=["GET"])
 def get_order_confirmation(confirmation_number):
@@ -56,8 +89,7 @@ def get_my_orders():
         return jsonify({"orders": orders}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-
+    
 @checkout_bp.route("/checkout/create-session", methods=["POST"])
 def create_checkout_session():
     user_id = session.get("user_id")
@@ -85,7 +117,6 @@ def create_checkout_session():
                 "price_data": {
                     "currency": "usd",
                     "product_data": {"name": item.get("name") or "Item"},
-                    # Price comes from the database, not the cart, so it can't be changed by the buyer
                     "unit_amount": int(round(float(listing["price"]) * 100)),
                 },
                 "quantity": qty,
@@ -116,16 +147,13 @@ def checkout_success():
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # Page refreshed? The order already exists, so don't create it twice.
         cur.execute("SELECT confirmation_number FROM orders WHERE stripe_session_id = %s", (session_id,))
         row = cur.fetchone()
         if row:
             return redirect(f"/order-confirmation?conf={row[0]}")
 
-        # Ask Stripe directly whether this session was paid, and by this user
         stripe_session = stripe.checkout.Session.retrieve(session_id)
-        if stripe_session.payment_status != "paid" or stripe_session.metadata.to_dict().get("user_id") != str(user_id):
-            return redirect("/checkout")
+        if stripe_session.payment_status != "paid" or stripe_session.metadata.to_dict().get("user_id") != str(user_id):            return redirect("/checkout")
 
         buyer = session.pop("pending_buyer", {})
         result = complete_transaction_from_session(user_id, session.get("cart", []), buyer)
