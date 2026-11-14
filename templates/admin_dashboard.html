@@ -1,5 +1,5 @@
 {#
- File Created By David Jackson 
+ File Created By David Jackson
  Updated by David Jackson 4/21/2026
 #}
 {# Migrated to extend base.html by Mason Johnson, Iteration 2, 10/1/26 #}
@@ -12,15 +12,23 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Main page title -->
-    <h1>Admin Dashboard</h1>
+<!-- Shared baby blue banner (styles in base.css) -->
+<header class="site-banner">
+    <a href="/storefronts">HAMPTON GARAGE</a>
+</header>
 
-    <!-- Added 4/23/2026 by David Jackson -->
-    <!-- Logout Button -->
-    <div style="text-align: right; margin-bottom: 20px;">
-        <a href="{{ url_for('auth.logout') }}">
-            <button class="logout-btn">Logout</button>
-        </a>
+<!-- Success / error messages from admin.js show up here, pinned to the bottom of the screen -->
+<div id="adminMessage" class="ui-message-area"></div>
+
+<div class="admin-container">
+    <!-- Page title + admin pill on the left, logout on the right -->
+    <!-- Logout added 4/23/2026 by David Jackson -->
+    <div class="admin-header">
+        <div>
+            <h1>Admin Dashboard</h1>
+            <span class="role-badge">Admin</span>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="logout-link">LOGOUT</a>
     </div>
 
     <!-- USERS SECTION -->
@@ -31,21 +39,23 @@
         <button onclick="loadUsers()">Load Users</button>
 
         <!-- Table to display users dynamically -->
-        <table id="usersTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Username</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Created At</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        <div class="table-wrap">
+            <table id="usersTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Created At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-            <!-- Data will be inserted here using JavaScript -->
-            <tbody></tbody>
-        </table>
+                <!-- Data will be inserted here using JavaScript -->
+                <tbody></tbody>
+            </table>
+        </div>
     </section>
 
     <!-- LISTINGS SECTION -->
@@ -55,24 +65,26 @@
         <!-- Button loads listings from backend -->
         <button onclick="loadListings()">Load Listings</button>
 
-        <table id="listingsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Storefront ID</th>
-                    <th>Title</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Status</th>
-                    <th>Fulfillment Type</th>
-                    <th>Created At</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        <div class="table-wrap">
+            <table id="listingsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Storefront ID</th>
+                        <th>Title</th>
+                        <th>Price</th>
+                        <th>Quantity</th>
+                        <th>Status</th>
+                        <th>Fulfillment Type</th>
+                        <th>Created At</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-            <!-- Filled dynamically with JavaScript -->
-            <tbody></tbody>
-        </table>
+                <!-- Filled dynamically with JavaScript -->
+                <tbody></tbody>
+            </table>
+        </div>
     </section>
 
     <!-- STOREFRONTS SECTION -->
@@ -82,19 +94,21 @@
         <!-- Button loads storefronts -->
         <button onclick="loadStorefronts()">Load Storefronts</button>
 
-        <table id="storefrontsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Owner ID</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
+        <div class="table-wrap">
+            <table id="storefrontsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Owner ID</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
 
-            <!-- Populated dynamically -->
-            <tbody></tbody>
-        </table>
+                <!-- Populated dynamically -->
+                <tbody></tbody>
+            </table>
+        </div>
     </section>
 
     <!-- RETURNS SECTION -->
@@ -103,21 +117,24 @@
 
         <button onclick="loadReturns()">Load Returns</button>
 
-        <table id="returnsTable">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>User</th>
-                    <th>Order #</th>
-                    <th>Damage</th>
-                    <th>Image</th>
-                    <th>Status</th>
-                    <th>Reason</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
+        <div class="table-wrap">
+            <table id="returnsTable">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>User</th>
+                        <th>Order #</th>
+                        <th>Damage</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th>Reason</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </section>
+</div>
 {% endblock %}
 
 {% block scripts %}
