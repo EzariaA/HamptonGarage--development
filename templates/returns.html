@@ -84,6 +84,13 @@ Please still complete this form so Hampton Garage can track the return request.
     </main>
 
     <div class="returns-feedback" id="returnsFeedback"></div>
+
+    <!-- HG-119 (Mattie Edozie, I4): the user's own returns, with loading and empty states -->
+    <section class="my-returns" id="myReturns">
+        <h2 class="my-returns-title">My Returns</h2>
+        <p class="my-returns-status" id="myReturnsStatus">Loading your returns...</p>
+        <ul class="my-returns-list" id="myReturnsList"></ul>
+    </section>
 {% endblock %}
 
 {% block scripts %}

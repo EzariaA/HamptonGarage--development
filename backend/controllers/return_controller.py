@@ -7,9 +7,23 @@ Routes for the returns page and return request submission.
 from flask import Blueprint, jsonify, render_template, request, redirect, url_for, session
 from utils.auth_utils import get_current_user # I3 - Makena Jelks
 
-from services.return_service import create_return_service
+from services.return_service import create_return_service, fetch_my_returns_service
 
 returns_bp = Blueprint("returns_bp", __name__)
+
+
+# HG-119 (Mattie Edozie, I4): list the logged-in user's own returns.
+# The user comes from the session only, never from a request header.
+@returns_bp.get("/returns/my")
+def my_returns():
+    current_user = get_current_user()
+    if current_user is None:
+        return jsonify({"error": "Unauthorized."}), 401
+
+    try:
+        return jsonify(fetch_my_returns_service(current_user)), 200
+    except Exception:
+        return jsonify({"error": "Could not load your returns."}), 500
 
 
 @returns_bp.get("/returns")

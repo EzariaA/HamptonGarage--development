@@ -83,6 +83,79 @@ document.addEventListener("DOMContentLoaded", () => {
 
     wireDamageZone();
 
+    // HG-119 (Mattie Edozie, I4): "My Returns" list with loading and empty states.
+    // Text is set with textContent so user-typed reasons cannot inject HTML.
+    const myReturnsStatus = document.getElementById("myReturnsStatus");
+    const myReturnsList = document.getElementById("myReturnsList");
+
+    function setReturnsStatus(message, isError = false) {
+        if (!myReturnsStatus) return;
+        myReturnsStatus.textContent = message;
+        myReturnsStatus.classList.toggle("error", isError);
+        myReturnsStatus.style.display = message ? "block" : "none";
+    }
+
+    function renderReturn(item) {
+        const li = document.createElement("li");
+        li.className = "my-return-item";
+
+        const top = document.createElement("div");
+        top.className = "my-return-top";
+
+        const order = document.createElement("span");
+        order.className = "my-return-order";
+        order.textContent = `Order ${item.order_number}`;
+
+        const status = document.createElement("span");
+        status.className = `my-return-status status-${item.status}`;
+        status.textContent = item.status;
+
+        top.appendChild(order);
+        top.appendChild(status);
+
+        const reason = document.createElement("p");
+        reason.className = "my-return-reason";
+        reason.textContent = item.reason;
+
+        const meta = document.createElement("p");
+        meta.className = "my-return-meta";
+        const date = item.created_at ? new Date(item.created_at).toLocaleDateString() : "";
+        meta.textContent = `${date}${item.has_damage ? " · Damage reported" : ""}`;
+
+        li.appendChild(top);
+        li.appendChild(reason);
+        li.appendChild(meta);
+        return li;
+    }
+
+    async function loadMyReturns() {
+        if (!myReturnsList) return;
+        myReturnsList.innerHTML = "";
+        setReturnsStatus("Loading your returns...");
+
+        try {
+            const response = await fetch("/returns/my");
+            if (response.status === 401) {
+                window.location.href = "/auth/login";
+                return;
+            }
+            if (!response.ok) throw new Error();
+
+            const returns = await response.json();
+            if (returns.length === 0) {
+                setReturnsStatus("No returns yet.");
+                return;
+            }
+
+            setReturnsStatus("");
+            returns.forEach((item) => myReturnsList.appendChild(renderReturn(item)));
+        } catch (error) {
+            setReturnsStatus("Could not load your returns. Please refresh the page.", true);
+        }
+    }
+
+    loadMyReturns();
+
     if (cancelBtn) {
         cancelBtn.addEventListener("click", () => {
             window.location.href = "/storefronts";
@@ -135,6 +208,7 @@ document.addEventListener("DOMContentLoaded", () => {
             form.reset();
             if (damagePreview) damagePreview.innerHTML = "";
             showFeedback("Return submitted successfully");
+            loadMyReturns();
         } catch (error) {
             console.error("Error submitting return:", error);
             showFeedback(error.message || "Something went wrong while submitting your return.", "error");
